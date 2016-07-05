@@ -1,0 +1,30 @@
+{
+    "author": "pranav.rajpurkar@gmail.com",
+    "dependencies": {},
+    "keywords": [],
+    "name": "pebble-fit",
+    "pebble": {
+        "capabilities": [
+            "location",
+            "health"
+        ],
+        "displayName": "pebble-fit",
+        "enableMultiJS": true,
+        "messageKeys": [],
+        "projectType": "native",
+        "resources": {
+            "media": []
+        },
+        "sdkVersion": "3",
+        "targetPlatforms": [
+            "aplite",
+            "basalt",
+            "chalk"
+        ],
+        "uuid": "550d6e34-f534-4572-8325-e6e34583019a",
+        "watchapp": {
+            "watchface": false
+        }
+    },
+    "version": "1.0.0"
+}
