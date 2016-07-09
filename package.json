@@ -4,13 +4,18 @@
     "keywords": [],
     "name": "pebble-fit",
     "pebble": {
+        "messageKeys": {
+          "AppKeyIndex": 0,
+          "AppKeyData": 1,
+          "AppKeyNumDataItems": 2,
+          "AppKeyJSReady": 3
+        },
         "capabilities": [
             "location",
             "health"
         ],
         "displayName": "pebble-fit",
         "enableMultiJS": true,
-        "messageKeys": [],
         "projectType": "native",
         "resources": {
             "media": []

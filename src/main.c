@@ -1,11 +1,14 @@
 #include <pebble.h>
 
+#include "modules/comm.h"
+#include "modules/data.h"
+
 #include "windows/main_window.h"
-#include "modules/health.h"
 
 static void init(void) {
+  comm_init(APP_MESSAGE_INBOX_SIZE_MINIMUM, APP_MESSAGE_OUTBOX_SIZE_MINIMUM);
   main_window_push();
-  print_steps_in_batch_to_now();
+  upload_event();
 }
 
 static void deinit(void) {}
