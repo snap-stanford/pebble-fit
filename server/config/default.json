@@ -1,0 +1,7 @@
+{
+  "app_secret": "my_secret_here",
+  "database" : {
+    "local": "mongodb://localhost/pebble-fit",
+    "use": "local"
+  }
+}
