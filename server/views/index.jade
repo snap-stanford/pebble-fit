@@ -1,7 +1,7 @@
 extends layout
 
 block title
-  title Pebble-Fit
+  title PebbleFit
 
 block description
   meta(name='description', content='Pebble-Fit (description coming soon...)')
@@ -12,10 +12,19 @@ block extralinks
 
 block extrascripts
   script(src="/bower_components/d3/d3.js")
-  <script src="https://d3js.org/d3-time.v1.min.js"></script>
-  <script src="https://d3js.org/d3-time-format.v2.min.js"></script>
   script(src="/bower_components/metrics-graphics/dist/metricsgraphics.js")
   script(src='/javascripts/index.js')
 
 block content
-  div#graphs
+  script.
+    window.watch_token="#{watch}"
+  .cover
+    .container
+      .row
+        .col-md-10.col-md-offset-1
+          .infoCard
+            .infoSubheadline
+              h1 Step Analytics
+              h2 Latest Connection to watch was #{moment(last_time).fromNow()}
+            .infoBody
+              div#graphs

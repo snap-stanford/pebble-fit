@@ -12,6 +12,25 @@ block extralinks
 block extrascripts
 
 block content
-  h1= message
-  h2= error.status
-  pre #{error.stack}
+  .cover
+    .container
+      .row
+        .col-md-6.col-md-offset-3
+          .infoCard
+            .infoSubheadline
+              p
+                | Let's go back to
+                | the
+                a(href="/")  homepage
+            .infoBody
+              .infoHeadline
+                if error.status
+                  h1 #{error.status}: #{error.message}
+                else
+                  h1 Whoops!
+                h2
+                //-p If this is not what you expected, let us know
+                  a(href="/feedback") here
+                  |.
+              if error.stack !== ''
+                pre #{error.stack}
