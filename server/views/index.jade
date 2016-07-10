@@ -1,4 +1,21 @@
 extends layout
 
+block title
+  title Pebble-Fit
+
+block description
+  meta(name='description', content='Pebble-Fit (description coming soon...)')
+
+block extralinks
+  link(rel='stylesheet', href='/stylesheets/index.css')
+  link(rel='stylesheet', href='/bower_components/metrics-graphics/dist/metricsgraphics.css')
+
+block extrascripts
+  script(src="/bower_components/d3/d3.js")
+  <script src="https://d3js.org/d3-time.v1.min.js"></script>
+  <script src="https://d3js.org/d3-time-format.v2.min.js"></script>
+  script(src="/bower_components/metrics-graphics/dist/metricsgraphics.js")
+  script(src='/javascripts/index.js')
+
 block content
-  p Welcome
+  div#graphs
