@@ -20,8 +20,15 @@ router.get(['/latest_hour', '/today', '/yesterday', '/last_3_days'], query.requi
     })
   })
 
+router.get('/analytics', query.requireParam('query', ['watch']), function (req, res, next) {
+  main.get_last_activity_time(req.query.watch, function (err, last_time) {
+    if (err) return next(err)
+    res.render('index', {watch: req.query.watch, last_time: last_time})  
+  })
+})
+
 router.get('/', function (req, res, next) {
-  res.render('index')
+  res.redirect('/analytics?watch=6147d09748dd323ff6d0a3cb50b593db')
 })
 
 
