@@ -10,7 +10,8 @@ typedef enum {
   AppKeyIndex = 0,
   AppKeyData,
   AppKeyNumDataItems,
-  AppKeyJSReady
+  AppKeyJSReady,
+  AppKeyDate,
 } AppKey;
 
 void comm_init(int inbox, int outbox);

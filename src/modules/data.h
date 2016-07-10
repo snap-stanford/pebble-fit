@@ -4,8 +4,7 @@
 
 #define MAX_ENTRIES 60
 
-int data_reload_steps();
-
+int data_reload_steps(time_t * start, time_t * end);
 int* data_get_steps_data();
 
 typedef enum {

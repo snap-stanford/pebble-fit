@@ -8,7 +8,8 @@
           "AppKeyIndex": 0,
           "AppKeyData": 1,
           "AppKeyNumDataItems": 2,
-          "AppKeyJSReady": 3
+          "AppKeyJSReady": 3,
+          "AppKeyDate": 4
         },
         "capabilities": [
             "location",

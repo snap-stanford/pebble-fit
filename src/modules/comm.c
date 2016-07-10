@@ -1,6 +1,7 @@
 #include "comm.h"
 
 static int s_index, s_num_records;
+static time_t end;
 
 static void send_data_item(int index) {
   int *data = data_get_steps_data();
@@ -13,6 +14,8 @@ static void send_data_item(int index) {
     // Include the total number of data items
     if(s_index == 0) {
       dict_write_int(out, AppKeyNumDataItems, &s_num_records, sizeof(int), true);
+      int end_int = (int) end;
+      dict_write_int(out, AppKeyDate, &end_int, sizeof(int), true);
     }
 
     if(app_message_outbox_send() != APP_MSG_OK) {
@@ -48,8 +51,16 @@ void comm_begin_upload(int num_records) {
 }
 
 void upload_event() {
+  if (end == 0) {
+    end = time(NULL) - (15 * SECONDS_PER_MINUTE);
+  }
+
+  time_t start = end - (MAX_ENTRIES * SECONDS_PER_MINUTE);
+  
   // Get last minute data
-  int num_records = data_reload_steps();
+  int num_records = data_reload_steps(&start, &end);
+
+  end = start;
 
   if(num_records == 0) {
     APP_LOG(APP_LOG_LEVEL_INFO, "No new data");
