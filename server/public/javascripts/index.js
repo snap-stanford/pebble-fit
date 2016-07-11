@@ -45,7 +45,7 @@ var createGraph = function (param, legend) {
   })
 }
 
-var graphs = ['latest_hour', 'today', 'last_3_days']
+var graphs = ['latest_hour', 'latest_day', 'last_3_days']
 for (var i = 0; i < graphs.length; i++) {
     createGraph(graphs[i], ['today', 'yesterday', 'day_before_yesterday'])
 }

@@ -63,12 +63,8 @@ exports.get_n_days_before_now = function (n, watch_token, next) {
   })
 }
 
-exports.today = function (watch_token, next) {
+exports.latest_day = function (watch_token, next) {
   return exports.get_n_days_before_now(0, watch_token, next)
-}
-
-exports.yesterday = function (watch_token, next) {
-  return exports.get_n_days_before_now(1, watch_token, next)
 }
 
 exports.last_n_days = function (n, watch_token, next) {

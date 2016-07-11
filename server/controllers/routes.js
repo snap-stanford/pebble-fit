@@ -12,7 +12,7 @@ router.get('/collect', query.requireParam('query', ['data', 'watch', 'date']),
   })
 })
 
-router.get(['/latest_hour', '/today', '/yesterday', '/last_3_days'], query.requireParam('query', ['watch']),
+router.get(['/latest_hour', '/latest_day', '/last_3_days'], query.requireParam('query', ['watch']),
   function (req, res, next) {
     main[req.path.substr(1)](req.query.watch, function (err, activities) {
       if (err) return next(err)
