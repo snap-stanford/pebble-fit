@@ -1,4 +1,4 @@
-#include "data.h"
+#include "steps.h"
 
 static int s_data[MAX_ENTRIES];
 
@@ -18,7 +18,7 @@ int data_reload_steps(time_t * start, time_t * end) {
 
     // Store it
     for(uint32_t i = 0; i < num_records; i++) {
-      s_data[i] = (int)minute_data[i].steps;
+      s_data[i] = (uint32_t) minute_data[i].steps;
     }
   } else {
     APP_LOG(APP_LOG_LEVEL_INFO, "No data available from %d to %d!", (int) *start, (int) *end);

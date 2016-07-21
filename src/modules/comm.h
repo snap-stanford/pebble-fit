@@ -2,7 +2,7 @@
 
 #include <pebble.h>
 
-#include "data.h"
+#include "steps.h"
 
 #include "../windows/main_window.h"
 

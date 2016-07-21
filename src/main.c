@@ -1,7 +1,7 @@
 #include <pebble.h>
 
 #include "modules/comm.h"
-#include "modules/data.h"
+#include "modules/steps.h"
 
 #include "windows/main_window.h"
 
