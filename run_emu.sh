@@ -1,0 +1,1 @@
+pebble build && pebble install --emulator basalt && pebble logs
