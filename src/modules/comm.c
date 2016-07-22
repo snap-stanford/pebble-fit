@@ -4,12 +4,12 @@ static int s_index, s_num_records;
 static time_t end;
 
 static void send_data_item(int index) {
-  int *data = data_get_steps_data();
+  uint8_t *data = data_get_steps_data();
 
   DictionaryIterator *out;
   if(app_message_outbox_begin(&out) == APP_MSG_OK) {
     dict_write_int(out, AppKeyIndex, &index, sizeof(int), true);
-    dict_write_int(out, AppKeyData, &data[s_index], sizeof(int), true);
+    dict_write_int(out, AppKeyData, &data[s_index], sizeof(uint8_t), true);
 
     // Include the total number of data items
     if(s_index == 0) {
