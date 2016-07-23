@@ -2,7 +2,7 @@
 
 #include <pebble.h>
 
-typedef void(CommJSReadyCallback)(void);
+typedef void(CommCallback)(void);
 
 typedef enum {
   AppKeyJSReady,
