@@ -12,7 +12,10 @@ function debug(content) {
 function ajax(url, type, callback) {
   var xhr = new XMLHttpRequest()
   xhr.onload = function () {
-    callback(this.responseText)
+    callback(null, this.status, this.response, this.responseText)
+  }
+  xhr.onerror = function() {
+    callback('Network error.')
   }
   xhr.open(type, url)
   xhr.send()
@@ -36,8 +39,12 @@ function send_steps_data(data, date) {
   + '&data=' + str
   + '&watch=' + Pebble.getWatchToken()
 
-  ajax(url, 'GET', function(responseText) {
-    info('Server response: ' + responseText)
+  ajax(url, 'GET', function(err, status) {
+    if (err || status !== 200) {
+      info(err || status)
+    } else {
+      Pebble.sendAppMessage({'ServerReceived': 1})
+    }
   })
 }
 

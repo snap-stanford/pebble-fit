@@ -33,11 +33,18 @@ static int data_reload_steps(time_t * start, time_t * end) {
 }
 
 static void steps_sent_handler(DictionaryIterator *iter, void *context) {
-  APP_LOG(APP_LOG_LEVEL_INFO, "Steps Sent!");
+  APP_LOG(APP_LOG_LEVEL_INFO, "Steps Sent from Watch!");
+}
+
+static void server_received_steps_handler(DictionaryIterator *iter, void *context) {
+  if(dict_find(iter, AppKeyServerReceived)) {
+    APP_LOG(APP_LOG_LEVEL_INFO, "Steps Received by Server!");
+  }
 }
 
 static void send_steps_to_phone(int num_records) {
   app_message_register_outbox_sent(steps_sent_handler);
+  app_message_register_inbox_received(server_received_steps_handler);
 
   DictionaryIterator *out;
 

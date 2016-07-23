@@ -7,7 +7,8 @@
         "messageKeys": {
           "AppKeyJSReady": 0,
           "AppKeyStepsData": 1,
-          "AppKeyStepsEndDate": 2
+          "AppKeyStepsEndDate": 2,
+          "ServerReceived" : 3
         },
         "capabilities": [
             "location",

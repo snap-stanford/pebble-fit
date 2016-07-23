@@ -8,6 +8,7 @@ typedef enum {
   AppKeyJSReady,
   AppKeyStepsData,
   AppKeyStepsEndDate,
+  AppKeyServerReceived,
 } AppKey;
 
 void comm_init();
