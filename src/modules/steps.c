@@ -1,8 +1,10 @@
 #include "steps.h"
 
+#define MAX_ENTRIES 60
 static uint8_t s_data[MAX_ENTRIES];
+static time_t end;
 
-int data_reload_steps(time_t * start, time_t * end) {
+static int data_reload_steps(time_t * start, time_t * end) {
   // Clear old data
   for(uint8_t i = 0; i < MAX_ENTRIES; i++) {
     s_data[i] = 0;
@@ -20,15 +22,59 @@ int data_reload_steps(time_t * start, time_t * end) {
     for(int i = 0; i < num_records; i++) {
       s_data[i] = minute_data[i].steps;
     }
+
+    APP_LOG(APP_LOG_LEVEL_INFO, "Got %d/%d new entries from the Health API from %d to %d", (int)num_records, MAX_ENTRIES, (int) *start, (int) *end);
+
   } else {
     APP_LOG(APP_LOG_LEVEL_INFO, "No data available from %d to %d!", (int) *start, (int) *end);
   }
 
-  APP_LOG(APP_LOG_LEVEL_INFO, "Got %d/%d new entries from the Health API from %d to %d", (int)num_records, MAX_ENTRIES, (int) *start, (int) *end);
-
-  return (int)num_records;
+  return (int) num_records;
 }
 
-uint8_t* data_get_steps_data() {
-  return s_data;  
+static void steps_sent_handler(DictionaryIterator *iter, void *context) {
+  APP_LOG(APP_LOG_LEVEL_INFO, "Steps Sent!");
+}
+
+static void send_steps_to_phone(int num_records) {
+  app_message_register_outbox_sent(steps_sent_handler);
+
+  DictionaryIterator *out;
+
+  if(app_message_outbox_begin(&out) == APP_MSG_OK) {
+    dict_write_data(out, AppKeyStepsData, s_data, sizeof(uint8_t) * num_records);
+    dict_write_int(out, AppKeyStepsEndDate, &end, sizeof(int), true);
+
+    if(app_message_outbox_send() != APP_MSG_OK) {
+      APP_LOG(APP_LOG_LEVEL_ERROR, "Error sending message");
+    }
+  } else {
+    APP_LOG(APP_LOG_LEVEL_ERROR, "Error beginning message");
+  }
+}
+
+void send_latest_steps_to_phone() {
+  if (end == 0) {
+    end = time(NULL) - (15 * SECONDS_PER_MINUTE);
+  }
+
+  time_t start = end - (MAX_ENTRIES * SECONDS_PER_MINUTE);
+  
+  // Get last minute data
+  int num_records = data_reload_steps(&start, &end);
+
+  end = start;
+
+  if(num_records == 0) {
+    APP_LOG(APP_LOG_LEVEL_INFO, "No new data");
+    return;
+  }
+
+  // Send to JS
+  if(connection_service_peek_pebble_app_connection()) {
+    APP_LOG(APP_LOG_LEVEL_INFO, "Beginning upload...");
+    send_steps_to_phone(num_records);
+  } else {
+    APP_LOG(APP_LOG_LEVEL_ERROR, "Could not send data, connection unavailable");
+  }
 }

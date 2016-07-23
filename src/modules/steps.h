@@ -1,11 +1,9 @@
 #pragma once
 
 #include <pebble.h>
+#include "comm.h"
 
-#define MAX_ENTRIES 60
-
-int data_reload_steps(time_t * start, time_t * end);
-uint8_t* data_get_steps_data();
+void send_latest_steps_to_phone();
 
 typedef enum {
   PersistKeyLastUploadTime = 0

@@ -2,18 +2,14 @@
 
 #include <pebble.h>
 
-#include "steps.h"
+typedef void(CommJSReadyCallback)(void);
 
 typedef enum {
-  AppKeyIndex = 0,
-  AppKeyData,
-  AppKeyNumDataItems,
   AppKeyJSReady,
-  AppKeyDate,
+  AppKeyStepsData,
+  AppKeyStepsEndDate,
 } AppKey;
 
-void comm_init(int inbox, int outbox);
+void comm_init();
 
-void comm_begin_upload(int num_records);
-
-void upload_event();
+void comm_deinit();
