@@ -8,7 +8,7 @@ router.get('/collect', query.requireParam('query', ['data', 'watch', 'date']),
   function (req, res, next) {
   main.saveActivities(req.query.data.split(','), req.query.date, req.query.watch, function (err) {
     if (err) return next(err)
-    res.json({"message": "ok"})
+    res.status(200).end()
   })
 })
 
