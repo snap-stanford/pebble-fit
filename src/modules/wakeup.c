@@ -5,15 +5,15 @@ static void wakeup_handler(WakeupId id, int32_t reason) {
 }
 
 
-void set_wakeup_in_x() {
-  time_t timestamp = time(NULL) + 5;
+void wakeup_set() {
+  time_t timestamp = time(NULL) + (5 * SECONDS_PER_MINUTE);
   const int cookie = 0;
   const bool notify_if_missed = true;
   wakeup_schedule(timestamp, cookie, notify_if_missed);
   APP_LOG(APP_LOG_LEVEL_INFO, "Set wakeup...");
 }
 
-bool get_wakeup_reason() {
+bool wakeup_caused_launch() {
   if (launch_reason() == APP_LAUNCH_WAKEUP) {
     APP_LOG(APP_LOG_LEVEL_INFO, "Woken up by wakeup");
     WakeupId id = 0;

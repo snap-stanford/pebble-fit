@@ -2,6 +2,6 @@
 
 #include <pebble.h>
 
-void set_wakeup_in_x();
+void wakeup_set();
 
-bool get_wakeup_reason();
+bool wakeup_caused_launch();
