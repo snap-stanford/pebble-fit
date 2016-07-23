@@ -56,3 +56,7 @@ void main_window_push() {
   });
   window_stack_push(s_window, true);
 }
+
+void main_window_remove() {
+  window_stack_remove(s_window, false);
+}
