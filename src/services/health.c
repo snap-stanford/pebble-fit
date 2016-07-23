@@ -1,3 +1,5 @@
+#include "health.h"
+
 static void health_handler(HealthEventType event, void *context) {
   HealthMetric metric = HealthMetricStepCount;
   HealthServiceAccessibilityMask result = 
@@ -13,6 +15,8 @@ static void health_handler(HealthEventType event, void *context) {
 void health_subscribe() {
   if(!health_service_events_subscribe(health_handler, NULL)) {
     APP_LOG(APP_LOG_LEVEL_ERROR, "Health not available!");
+  } else {
+    APP_LOG(APP_LOG_LEVEL_INFO, "Subscribed to health!");
   }
 }
 
