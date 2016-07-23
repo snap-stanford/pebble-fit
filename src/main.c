@@ -13,8 +13,13 @@ static void deinit(void) {
   wakeup_set();
 }
 
+static void js_ready_callback() {
+  APP_LOG(APP_LOG_LEVEL_INFO, "Connected to js");
+  send_latest_steps_to_phone();
+}
+
 static void init(void) {
-  comm_init(APP_MESSAGE_INBOX_SIZE_MINIMUM, APP_MESSAGE_OUTBOX_SIZE_MINIMUM);
+  comm_init(js_ready_callback);
   main_window_push();
   if (wakeup_caused_launch()) {
     main_window_remove();
