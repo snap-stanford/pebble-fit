@@ -40,20 +40,29 @@ static void server_received_steps_handler(DictionaryIterator *iter, void *contex
   if(dict_find(iter, AppKeyServerReceived)) {
     APP_LOG(APP_LOG_LEVEL_INFO, "Steps Received by Server!");
   }
+  CommCallback *cb = (CommCallback *) context;
+  cb();
 }
 
-static void send_steps_to_phone(int num_records) {
-  app_message_register_outbox_sent(steps_sent_handler);
-  app_message_register_inbox_received(server_received_steps_handler);
+static void send_steps_to_phone(time_t start, time_t end) {
+  int num_records = data_reload_steps(&start, &end);
+
+  if (num_records == 0) {
+    APP_LOG(APP_LOG_LEVEL_INFO, "No new data");
+    return;
+  }
 
   DictionaryIterator *out;
 
   if(app_message_outbox_begin(&out) == APP_MSG_OK) {
+    app_message_register_outbox_sent(steps_sent_handler);
+    app_message_register_inbox_received(server_received_steps_handler);
+  
     dict_write_data(out, AppKeyStepsData, s_data, sizeof(uint8_t) * num_records);
-    dict_write_int(out, AppKeyStepsEndDate, &end, sizeof(int), true);
+    dict_write_int(out, AppKeyStepsEndDate, &start, sizeof(int), true);
 
     if(app_message_outbox_send() != APP_MSG_OK) {
-      APP_LOG(APP_LOG_LEVEL_ERROR, "Error sending message");
+      APP_LOG(APP_LOG_LEVEL_ERROR, "Error starting send of message.");
     }
   } else {
     APP_LOG(APP_LOG_LEVEL_ERROR, "Error beginning message");
@@ -66,22 +75,5 @@ void send_latest_steps_to_phone() {
   }
 
   time_t start = end - (MAX_ENTRIES * SECONDS_PER_MINUTE);
-  
-  // Get last minute data
-  int num_records = data_reload_steps(&start, &end);
-
-  end = start;
-
-  if(num_records == 0) {
-    APP_LOG(APP_LOG_LEVEL_INFO, "No new data");
-    return;
-  }
-
-  // Send to JS
-  if(connection_service_peek_pebble_app_connection()) {
-    APP_LOG(APP_LOG_LEVEL_INFO, "Beginning upload...");
-    send_steps_to_phone(num_records);
-  } else {
-    APP_LOG(APP_LOG_LEVEL_ERROR, "Could not send data, connection unavailable");
-  }
+  send_steps_to_phone(start, end);
 }
