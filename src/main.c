@@ -42,7 +42,7 @@ static void init(void) {
 
 
 int main(void) {
-	init();
-	app_event_loop();
-	deinit();
+  init();
+  app_event_loop();
+  deinit();
 }
