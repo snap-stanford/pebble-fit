@@ -9,7 +9,8 @@
           "AppKeyStepsData": 1,
           "AppKeyDate": 2,
           "AppKeyServerReceived" : 3,
-          "AppKeyLaunchReason" : 4
+          "AppKeyLaunchReason" : 4,
+          "AppKeyDelaunchReason": 5
         },
         "capabilities": [
             "location",

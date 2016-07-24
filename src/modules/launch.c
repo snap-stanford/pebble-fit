@@ -7,12 +7,12 @@
 static time_t s_time;
 static int s_reason;
 
-static void data_write(DictionaryIterator * out) {
+static void launch_write(DictionaryIterator * out) {
   dict_write_int(out, AppKeyLaunchReason, &s_reason, sizeof(int), true);
   dict_write_int(out, AppKeyDate, &s_time, sizeof(int), true);
 }
 
-void send_wakeup_reason() {
+void send_launch_notification() {
   s_time = time(NULL);
   switch (launch_reason()) {
     case APP_LAUNCH_USER:
@@ -26,5 +26,16 @@ void send_wakeup_reason() {
       s_reason = OTHER_LAUNCH;
   }
 
-  comm_send_data(data_write, comm_sent_handler, comm_server_received_handler);
+  comm_send_data(launch_write, comm_sent_handler, comm_server_received_handler);
+}
+
+static void delaunch_write(DictionaryIterator * out) {
+  int placeholder = 0;
+  dict_write_int(out, AppKeyDelaunchReason, &placeholder, sizeof(int), true);
+  dict_write_int(out, AppKeyDate, &s_time, sizeof(int), true);
+}
+
+void send_delaunch_notification() {
+  s_time = time(NULL);
+  comm_send_data(delaunch_write, comm_sent_handler, NULL);
 }

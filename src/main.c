@@ -17,7 +17,7 @@ static void init_callback() {
       send_latest_steps_to_phone();
       break;
     case 1:
-      send_wakeup_reason();
+      send_launch_notification();
       break;
   }
   init_stage++;
@@ -31,6 +31,7 @@ static void init(void) {
 
 static void deinit(void) {
   wakeup_set();
+  send_delaunch_notification();
 }
 
 int main(void) {
