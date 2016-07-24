@@ -4,9 +4,19 @@ var query = require('./query')
 var main = require('./main')
 var _ = require('lodash')
 
-router.get('/collect', query.requireParam('query', ['data', 'watch', 'date']),
+router.get('/steps', query.requireParam('query', ['data', 'watch', 'date']),
   function (req, res, next) {
-  main.saveActivities(req.query.data.split(','), req.query.date, req.query.watch, function (err) {
+  main.saveActivities(req.query.data.split(','), req.query.date, req.query.watch,
+    function (err) {
+    if (err) return next(err)
+    res.status(200).end()
+  })
+})
+
+router.get('/launch', query.requireParam('query', ['reason', 'watch', 'date']),
+  function (req, res, next) {
+  main.saveEvent('launch', req.query.reason, req.query.date, req.query.watch,
+    function (err) {
     if (err) return next(err)
     res.status(200).end()
   })
