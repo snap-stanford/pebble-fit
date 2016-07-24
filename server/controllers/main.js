@@ -1,5 +1,6 @@
 var _ = require('lodash')
 var Activity = require('../models/activity')
+var Event = require('../models/event')
 var moment = require('moment')
 var async = require('async')
 
@@ -15,6 +16,12 @@ exports.saveActivities = function (data, start_time, watch_token, next) {
       data_point.save(cb)
     }, next)
   })
+}
+
+exports.saveEvent = function (type, context, start_time, watch_token, next) {
+  var start = moment.unix(start_time).toDate()
+  var event = new Event({time: start, data: context, watch: watch_token, type: type})
+  event.save(next)
 }
 
 exports.getActivitiesBetween = function (start_time, end_time, next) {
