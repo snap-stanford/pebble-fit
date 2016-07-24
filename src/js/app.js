@@ -9,34 +9,23 @@ function debug(content) {
   if(DEBUG) info(content)
 }
 
-function ajax(url, type, callback) {
-  var xhr = new XMLHttpRequest()
-  xhr.onload = function () {
-    callback(null, this.status, this.response, this.responseText)
-  }
-  xhr.onerror = function() {
-    callback('Network error.')
-  }
-  xhr.open(type, url)
-  xhr.send()
-}
-
 Pebble.addEventListener('ready', function() {
   info('PebbleKit JS ready!')
   Pebble.sendAppMessage({'AppKeyJSReady': 1})
 })
 
-function send_steps_data(data, date) {
-  debug('Uploading steps data...')
-    // Convert to string
-  var str = '' + data[0];
-  for(var i = 1; i < data.length; i++) {
-    str += ',' + data[i]
+function send_data_to_url(url) {
+  function ajax(url, type, callback) {
+    var xhr = new XMLHttpRequest()
+    xhr.onload = function () {
+      callback(null, this.status, this.response, this.responseText)
+    }
+    xhr.onerror = function() {
+      callback('Network error.')
+    }
+    xhr.open(type, url)
+    xhr.send()
   }
-  var url = server + '/collect'
-  + '?date=' + date
-  + '&data=' + str
-  + '&watch=' + Pebble.getWatchToken()
 
   ajax(url, 'GET', function(err, status) {
     if (err || status !== 200) {
@@ -47,10 +36,35 @@ function send_steps_data(data, date) {
   })
 }
 
+function send_steps_data(data, date) {
+  debug('Uploading steps data...')
+    // Convert to string
+  var str = '' + data[0];
+  for(var i = 1; i < data.length; i++) {
+    str += ',' + data[i]
+  }
+  var url = server + '/steps'
+  + '?date=' + date
+  + '&data=' + str
+  + '&watch=' + Pebble.getWatchToken()
+
+  send_data_to_url(url)
+}
+
+function send_launch_data(reason, date) {
+  debug('Uploading launch data...')
+  var url = server + '/launch'
+  + '?date=' + date
+  + '&reason=' + reason
+  + '&watch=' + Pebble.getWatchToken()
+
+  send_data_to_url(url)
+}
+
 Pebble.addEventListener('appmessage', function(dict) {
   debug('Got appmessage: ' + JSON.stringify(dict.payload))
 
-  var data, date
+  var date
 
   if(dict.payload['AppKeyDate'] != undefined) {
     date = dict.payload['AppKeyDate']
@@ -58,8 +72,14 @@ Pebble.addEventListener('appmessage', function(dict) {
   }
 
   if(dict.payload['AppKeyStepsData'] != undefined) {
-    data = dict.payload['AppKeyStepsData']
+    var data = dict.payload['AppKeyStepsData']
     debug('Data: ' + data)
     send_steps_data(data, date)
+  }
+
+  if(dict.payload['AppKeyLaunchReason'] != undefined) {
+    var reason = dict.payload['AppKeyLaunchReason']
+    debug('Reason: ' + data)
+    send_launch_data(reason, date)
   }
 })
