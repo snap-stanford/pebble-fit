@@ -34,22 +34,10 @@ static void load_data(time_t * start, time_t * end) {
   APP_LOG(APP_LOG_LEVEL_INFO, "Got %d/%d new entries for steps data from %d to %d", (int)s_num_records, MAX_ENTRIES, (int) *start, (int) *end);
 }
 
-static void sent_handler(DictionaryIterator *iter, void *context) {
-  APP_LOG(APP_LOG_LEVEL_INFO, "Steps Sent from Watch!");
-}
-
-static void received_server_handler(DictionaryIterator *iter, void *context) {
-  if(dict_find(iter, AppKeyServerReceived)) {
-    APP_LOG(APP_LOG_LEVEL_INFO, "Steps Received by Server!");
-  }
-  CommCallback *cb = (CommCallback *) context;
-  cb();
-}
-
-static void send_data_callback(DictionaryIterator * out) {
+static void data_write(DictionaryIterator * out) {
   //write the data
   dict_write_data(out, AppKeyStepsData, s_data, sizeof(uint8_t) * s_num_records);
-  dict_write_int(out, AppKeyStepsEndDate, &s_start, sizeof(int), true);
+  dict_write_int(out, AppKeyDate, &s_start, sizeof(int), true);
 }
 
 static void send_to_phone(time_t start, time_t end) {
@@ -60,7 +48,7 @@ static void send_to_phone(time_t start, time_t end) {
     return;
   }
 
-  comm_send_data(send_data_callback, sent_handler, received_server_handler);
+  comm_send_data(data_write, comm_sent_handler, comm_server_received_handler);
 }
 
 void send_latest_steps_to_phone() {
