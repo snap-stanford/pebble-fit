@@ -42,7 +42,7 @@ function send_steps_data(data, date) {
     if (err || status !== 200) {
       info(err || status)
     } else {
-      Pebble.sendAppMessage({'ServerReceived': 1})
+      Pebble.sendAppMessage({'AppKeyServerReceived': 1})
     }
   })
 }
@@ -52,8 +52,8 @@ Pebble.addEventListener('appmessage', function(dict) {
 
   var data, date
 
-  if(dict.payload['AppKeyStepsEndDate'] != undefined) {
-    date = dict.payload['AppKeyStepsEndDate']
+  if(dict.payload['AppKeyDate'] != undefined) {
+    date = dict.payload['AppKeyDate']
     debug('Date: ' + date)
   }
 
