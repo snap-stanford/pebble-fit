@@ -26,11 +26,23 @@ block content
         .col-md-12
           .infoCard
             .infoBody
-              .btn-group.modify-time-period-controls
-                button.btn.btn-default(type='button', data-time_period='latest_hour') Latest Hour
-                button.btn.btn-default(type='button', data-time_period='latest_day') One Day
-                button.btn.btn-default(type='button', data-time_period='compare_yesterday') Compare With Yesterday
+              ul.list-inline
+                li
+                  .btn-group.modify-time-period-controls
+                    button.btn.btn-default(type='button', data-time_period='latest_hour') Latest Hour
+                    button.btn.btn-default(type='button', data-time_period='latest_day') One Day
+                    button.btn.btn-default(type='button', data-time_period='compare_yesterday') Compare With Yesterday
+                li
+                  .btn-group.modify-y-scale-controls
+                    button.btn.btn-default(type='button', data-scale='log') Log Step Count
+                    button.btn.btn-default(type='button', data-scale='linear') Linear Step Count
+                li
+                  .checkbox.showMarkers
+                    label
+                      input(type="checkbox")
+                      | Show Events
               div#graph.graph
               div#legend
+
             .infoSubheadline
               p Latest Connection to watch was #{moment(last_time).fromNow()}
