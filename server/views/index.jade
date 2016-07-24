@@ -49,36 +49,40 @@ block content
             .infoBody
               .infoHeadline
                 h1 What's new?
+                h2 
+                  a(href="https://github.com/rajpurkar/pebble-fit")
+                    | https://github.com/rajpurkar/pebble-fit
               .row
                 .col-md-4
                   img.pebble-screenshot(src="/images/app.png")
                 .col-md-8
-                  h3 Events
-                  p
-                    | User behavior is logged through events. Currently, every
-                    | time the app opens, either through the user, or through 
-                    | reminders, the watch notifies the server of the launch
-                    | event, along with the reason for launch. A similar
-                    | notification takes place when the user closes the app.
-                  h3 Wakeup
-                  p
-                    | A wakeup event is launched in the cleanup stage before 
-                    | the app closes. The time between app wakeups is currently
-                    | set at 5 minutes. In the next stage, the server will have
-                    | the ability to modify this time.
-                  h3 Health
-                  p
-                    | Health data, more specifically step data, is managed 
-                    | differently for the interface and for collection.
-                    | On the watch screen, realtime health data is aggregated
-                    | on watch over the hour. On the opening of the app, app 
-                    | data from the most recent hour is sent over in a batch to
-                    | the server.
-                  h3 Communication
-                  p
-                    | The phone now acts as an invisible intermediary between
-                    | watch and server, not 
-                    | sending acknowledgements of data transfer success to watch 
-                    | until the server has confirmed storage of data.
+                  .explanation
+                    h3 Events
+                    p
+                      | User behavior is logged through events. Currently, every
+                      | time the app opens, either through the user, or through 
+                      | reminders, the watch notifies the server of the launch
+                      | event, along with the reason for launch. A similar
+                      | notification takes place when the user closes the app.
+                    h3 Wakeup
+                    p
+                      | A wakeup event is launched in the cleanup stage before 
+                      | the app closes. The time between app wakeups is currently
+                      | set at 5 minutes. In the next stage, the server will have
+                      | the ability to modify this time.
+                    h3 Health
+                    p
+                      | Health data, more specifically step data, is managed 
+                      | differently for the interface and for collection.
+                      | On the watch screen, realtime health data is aggregated
+                      | on watch over the hour. On the opening of the app, app 
+                      | data from the most recent hour is sent over in a batch to
+                      | the server.
+                    h3 Communication
+                    p
+                      | The phone now acts as an invisible intermediary between
+                      | watch and server, not 
+                      | sending acknowledgements of data transfer success to watch 
+                      | until the server has confirmed storage of data.
             .infoSubheadline
               p Last Updated #{moment('22:00 GMT+0400 24 July, 2016').fromNow()}
