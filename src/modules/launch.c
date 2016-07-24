@@ -1,23 +1,30 @@
-#include "wakeup.h"
+#include "launch.h"
 
-static void sent_handler(DictionaryIterator *iter, void *context) {
-  APP_LOG(APP_LOG_LEVEL_INFO, " Sent from Watch!");
-}
+#define USER_LAUNCH 0
+#define WAKEUP_LAUNCH 1
+#define OTHER_LAUNCH 2
 
-static void received_server_handler(DictionaryIterator *iter, void *context) {
-  if(dict_find(iter, AppKeyServerReceived)) {
-    APP_LOG(APP_LOG_LEVEL_INFO, "Steps Received by Server!");
-  }
-  CommCallback *cb = (CommCallback *) context;
-  cb();
-}
+static time_t s_time;
+static int s_reason;
 
-static void send_data_callback(DictionaryIterator * out) {
-  //write the data
-  dict_write_data(out, AppKeyStepsData, s_data, sizeof(uint8_t) * s_num_records);
-  dict_write_int(out, AppKeyStepsEndDate, &s_start, sizeof(int), true);
+static void data_write(DictionaryIterator * out) {
+  dict_write_int(out, AppKeyLaunchReason, &s_reason, sizeof(int), true);
+  dict_write_int(out, AppKeyDate, &s_time, sizeof(int), true);
 }
 
 void send_wakeup_reason() {
+  s_time = time(NULL);
+  switch (launch_reason()) {
+    case APP_LAUNCH_USER:
+    case APP_LAUNCH_QUICK_LAUNCH:
+      s_reason = USER_LAUNCH;
+      break;
+    case APP_LAUNCH_WAKEUP:
+      s_reason = WAKEUP_LAUNCH;
+      break;
+    default:
+      s_reason = OTHER_LAUNCH;
+  }
 
+  comm_send_data(data_write, comm_sent_handler, comm_server_received_handler);
 }
