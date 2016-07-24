@@ -27,7 +27,7 @@ void comm_send_data(
 
   // init dict
   if(app_message_outbox_begin(&out) != APP_MSG_OK) {
-    APP_LOG(APP_LOG_LEVEL_ERROR, "Error beginning message");
+    APP_LOG(APP_LOG_LEVEL_ERROR, "Error beginning message.");
     return;
   }
 

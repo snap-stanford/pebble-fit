@@ -4,7 +4,6 @@ static void wakeup_handler(WakeupId id, int32_t reason) {
   vibes_double_pulse();
 }
 
-
 void wakeup_set() {
   time_t timestamp = time(NULL) + (5 * SECONDS_PER_MINUTE);
   const int cookie = 0;
