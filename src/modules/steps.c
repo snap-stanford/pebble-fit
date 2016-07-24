@@ -52,7 +52,8 @@ static void send_to_phone(time_t start, time_t end) {
 }
 
 void send_latest_steps_to_phone() {
-  time_t end = time(NULL) - (15 * SECONDS_PER_MINUTE);
-  time_t start = end - (MAX_ENTRIES * SECONDS_PER_MINUTE);
-  send_to_phone(start, end);
+  time_t now = time(NULL);
+  // time_t fifteen_minutes_before = time(NULL) - (15 * SECONDS_PER_MINUTE);
+  time_t start = now - (MAX_ENTRIES * SECONDS_PER_MINUTE);
+  send_to_phone(start, now);
 }
