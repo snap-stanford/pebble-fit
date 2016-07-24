@@ -50,6 +50,6 @@ var last_n_days = function (n, watch_token, next) {
   }, next)
 }
 
-exports.last_3_days = function (watch_token, next) {
-  return last_n_days(3, watch_token, next)
+exports.compare_yesterday = function (watch_token, next) {
+  return last_n_days(2, watch_token, next)
 }

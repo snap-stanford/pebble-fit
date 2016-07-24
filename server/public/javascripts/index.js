@@ -12,12 +12,13 @@ var opts = {
   y_scale_type: 'log',
   missing_is_hidden: true,
   brushing: true,
-  brushing_history: true,
+  brushing_history: true
 }
 
 function load (url) {
-  d3.json('/' + url + '?watch=' + window.watch_token, function (obj) {
-    if (obj.length === 3) {
+  d3.json('/' + url + '?watch=' + window.watch_token, function (response) {
+    var obj = response.data
+    if (response.type === 'multiple') {
       var data = []
       for (var day = 0; day < obj.length; day++) {
         var day_activity = obj[day].activities
@@ -28,6 +29,7 @@ function load (url) {
         }
         data.push(day_activity)
       }
+      console.log(data.length)
       reload_graphic(false, data)
     } else {
       var data = obj.activities
@@ -50,12 +52,15 @@ function load (url) {
 function reload_graphic (is_single, data, markers) {
   var options = JSON.parse(JSON.stringify(opts))
   options.brushing_interval = d3.time.minute
-  options.color = '#26c1e4'
+  options.legend = ['today']
+  options.colors = ['#26c1e4']
   if (is_single) {
     options.markers = markers
-    options.legend = ['today']
   } else {
-    options.legend = ['today', 'yesterday', 'day_before_yesterday']
+    for (var i = 1; i < data.length; i++) {
+      options.colors.push(['#777'])
+      options.legend.push(i + ' days ago')
+    }
   }
   options.legend_target = '#legend'
   options.data = MG.convert.number(data, 'steps')

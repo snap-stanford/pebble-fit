@@ -35,13 +35,21 @@ router.get(
       })
   })
 
-router.get(
-  ['/latest_hour', '/latest_day', '/last_3_days'],
+router.get(['/latest_hour', '/latest_day'],
   query.requireParam('query', ['watch']),
   function (req, res, next) {
     main[req.path.substr(1)](req.query.watch, function (err, data) {
       if (err) return next(err)
-      res.json(data)
+      res.json({data: data, type: 'single'})
+    })
+  })
+
+router.get(['/compare_yesterday'],
+  query.requireParam('query', ['watch']),
+  function (req, res, next) {
+    main[req.path.substr(1)](req.query.watch, function (err, data) {
+      if (err) return next(err)
+      res.json({data: data, type: 'multiple'})
     })
   })
 
