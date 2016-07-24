@@ -1,64 +1,73 @@
 var graphsDiv = $('#graphs')
 
-var createGraph = function (param, legend) {
-  g = document.createElement('div')
-  g.setAttribute('id', param)
-  g.setAttribute('class', 'graph')
-  graphsDiv.append(g)
-  d3.json('/' + param + '?watch=' + window.watch_token, function (json) {
-    console.log(json)
-    var data = json.activities
-    for (var i = 0; i < data.length; i++) {
-      if ($.isArray(data[i])) {
-        for (var j = 0; j < data[i].length; j++) {
-          var result = new Date(data[i][j].time)
-          result.setDate(result.getDate() + i) // add days
-          data[i][j].time = result
+var opts = {
+  full_width: true,
+  height: 300,
+  right: 40,
+  top: 50,
+  animate_on_load: true,
+  target: '#graph',
+  x_accessor: 'time',
+  y_accessor: 'steps',
+  y_scale_type: 'log',
+  missing_is_hidden: true,
+  brushing: true,
+  brushing_history: true,
+}
+
+function load (url) {
+  d3.json('/' + url + '?watch=' + window.watch_token, function (obj) {
+    if (obj.length === 3) {
+      var data = []
+      for (var day = 0; day < obj.length; day++) {
+        var day_activity = obj[day].activities
+        for (var j = 0; j < day_activity.length; j++) {
+          var result = new Date(day_activity[j].time)
+          result.setDate(result.getDate() + day) // add days
+          day_activity[j].time = result
         }
-      } else {
-        data[i].time = new Date(data[i].time)
+        data.push(day_activity)
       }
-    }
-    data = MG.convert.number(data, 'steps')
-
-    var markers = json.events
-    for (var j = 0; j < markers.length; j++) {
-      markers[j].time = new Date(markers[j].time)
-      markers[j].label = markers[j].type
-      if (markers[j].data) {
-        markers[j].label += " " + markers[j].data
-      }
-    }
-
-    var options = {
-      title: param.replace(/_/g, ' '),
-      data: data,
-      width: $(g).width(),
-      animate_on_load: true,
-      height: 200,
-      right: 40,
-      target: '#' + param,
-      x_accessor: 'time',
-      y_accessor: 'steps',
-      interpolate: 'basic',
-      markers: markers
-    }
-
-    if ($.isArray(data[0])) {
-      legendDiv = document.createElement('div')
-      legendDiv.setAttribute('id', param + 'legend')
-      $('#' + param).append(legendDiv)
-      options['legend'] = legend
-      options['legend_target'] = '#' + param + 'legend'
+      reload_graphic(false, data)
     } else {
-      options['color'] = '#43F436'
+      var data = obj.activities
+      for (var i = 0; i < data.length; i++) {
+        data[i].time = new Date(data[i].time)
+        var markers = obj.events
+        for (var j = 0; j < markers.length; j++) {
+          markers[j].time = new Date(markers[j].time)
+          markers[j].label = markers[j].type
+          if (markers[j].data) {
+            markers[j].label += ' ' + markers[j].data
+          }
+        }
+      }
+      reload_graphic(true, data, markers)
     }
-
-    MG.data_graphic(options)
   })
 }
 
-var graphs = ['latest_hour', 'latest_day'] //, 'last_3_days']
-for (var i = 0; i < graphs.length; i++) {
-  createGraph(graphs[i], ['today', 'yesterday', 'day_before_yesterday'])
+function reload_graphic (is_single, data, markers) {
+  var options = JSON.parse(JSON.stringify(opts))
+  options.brushing_interval = d3.time.minute
+  options.color = '#26c1e4'
+  if (is_single) {
+    options.markers = markers
+    options.legend = ['today']
+  } else {
+    options.legend = ['today', 'yesterday', 'day_before_yesterday']
+  }
+  options.legend_target = '#legend'
+  options.data = MG.convert.number(data, 'steps')
+  MG.data_graphic(options)
 }
+
+$('.modify-time-period-controls button').on('click', function () {
+  var time_period = $(this).data('time_period')
+  load(time_period)
+  $(this).addClass('active').siblings().removeClass('active')
+})
+
+$(function () {
+  $(".modify-time-period-controls > .btn").first().trigger('click');  
+})

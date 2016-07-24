@@ -7,12 +7,14 @@ block description
   meta(name='description', content='Pebble-Fit (description coming soon...)')
 
 block extralinks
-  link(rel='stylesheet', href='/stylesheets/index.css')
   link(rel='stylesheet', href='/bower_components/metrics-graphics/dist/metricsgraphics.css')
+  link(rel='stylesheet', href='/bower_components/mg-line-brushing/dist/mg_line_brushing.css')
+  link(rel='stylesheet', href='/stylesheets/index.css')
 
 block extrascripts
   script(src="/bower_components/d3/d3.js")
   script(src="/bower_components/metrics-graphics/dist/metricsgraphics.js")
+  script(src="bower_components/mg-line-brushing/dist/mg_line_brushing.js")
   script(src='/javascripts/index.js')
 
 block content
@@ -21,10 +23,14 @@ block content
   .cover
     .container
       .row
-        .col-md-10.col-md-offset-1
+        .col-md-12
           .infoCard
-            .infoSubheadline
-              h1 Step Analytics
-              h2 Latest Connection to watch was #{moment(last_time).fromNow()}
             .infoBody
-              div#graphs
+              .btn-group.modify-time-period-controls
+                button.btn.btn-default(type='button', data-time_period='latest_hour') Latest Hour
+                button.btn.btn-default(type='button', data-time_period='latest_day') One Day
+                button.btn.btn-default(type='button', data-time_period='last_3_days') Compare with last two days
+              div#graph.graph
+              div#legend
+            .infoSubheadline
+              p Latest Connection to watch was #{moment(last_time).fromNow()}
