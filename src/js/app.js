@@ -61,6 +61,15 @@ function send_launch_data(reason, date) {
   send_data_to_url(url)
 }
 
+function send_delaunch_data(date) {
+  debug('Uploading delaunch data...')
+  var url = server + '/delaunch'
+  + '?date=' + date
+  + '&watch=' + Pebble.getWatchToken()
+
+  send_data_to_url(url)
+}
+
 Pebble.addEventListener('appmessage', function(dict) {
   debug('Got appmessage: ' + JSON.stringify(dict.payload))
 
@@ -68,7 +77,7 @@ Pebble.addEventListener('appmessage', function(dict) {
 
   if(dict.payload['AppKeyDate'] != undefined) {
     date = dict.payload['AppKeyDate']
-    debug('Date: ' + date)
+    debug('Date: ' + date);
   }
 
   if(dict.payload['AppKeyStepsData'] != undefined) {
@@ -79,7 +88,12 @@ Pebble.addEventListener('appmessage', function(dict) {
 
   if(dict.payload['AppKeyLaunchReason'] != undefined) {
     var reason = dict.payload['AppKeyLaunchReason']
-    debug('Reason: ' + data)
+    debug('Reason: ' + reason)
     send_launch_data(reason, date)
+  }
+
+  if(dict.payload['AppKeyDelaunchReason'] != undefined) {
+    debug('Delaunched')
+    send_delaunch_data(date)
   }
 })
