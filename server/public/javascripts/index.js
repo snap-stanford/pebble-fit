@@ -5,7 +5,9 @@ var createGraph = function (param, legend) {
   g.setAttribute('id', param)
   g.setAttribute('class', 'graph')
   graphsDiv.append(g)
-  d3.json('/' + param + '?watch=' + window.watch_token, function (data) {
+  d3.json('/' + param + '?watch=' + window.watch_token, function (json) {
+    console.log(json)
+    var data = json.activities
     for (var i = 0; i < data.length; i++) {
       if ($.isArray(data[i])) {
         for (var j = 0; j < data[i].length; j++) {
@@ -19,17 +21,27 @@ var createGraph = function (param, legend) {
     }
     data = MG.convert.number(data, 'steps')
 
+    var markers = json.events
+    for (var j = 0; j < markers.length; j++) {
+      markers[j].time = new Date(markers[j].time)
+      markers[j].label = markers[j].type
+      if (markers[j].data) {
+        markers[j].label += " " + markers[j].data
+      }
+    }
+
     var options = {
       title: param.replace(/_/g, ' '),
       data: data,
       width: $(g).width(),
       animate_on_load: true,
-      height: 400,
+      height: 200,
       right: 40,
       target: '#' + param,
       x_accessor: 'time',
       y_accessor: 'steps',
       interpolate: 'basic',
+      markers: markers
     }
 
     if ($.isArray(data[0])) {
@@ -46,7 +58,7 @@ var createGraph = function (param, legend) {
   })
 }
 
-var graphs = ['latest_hour', 'latest_day', 'last_3_days']
+var graphs = ['latest_hour', 'latest_day'] //, 'last_3_days']
 for (var i = 0; i < graphs.length; i++) {
   createGraph(graphs[i], ['today', 'yesterday', 'day_before_yesterday'])
 }
