@@ -12,7 +12,8 @@ var opts = {
   y_accessor: 'steps',
   missing_is_hidden: true,
   y_extended_ticks: true,
-  linked: true,
+  y_scale_type: 'log',
+  y_label: 'log steps',
   brushing: true,
   brushing_history: true
 }
@@ -53,7 +54,6 @@ function load (url) {
     globals.multiple = multiple
     globals.data = data
     globals.markers = markers
-
     reload_graphic(multiple, data, markers)
 
   })
@@ -61,6 +61,9 @@ function load (url) {
 
 function reload_graphic (multiple, data, markers) {
   var checkbox = $('.checkbox.showMarkers input')
+  checkbox.attr("disabled", multiple)
+  checkbox.prop("checked", !multiple)
+
   var options = JSON.parse(JSON.stringify(opts))
   options.brushing_interval = d3.time.minute
   options.colors = ['#26c1e4']
@@ -75,7 +78,6 @@ function reload_graphic (multiple, data, markers) {
         options.markers = markers
     }
   }
-  checkbox.attr("disabled", multiple).attr("checked", !multiple)
   options.legend_target = '#legend'
   options.data = MG.convert.number(data, 'steps')
   MG.data_graphic(options)
@@ -104,5 +106,5 @@ $('.checkbox.showMarkers input').change(function () {
 
 $(function () {
   $('.modify-time-period-controls > .btn').first().trigger('click')
-  $('.modify-y-scale-controls > .btn').first().trigger('click')
+  // $('.modify-y-scale-controls > .btn').first().trigger('click')
 })

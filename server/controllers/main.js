@@ -32,10 +32,9 @@ exports.latest_hour = function (watch_token, next) {
 var get_n_days_before_now = function (n, watch_token, next) {
   activities.get_last_recorded_time(watch_token, function (err, latest_time) {
     if (err) return next(err)
-    var end_time = new Date()
-    end_time.setDate(latest_time.getDate() - n)
-    var start_time = new Date()
-    start_time.setDate(latest_time.getDate() - n - 1)
+    latest_time = moment(latest_time)
+    var end_time = latest_time.subtract(n, 'days').toDate()
+    var start_time = latest_time.subtract(n + 1, 'days').toDate()
     get_activities_and_events_between(watch_token, start_time, end_time, next)
   })
 }
