@@ -10,8 +10,8 @@
     "jquery": "~2.1.4",
     "lato-webfont": "^1.1.2",
     "bootstrap": "~3.3.5",
-    "metrics-graphics": "~2.9.0",
-    "d3": "^3.5.17",
-    "mg-line-brushing": "^0.0.3"
+    "metrics-graphics": "2.9.0",
+    "d3": "3.5.17",
+    "mg-line-brushing": "0.0.3"
   }
 }
