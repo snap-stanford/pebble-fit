@@ -1,14 +1,14 @@
 #include "steps.h"
 
 #define MAX_ENTRIES 60
-static uint8_t s_data[MAX_ENTRIES];
+static int s_data[MAX_ENTRIES];
 static int s_num_records;
 static time_t s_start;
 
 static void load_data(time_t * start, time_t * end) {
   // Clear old data
   s_num_records = 0;
-  for(uint8_t i = 0; i < MAX_ENTRIES; i++) {
+  for(int i = 0; i < MAX_ENTRIES; i++) {
     s_data[i] = 0;
   }
 
@@ -36,7 +36,7 @@ static void load_data(time_t * start, time_t * end) {
 
 static void data_write(DictionaryIterator * out) {
   //write the data
-  dict_write_data(out, AppKeyStepsData, s_data, sizeof(uint8_t) * s_num_records);
+  dict_write_data(out, AppKeyStepsData, s_data, sizeof(int) * s_num_records);
   dict_write_int(out, AppKeyDate, &s_start, sizeof(int), true);
 }
 
