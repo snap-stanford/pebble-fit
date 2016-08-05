@@ -1,37 +1,39 @@
 {
-    "author": "pranav.rajpurkar@gmail.com",
-    "dependencies": {},
-    "keywords": [],
-    "name": "pebble-fit",
-    "pebble": {
-        "messageKeys": {
-          "AppKeyJSReady": 0,
-          "AppKeyStepsData": 1,
-          "AppKeyDate": 2,
-          "AppKeyServerReceived" : 3,
-          "AppKeyLaunchReason" : 4,
-          "AppKeyDelaunchReason": 5
-        },
-        "capabilities": [
-            "location",
-            "health"
-        ],
-        "displayName": "pebble-fit",
-        "enableMultiJS": true,
-        "projectType": "native",
-        "resources": {
-            "media": []
-        },
-        "sdkVersion": "3",
-        "targetPlatforms": [
-            "aplite",
-            "basalt",
-            "chalk"
-        ],
-        "uuid": "550d6e34-f534-4572-8325-e6e34583019a",
-        "watchapp": {
-            "watchface": false
-        }
+  "author": "pranav.rajpurkar@gmail.com",
+  "dependencies": {},
+  "keywords": [],
+  "name": "pebble-fit",
+  "pebble": {
+    "messageKeys": {
+      "AppKeyJSReady": 0,
+      "AppKeyStepsData": 1,
+      "AppKeyDate": 2,
+      "AppKeyServerReceived" : 3,
+      "AppKeyLaunchReason" : 4,
+      "AppKeyDelaunchReason": 5,
+      "AppKeyStorageKey" : 6,
+      "AppKeyStorageData": 7
     },
-    "version": "1.0.0"
+    "capabilities": [
+      "location",
+      "health"
+    ],
+    "displayName": "pebble-fit",
+    "enableMultiJS": true,
+    "projectType": "native",
+    "resources": {
+      "media": []
+    },
+    "sdkVersion": "3",
+    "targetPlatforms": [
+      "aplite",
+      "basalt",
+      "chalk"
+    ],
+    "uuid": "550d6e34-f534-4572-8325-e6e34583019a",
+    "watchapp": {
+      "watchface": false
+    }
+  },
+  "version": "1.0.0"
 }
