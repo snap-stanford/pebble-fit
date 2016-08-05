@@ -12,6 +12,8 @@ typedef enum {
   AppKeyServerReceived,
   AppKeyLaunchReason,
   AppKeyDelaunchReason,
+  AppKeyStorageKey,
+  AppKeyStorageData
 } AppKey;
 
 void comm_init();
