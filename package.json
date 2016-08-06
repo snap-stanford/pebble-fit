@@ -6,13 +6,15 @@
   "pebble": {
     "messageKeys": {
       "AppKeyJSReady": 0,
-      "AppKeyStepsData": 1,
-      "AppKeyDate": 2,
-      "AppKeyServerReceived" : 3,
-      "AppKeyLaunchReason" : 4,
-      "AppKeyDelaunchReason": 5,
-      "AppKeyStorageKey" : 6,
-      "AppKeyStorageData": 7
+      "AppKeyDate": 1,
+      "AppKeyServerReceived" : 2,
+      "AppKeyLaunchReason" : 3,
+      "AppKeyDelaunchReason": 4,
+      "AppKeyStorageKey" : 5,
+      "AppKeyStepsData": 6,
+      "AppKeyStorageData": 7,
+      "AppKeyArrayLength": 8,
+      "AppKeyArrayStart": 9
     },
     "capabilities": [
       "location",
