@@ -4,7 +4,7 @@
 static int s_data[MAX_ENTRIES];
 static int s_num_records;
 static time_t s_start;
-const int AppKeyArrayData = 200;
+static const int AppKeyArrayData = 200;
 
 static void load_data(time_t * start, time_t * end) {
   // Clear old data

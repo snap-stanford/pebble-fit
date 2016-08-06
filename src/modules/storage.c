@@ -4,7 +4,7 @@
 static int s_data[MAX_ENTRIES];
 static int s_num_records;
 static int latest_key;
-const int AppKeyArrayData = 200;
+static const int AppKeyArrayData = 200;
 
 static void clear_static_data() {
   s_num_records = 0;
