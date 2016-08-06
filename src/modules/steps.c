@@ -37,7 +37,8 @@ static void load_data(time_t * start, time_t * end) {
 
 static void data_write(DictionaryIterator * out) {
   //write the data
-  dict_write_int(out, AppKeyStepsData, 0, sizeof(int), true);
+  int placeholder = 1;
+  dict_write_int(out, AppKeyStepsData, &placeholder, sizeof(int), true);
 
   dict_write_int(out, AppKeyDate, &s_start, sizeof(int), true);
   dict_write_int(out, AppKeyArrayLength, &s_num_records, sizeof(int), true);
