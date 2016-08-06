@@ -5,6 +5,7 @@
 #include "modules/launch.h"
 
 #include "services/health.h"
+#include "services/tick.h"
 #include "services/wakeup.h"
 
 #include "windows/main_window.h"
@@ -24,9 +25,10 @@ static void init_callback() {
 }
 
 static void init(void) {
-  comm_init(init_callback);
+  tick_subscribe();
   health_subscribe();
   main_window_push();
+  // comm_init(init_callback);
 }
 
 static void deinit(void) {
