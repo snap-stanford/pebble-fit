@@ -7,13 +7,15 @@ typedef void (DataWriteCallback)(DictionaryIterator*);
 
 typedef enum {
   AppKeyJSReady,
-  AppKeyStepsData,
   AppKeyDate,
   AppKeyServerReceived,
   AppKeyLaunchReason,
   AppKeyDelaunchReason,
   AppKeyStorageKey,
-  AppKeyStorageData
+  AppKeyStepsData,
+  AppKeyStorageData,
+  AppKeyArrayLength,
+  AppKeyArrayStart
 } AppKey;
 
 void comm_init();

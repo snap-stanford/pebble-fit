@@ -4,6 +4,7 @@
 static int s_data[MAX_ENTRIES];
 static int s_num_records;
 static time_t s_start;
+const int AppKeyArrayData = 200;
 
 static void load_data(time_t * start, time_t * end) {
   // Clear old data
@@ -36,8 +37,14 @@ static void load_data(time_t * start, time_t * end) {
 
 static void data_write(DictionaryIterator * out) {
   //write the data
-  dict_write_data(out, AppKeyStepsData, s_data, sizeof(int) * s_num_records);
+  dict_write_int(out, AppKeyStepsData, 0, sizeof(int), true);
+
   dict_write_int(out, AppKeyDate, &s_start, sizeof(int), true);
+  dict_write_int(out, AppKeyArrayLength, &s_num_records, sizeof(int), true);
+  dict_write_int(out, AppKeyArrayStart, &AppKeyArrayData, sizeof(int), true);
+  for (int i = 0; i < s_num_records; i++) {
+    dict_write_int(out, AppKeyArrayData + i, &s_data[i], sizeof(int), true);
+  }
 }
 
 static void send_to_phone(time_t start, time_t end) {
