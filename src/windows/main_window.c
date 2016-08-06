@@ -21,10 +21,10 @@ static void window_load(Window * window) {
 
   // Create a text layer, and set the text
   int height = 30;
-  title_layer = make_text_layer(GRect(0, center - height, bounds.size.w, height), fonts_get_system_font(FONT_KEY_GOTHIC_28_BOLD));
+  title_layer = make_text_layer(GRect(0, center - height, bounds.size.w, height), fonts_get_system_font(FONT_KEY_BITHAM_30_BLACK));
   text_layer_set_text(title_layer, "Pebble Fit");
 
-  subtitle_layer = make_text_layer(GRect(0, center, bounds.size.w, center + height), fonts_get_system_font(FONT_KEY_ROBOTO_CONDENSED_21));
+  subtitle_layer = make_text_layer(GRect(0, center, bounds.size.w, center + height), fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD));
   text_layer_set_text(subtitle_layer, "A Better Today");
 
 
@@ -46,6 +46,13 @@ void main_window_update_steps(int steps) {
   } else {
     text_layer_set_text(subtitle_layer, "No steps today");
   }
+}
+
+void main_window_update_time(struct tm *tick_time) {
+  static char s_current_time_buffer[8];
+  strftime(s_current_time_buffer, sizeof(s_current_time_buffer),
+           clock_is_24h_style() ? "%H:%M" : "%l:%M", tick_time);
+  text_layer_set_text(title_layer, s_current_time_buffer);
 }
 
 void main_window_push() {
