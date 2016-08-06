@@ -1,8 +1,10 @@
+#include "storage.h"
 
 #define MAX_ENTRIES 60
 static int s_data[MAX_ENTRIES];
 static int s_num_records;
 static int latest_key;
+const int AppKeyArrayData = 200;
 
 static void clear_static_data() {
   s_num_records = 0;
@@ -37,8 +39,12 @@ void store_key_data(int key, int element_to_add) {
 
 static void data_write(DictionaryIterator * out) {
   //write the data
-  dict_write_data(out, AppKeyStorageData, s_data, sizeof(int) * s_num_records);
   dict_write_int(out, AppKeyStorageKey, &latest_key, sizeof(int), true);
+  dict_write_int(out, AppKeyArrayLength, &s_num_records, sizeof(int), true);
+  dict_write_int(out, AppKeyArrayStart, &AppKeyArrayData, sizeof(int), true);
+  for (int i = 0; i < s_num_records; i++) {
+    dict_write_int(out, AppKeyArrayData + i, &s_data[i], sizeof(int), true);
+  }
 }
 
 void transfer_data(int key, int element_to_add) {
