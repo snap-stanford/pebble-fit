@@ -55,7 +55,7 @@ static void data_write(DictionaryIterator * out) {
 }
 
 /* Send steps in time frame. */
-void send_steps_in_between(time_t start, time_t end) {
+void steps_send_in_between(time_t start, time_t end) {
   load_data(&start, &end);
 
   if (s_num_records == 0) {
@@ -67,9 +67,9 @@ void send_steps_in_between(time_t start, time_t end) {
 }
 
 /* Send the steps from before 15 minutes back. */
-void send_latest_steps() {
+void steps_send_latest() {
   // start from 15 minutes back (real time is not accurate)
   time_t now = time(NULL) - (15 * SECONDS_PER_MINUTE);
   time_t start = now - (MAX_ENTRIES * SECONDS_PER_MINUTE);
-  send_steps_in_between(start, now);
+  steps_send_in_between(start, now);
 }

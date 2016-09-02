@@ -4,7 +4,7 @@
 #include "comm.h"
 
 /* Send steps in time frame */
-void send_steps_in_between(time_t start, time_t end);
+void steps_send_in_between(time_t start, time_t end);
 
 /* Send the latest steps to phone. */
-void send_latest_steps();
+void steps_send_latest();

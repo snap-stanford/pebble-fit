@@ -1,4 +1,4 @@
-#include "storage.h"
+#include "store.h"
 
 #define MAX_ENTRIES 60
 static int s_data[MAX_ENTRIES];
@@ -29,7 +29,7 @@ static void load_data_into_local_array(int key) {
 }
 
 /* Append new element into persistant array. */
-void store_key_data(int key, int element_to_add) {
+void store_add_key_data(int key, int element_to_add) {
   load_data_into_local_array(key);
 
   // add to array
@@ -53,7 +53,7 @@ static void data_write(DictionaryIterator * out) {
 }
 
 /* Load persist data associated with key, and send it. */
-void transfer_data(int key) {
+void store_transfer_data(int key) {
   load_data_into_local_array(key);
   // todo: check if delete is successful, and delete after data transfer
   persist_delete(key);

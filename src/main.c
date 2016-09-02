@@ -14,10 +14,10 @@ static void init_callback() {
   APP_LOG(APP_LOG_LEVEL_INFO, "Init stage %d", init_stage);
   switch (init_stage) {
     case 0:
-      send_latest_steps();
+      steps_send_latest();
       break;
     case 1:
-      send_launch_notification();
+      launch_send_on_notification();
       break;
   }
   init_stage++;
@@ -31,7 +31,7 @@ static void init(void) {
 
 static void deinit(void) {
   wakeup_set();
-  send_delaunch_notification();
+  launch_send_off_notification();
 }
 
 int main(void) {

@@ -14,7 +14,7 @@ static void launch_write(DictionaryIterator * out) {
 }
 
 /* Send launch event to phone. */
-void send_launch_notification() {
+void launch_send_on_notification() {
   s_time = time(NULL);
   switch (launch_reason()) {
     case APP_LAUNCH_USER:
@@ -39,7 +39,7 @@ static void delaunch_write(DictionaryIterator * out) {
 }
 
 /* Send delaunched event to phone. */
-void send_delaunch_notification() {
+void launch_send_off_notification() {
   s_time = time(NULL);
   comm_send_data(delaunch_write, comm_sent_handler, NULL);
 }
