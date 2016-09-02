@@ -6,6 +6,7 @@ static int s_num_records;
 static int latest_key;
 static const int AppKeyArrayData = 200;
 
+/* Zero out static array. */
 static void clear_static_data() {
   s_num_records = 0;
   for(int i = 0; i < MAX_ENTRIES; i++) {
