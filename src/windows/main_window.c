@@ -75,7 +75,8 @@ void update() {
   int hundreds = s_step_count / 100;
 
   // Color based on progress
-  bool isOnTrackForGoal = (s_step_count >= s_step_average)
+  bool isOnTrackForGoal = (s_step_count >= s_step_average);
+
   if(isOnTrackForGoal) {
     text_layer_set_text_color(steps_layer, GColorJaegerGreen);
   } else {
