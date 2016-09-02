@@ -26,7 +26,7 @@ static void init_callback() {
 static void init(void) {
   health_subscribe();
   main_window_push();
-  // comm_init(init_callback);
+  comm_init(init_callback);
 }
 
 static void deinit(void) {
