@@ -1,5 +1,6 @@
 #include "comm.h"
 
+/* Log that js is ready. */
 static void js_ready_handler(DictionaryIterator *iter, void *context) {
   if(dict_find(iter, AppKeyJSReady)) {
     APP_LOG(APP_LOG_LEVEL_INFO, "Connected to JS!");
@@ -7,6 +8,7 @@ static void js_ready_handler(DictionaryIterator *iter, void *context) {
   }
 }
 
+/* Open app message. */
 void comm_init(CommCallback *callback) {
   app_message_register_inbox_received(js_ready_handler);
   app_message_set_context(callback);
@@ -16,10 +18,12 @@ void comm_init(CommCallback *callback) {
   app_message_open(inbox_size, outbox_size);
 }
 
+/* Log msg sent */
 void comm_sent_handler(DictionaryIterator *iter, void *context) {
   APP_LOG(APP_LOG_LEVEL_INFO, "Sent from Watch!");
 }
 
+/* Log msg received from server. */
 void comm_server_received_handler(DictionaryIterator *iter, void *context) {
   if(dict_find(iter, AppKeyServerReceived)) {
     APP_LOG(APP_LOG_LEVEL_INFO, "Received by Server!");
@@ -27,6 +31,7 @@ void comm_server_received_handler(DictionaryIterator *iter, void *context) {
   }
 }
 
+/* Send data with data writing fn, and handlers. */
 void comm_send_data(
   DataWriteCallback data_write_callback,
   AppMessageOutboxSent sent_handler,
@@ -51,8 +56,4 @@ void comm_send_data(
   if(app_message_outbox_send() != APP_MSG_OK) {
     APP_LOG(APP_LOG_LEVEL_ERROR, "Error starting send of message.");
   }
-}
-
-void comm_deinit() { 
-  // Nothing yet
 }
