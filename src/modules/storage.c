@@ -13,6 +13,7 @@ static void clear_static_data() {
     }
 }
 
+/* Copy persistant array into local array. */
 static void load_data_into_local_array(int key) {
   // Clear static data
   clear_static_data();
@@ -26,9 +27,11 @@ static void load_data_into_local_array(int key) {
   latest_key = key;
 }
 
+/* Append new element into persistant array. */
 void store_key_data(int key, int element_to_add) {
   load_data_into_local_array(key);
 
+  // add to array
   if(s_num_records < MAX_ENTRIES) {
     s_data[s_num_records] = element_to_add;
   }
@@ -37,6 +40,7 @@ void store_key_data(int key, int element_to_add) {
   persist_write_data(key, s_data, (s_num_records + 1) * sizeof(int));
 }
 
+/* Write local array into dictionary. */
 static void data_write(DictionaryIterator * out) {
   //write the data
   dict_write_int(out, AppKeyStorageKey, &latest_key, sizeof(int), true);
@@ -47,7 +51,8 @@ static void data_write(DictionaryIterator * out) {
   }
 }
 
-void transfer_data(int key, int element_to_add) {
+/* Load persist data associated with key, and send it. */
+void transfer_data(int key) {
   load_data_into_local_array(key);
   // todo: check if delete is successful, and delete after data transfer
   persist_delete(key);
