@@ -5,7 +5,6 @@
 #include "modules/launch.h"
 
 #include "services/health.h"
-#include "services/tick.h"
 #include "services/wakeup.h"
 
 #include "windows/main_window.h"
@@ -15,7 +14,7 @@ static void init_callback() {
   APP_LOG(APP_LOG_LEVEL_INFO, "Init stage %d", init_stage);
   switch (init_stage) {
     case 0:
-      send_latest_steps_to_phone();
+      send_latest_steps();
       break;
     case 1:
       send_launch_notification();
@@ -25,7 +24,6 @@ static void init_callback() {
 }
 
 static void init(void) {
-  tick_subscribe();
   health_subscribe();
   main_window_push();
   // comm_init(init_callback);
