@@ -6,12 +6,17 @@ static int s_num_records;
 static time_t s_start;
 static const int AppKeyArrayData = 200;
 
-static void load_data(time_t * start, time_t * end) {
-  // Clear old data
+/* Set static array to zeros. */
+static void clear_old_data() {
   s_num_records = 0;
   for(int i = 0; i < MAX_ENTRIES; i++) {
     s_data[i] = 0;
   }
+}
+
+/* Load health service data into static array. */
+static void load_data(time_t * start, time_t * end) {
+  clear_old_data();
 
   // Check data is available
   HealthServiceAccessibilityMask result = 
@@ -35,10 +40,11 @@ static void load_data(time_t * start, time_t * end) {
   APP_LOG(APP_LOG_LEVEL_INFO, "Got %d/%d new entries for steps data from %d to %d", (int)s_num_records, MAX_ENTRIES, (int) *start, (int) *end);
 }
 
+/* Write steps array data to dict. */
 static void data_write(DictionaryIterator * out) {
   //write the data
-  int placeholder = 1;
-  dict_write_int(out, AppKeyStepsData, &placeholder, sizeof(int), true);
+  int true_value = 1;
+  dict_write_int(out, AppKeyStepsData, &true_value, sizeof(int), true);
 
   dict_write_int(out, AppKeyDate, &s_start, sizeof(int), true);
   dict_write_int(out, AppKeyArrayLength, &s_num_records, sizeof(int), true);
@@ -48,7 +54,8 @@ static void data_write(DictionaryIterator * out) {
   }
 }
 
-static void send_to_phone(time_t start, time_t end) {
+/* Send steps in time frame. */
+void send_steps_in_between(time_t start, time_t end) {
   load_data(&start, &end);
 
   if (s_num_records == 0) {
@@ -59,9 +66,10 @@ static void send_to_phone(time_t start, time_t end) {
   comm_send_data(data_write, comm_sent_handler, comm_server_received_handler);
 }
 
-void send_latest_steps_to_phone() {
-  time_t now = time(NULL);
-  // time_t fifteen_minutes_before = time(NULL) - (15 * SECONDS_PER_MINUTE);
+/* Send the steps from before 15 minutes back. */
+void send_latest_steps() {
+  // start from 15 minutes back (real time is not accurate)
+  time_t now = time(NULL) - (15 * SECONDS_PER_MINUTE);
   time_t start = now - (MAX_ENTRIES * SECONDS_PER_MINUTE);
-  send_to_phone(start, now);
+  send_steps_in_between(start, now);
 }
