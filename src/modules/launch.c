@@ -7,11 +7,13 @@
 static time_t s_time;
 static int s_reason;
 
+/* Add reason and date to out dict. */
 static void launch_write(DictionaryIterator * out) {
   dict_write_int(out, AppKeyLaunchReason, &s_reason, sizeof(int), true);
   dict_write_int(out, AppKeyDate, &s_time, sizeof(int), true);
 }
 
+/* Send launch event to phone. */
 void send_launch_notification() {
   s_time = time(NULL);
   switch (launch_reason()) {
@@ -29,12 +31,14 @@ void send_launch_notification() {
   comm_send_data(launch_write, comm_sent_handler, comm_server_received_handler);
 }
 
+/* Add reason (placeholder) and date to out dict. */
 static void delaunch_write(DictionaryIterator * out) {
   int placeholder = 0;
   dict_write_int(out, AppKeyDelaunchReason, &placeholder, sizeof(int), true);
   dict_write_int(out, AppKeyDate, &s_time, sizeof(int), true);
 }
 
+/* Send delaunched event to phone. */
 void send_delaunch_notification() {
   s_time = time(NULL);
   comm_send_data(delaunch_write, comm_sent_handler, NULL);
