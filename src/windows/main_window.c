@@ -96,13 +96,6 @@ void main_window_update_steps(int step_count, int step_goal, int step_average) {
     update();
 }
 
-void main_window_update_time(struct tm *tick_time) {
-  static char s_current_time_buffer[8];
-  strftime(s_current_time_buffer, sizeof(s_current_time_buffer),
-           clock_is_24h_style() ? "%H:%M" : "%l:%M", tick_time);
-  text_layer_set_text(title_layer, s_current_time_buffer);
-}
-
 void main_window_push() {
   s_window = window_create();
 
