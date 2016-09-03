@@ -19,25 +19,37 @@ static TextLayer* make_text_layer(GRect bounds, GFont font, GTextAlignment align
   return this;
 }
 
+static GRect get_bounding_rect(Layer *layer, int layer_depth) {
+  int padding = 10;
+  GRect bounding_rect = 
+    grect_inset(layer_get_bounds(layer), GEdgeInsets(padding * layer_depth));
+  return bounding_rect;
+}
+
 /* Repaint arcs with new values. */
 static void progress_layer_update_proc(Layer *layer, GContext *ctx) {
-  GRect bounding_rect = 
-    grect_inset(layer_get_bounds(layer), GEdgeInsets(5));
-
-  // background arc
-  int background_thickness = 4;
-  graphics_context_set_fill_color(ctx, GColorVividCerulean);
-  graphics_fill_radial(ctx, bounding_rect, GOvalScaleModeFitCircle,
-    background_thickness, 0, TRIG_MAX_ANGLE);
-
   // Progress arc 
-  int progress_thickness = 20;
+  int progress_thickness = 10;
   graphics_context_set_fill_color(ctx, 
     s_step_count >= s_step_average ? GColorGreen : GColorIcterine);
-  graphics_fill_radial(ctx, bounding_rect, GOvalScaleModeFitCircle,
+  graphics_fill_radial(ctx, get_bounding_rect(layer, 1),
+    GOvalScaleModeFitCircle,
     progress_thickness,
     DEG_TO_TRIGANGLE(0),
     DEG_TO_TRIGANGLE(360 * (s_step_count * 1.0 / s_step_goal)));
+
+  // background arc
+  int background_thickness = 3;
+  int minimum = -3;
+  int maximum = 2;
+  for (int i = minimum; i < maximum; i++) {
+    graphics_context_set_fill_color(ctx, GColorVividCerulean);
+    graphics_fill_radial(ctx, get_bounding_rect(layer, i),
+      GOvalScaleModeFitCircle,
+      background_thickness,
+      DEG_TO_TRIGANGLE(0),
+      DEG_TO_TRIGANGLE(360));
+  }
 }
 
 /* Setup layers with initial text. */
@@ -52,16 +64,19 @@ static void window_load(Window * window) {
   layer_set_update_proc(s_progress_layer, progress_layer_update_proc);
 
   // Create text layers, and set their texts
-  float center = bounds.size.h / 2;
-  int height = 30;
-  title_layer = make_text_layer(GRect(0, center - height, bounds.size.w, height), fonts_get_system_font(FONT_KEY_BITHAM_30_BLACK), GTextAlignmentCenter);
+  int padding = 7;
+  float center = bounds.size.h / 2 - padding;
+  
+  int title_height = 30;
+  title_layer = make_text_layer(GRect(0, center - title_height, bounds.size.w, title_height), fonts_get_system_font(FONT_KEY_BITHAM_30_BLACK), GTextAlignmentCenter);
   text_layer_set_text(title_layer, "");
 
-  subtitle_layer = make_text_layer(GRect(0, center, bounds.size.w, center + height), fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD), GTextAlignmentCenter);
+  int subtitle_height = 25;
+  subtitle_layer = make_text_layer(GRect(0, center, bounds.size.w, subtitle_height), fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD), GTextAlignmentCenter);
   text_layer_set_text(subtitle_layer, "");
 
   int foot_height = 22;
-  foot_layer = make_text_layer(GRect(0, bounds.size.h - foot_height, bounds.size.w, foot_height), fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD), GTextAlignmentCenter);
+  foot_layer = make_text_layer(GRect(0, center + foot_height, bounds.size.w, foot_height), fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD), GTextAlignmentCenter);
   text_layer_set_text(foot_layer, "Keep going!");
 
   // Add text layer to the window
