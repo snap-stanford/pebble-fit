@@ -30,7 +30,7 @@ static void init(void) {
 }
 
 static void deinit(void) {
-  wakeup_set();
+  wakeup_set_minutes_from_now(0.2);
   launch_send_off_notification();
 }
 
