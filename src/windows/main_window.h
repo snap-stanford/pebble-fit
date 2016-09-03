@@ -2,7 +2,7 @@
 
 #include <pebble.h>
 
-/* Create a window and push to the window stack. */
+/* Create the window and push to the window stack. */
 void main_window_push();
 
 /* Update screen with new steps data. */

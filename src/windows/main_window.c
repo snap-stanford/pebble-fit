@@ -18,6 +18,7 @@ static TextLayer* make_text_layer(GRect bounds, GFont font, GTextAlignment align
   return this;
 }
 
+/* calculate rect which will enclose the progress circle. */
 static GRect calculate_rect(Layer *layer, uint8_t arc_id) {
   uint8_t padding = 4;
   return grect_inset(layer_get_bounds(layer), GEdgeInsets(padding*(arc_id)));
@@ -79,6 +80,7 @@ static void window_unload(Window *window) {
   window_destroy(s_window);
 }
 
+/* Set steps text according to number of steps taken. */
 static void update_steps_text(char * s_buffer, int s_buf_len, int steps, char * prefix, TextLayer * layer) {
   // prepare format
   int thousands = steps / 1000;
