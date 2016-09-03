@@ -3,7 +3,7 @@
 static Window *s_window;
 static TextLayer *title_layer;
 static TextLayer *subtitle_layer;
-static TextLayer *steps_layer;
+static TextLayer *foot_layer;
 static Layer *s_progress_layer;
 
 static int s_step_count = 0, s_step_goal = 0, s_step_average = 0;
@@ -50,14 +50,14 @@ static void window_load(Window * window) {
   subtitle_layer = make_text_layer(GRect(0, center, bounds.size.w, center + height), fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD), GTextAlignmentCenter);
   text_layer_set_text(subtitle_layer, "Keep going!");
 
-  steps_layer = make_text_layer(GRect(0, bounds.size.h - height, bounds.size.w, height), fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD), GTextAlignmentRight);
-  text_layer_set_text(steps_layer, "");
+  foot_layer = make_text_layer(GRect(0, bounds.size.h - height, bounds.size.w, height), fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD), GTextAlignmentRight);
+  text_layer_set_text(foot_layer, "");
 
   // Add text layer to the window
   layer_add_child(root_layer, s_progress_layer);
   layer_add_child(root_layer, text_layer_get_layer(title_layer));
   layer_add_child(root_layer, text_layer_get_layer(subtitle_layer));
-  layer_add_child(root_layer, text_layer_get_layer(steps_layer));
+  layer_add_child(root_layer, text_layer_get_layer(foot_layer));
 }
 
 /* Destroy elements before destroying window. */
@@ -68,30 +68,42 @@ static void window_unload(Window *window) {
   window_destroy(s_window);
 }
 
+static void update_steps_text(char * s_buffer, int s_buf_len, int steps, char * prefix, TextLayer * layer) {
+  // prepare format
+  int thousands = steps / 1000;
+  if(thousands > 0) {
+    int hundreds = steps / 100;
+    snprintf(s_buffer, s_buf_len,
+      "%s%d.%dk", prefix, thousands, hundreds);
+  } else {
+    snprintf(s_buffer, s_buf_len,
+      "%s%d", prefix, steps);
+  }
+
+  text_layer_set_text(layer, s_buffer);
+}
+
 /* Update screen with values in static variable. */
 void update() {
-  static char s_current_steps_buffer[16];
-  int thousands = s_step_count / 1000;
-  int hundreds = s_step_count / 100;
-
   // Color based on progress
   bool isOnTrackForGoal = (s_step_count >= s_step_average);
 
   if(isOnTrackForGoal) {
-    text_layer_set_text_color(steps_layer, GColorJaegerGreen);
+    text_layer_set_text_color(foot_layer, GColorJaegerGreen);
   } else {
-    text_layer_set_text_color(steps_layer, GColorPictonBlue);
+    text_layer_set_text_color(foot_layer, GColorPictonBlue);
   }
 
-  if(thousands > 0) {
-    snprintf(s_current_steps_buffer, sizeof(s_current_steps_buffer),
-      "%d.%dk", thousands, hundreds);
-  } else {
-    snprintf(s_current_steps_buffer, sizeof(s_current_steps_buffer),
-      "%d", hundreds);
-  }
+  static char count_buffer[16];
+  char * count_prefix = "";
+  update_steps_text(count_buffer, sizeof(count_buffer),
+    s_step_count, count_prefix, title_layer);
 
-  text_layer_set_text(steps_layer, s_current_steps_buffer);
+  static char goal_buffer[16];
+  char * goal_prefix = "Goal: ";
+  update_steps_text(goal_buffer, sizeof(goal_buffer),
+    s_step_goal, goal_prefix, foot_layer);
+
   layer_mark_dirty(s_progress_layer);
 }
 
