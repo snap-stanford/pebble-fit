@@ -19,24 +19,23 @@ static TextLayer* make_text_layer(GRect bounds, GFont font, GTextAlignment align
   return this;
 }
 
-/* calculate rect which will enclose the progress circle. */
-static GRect calculate_rect(Layer *layer, uint8_t arc_id) {
-  uint8_t padding = 5;
-  return grect_inset(layer_get_bounds(layer), GEdgeInsets(padding*(arc_id - 1)));
-}
-
-/* Repaint the context with new (static var) values. */
+/* Repaint arcs with new values. */
 static void progress_layer_update_proc(Layer *layer, GContext *ctx) {
-  int thickness = 20;
+  GRect bounding_rect = 
+    grect_inset(layer_get_bounds(layer), GEdgeInsets(5));
+
+  // background arc
+  int background_thickness = 4;
   graphics_context_set_fill_color(ctx, GColorVividCerulean);
-  graphics_fill_radial(ctx, calculate_rect(layer, 2), GOvalScaleModeFitCircle,
-    5, 0, TRIG_MAX_ANGLE);
+  graphics_fill_radial(ctx, bounding_rect, GOvalScaleModeFitCircle,
+    background_thickness, 0, TRIG_MAX_ANGLE);
 
-
+  // Progress arc 
+  int progress_thickness = 20;
   graphics_context_set_fill_color(ctx, 
     s_step_count >= s_step_average ? GColorGreen : GColorIcterine);
-
-  graphics_fill_radial(ctx, calculate_rect(layer, 2), GOvalScaleModeFitCircle, thickness,
+  graphics_fill_radial(ctx, bounding_rect, GOvalScaleModeFitCircle,
+    progress_thickness,
     DEG_TO_TRIGANGLE(0),
     DEG_TO_TRIGANGLE(360 * (s_step_count * 1.0 / s_step_goal)));
 }
@@ -97,8 +96,12 @@ static void update_steps_text(char * s_buffer, int s_buf_len, int steps, char * 
   text_layer_set_text(layer, s_buffer);
 }
 
-/* Update screen with values in static variable. */
-void update() {
+/* Set static variables, and update screen. */
+void main_window_update_steps(int step_count, int step_goal, int step_average) {
+  s_step_count = step_count;
+  s_step_goal = step_goal;
+  s_step_average = step_average;
+  
   static char count_buffer[16];
   char * count_prefix = "";
   update_steps_text(count_buffer, sizeof(count_buffer),
@@ -110,14 +113,6 @@ void update() {
     s_step_goal, goal_prefix, subtitle_layer);
 
   layer_mark_dirty(s_progress_layer);
-}
-
-/* Set static variables, and update screen. */
-void main_window_update_steps(int step_count, int step_goal, int step_average) {
-    s_step_count = step_count;
-    s_step_goal = step_goal;
-    s_step_average = step_average;
-    update();
 }
 
 /* Create a window and push to the window stack. */
@@ -138,6 +133,7 @@ void main_window_remove() {
 
 /* Add movement for liveliness. */
 void main_window_breathe() {
+  // FIXME: Assumes initialization to false to work when 0.
   liveliness_increase = !liveliness_increase;
   s_step_count += (int) ((liveliness_increase - 0.5) * (0.02 * s_step_goal));
   layer_mark_dirty(s_progress_layer);
