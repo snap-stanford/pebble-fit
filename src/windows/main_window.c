@@ -5,6 +5,7 @@ static TextLayer *title_layer;
 static TextLayer *subtitle_layer;
 static TextLayer *foot_layer;
 static Layer *s_progress_layer;
+static bool liveliness_increase;
 
 static int s_step_count = 0, s_step_goal = 0, s_step_average = 0;
 
@@ -20,22 +21,22 @@ static TextLayer* make_text_layer(GRect bounds, GFont font, GTextAlignment align
 
 /* calculate rect which will enclose the progress circle. */
 static GRect calculate_rect(Layer *layer, uint8_t arc_id) {
-  uint8_t padding = 4;
-  return grect_inset(layer_get_bounds(layer), GEdgeInsets(padding*(arc_id)));
+  uint8_t padding = 5;
+  return grect_inset(layer_get_bounds(layer), GEdgeInsets(padding*(arc_id - 1)));
 }
 
 /* Repaint the context with new (static var) values. */
 static void progress_layer_update_proc(Layer *layer, GContext *ctx) {
   int thickness = 20;
-  graphics_context_set_fill_color(ctx, GColorOrange);
+  graphics_context_set_fill_color(ctx, GColorVividCerulean);
   graphics_fill_radial(ctx, calculate_rect(layer, 2), GOvalScaleModeFitCircle,
-    thickness / 4, 0, TRIG_MAX_ANGLE);
+    5, 0, TRIG_MAX_ANGLE);
 
 
   graphics_context_set_fill_color(ctx, 
     s_step_count >= s_step_average ? GColorGreen : GColorIcterine);
 
-  graphics_fill_radial(ctx, calculate_rect(layer, 1), GOvalScaleModeFitCircle, thickness,
+  graphics_fill_radial(ctx, calculate_rect(layer, 2), GOvalScaleModeFitCircle, thickness,
     DEG_TO_TRIGANGLE(0),
     DEG_TO_TRIGANGLE(360 * (s_step_count * 1.0 / s_step_goal)));
 }
@@ -133,4 +134,11 @@ void main_window_push() {
 /* Pop window from the window stack. */
 void main_window_remove() {
   window_stack_remove(s_window, false);
+}
+
+/* Add movement for liveliness. */
+void main_window_breathe() {
+  liveliness_increase = !liveliness_increase;
+  s_step_count += (int) ((liveliness_increase - 0.5) * (0.02 * s_step_goal));
+  layer_mark_dirty(s_progress_layer);
 }

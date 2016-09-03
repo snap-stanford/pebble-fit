@@ -10,3 +10,6 @@ void main_window_update_steps(int step_count, int step_goal, int step_average);
 
 /* Pop window from the window stack. */
 void main_window_remove();
+
+/* Add movement for liveliness. */
+void main_window_breathe();
