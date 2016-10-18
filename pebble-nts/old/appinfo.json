@@ -1,0 +1,92 @@
+{
+  "uuid": "3a91370b-ab7f-42fb-b447-5cc94527a329",
+  "shortName": "Project K",
+  "longName": "Project Kraepelin",
+  "capabilities": [
+    "configurable"
+  ],
+  "companyName": "Project Kraepelin",
+  "versionCode": 0.14,
+  "versionLabel": "0.14",
+  "watchapp": {
+    "watchface": false
+  },
+  "appKeys": {
+    "pushtoserver" : 1,
+    "acti": 2,
+    "pinteract" : 3,
+    "config_general" : 4,
+    "config_wakeup" : 5,
+    "js_status" : 6
+  },
+  "resources": {
+    "media": [
+      {
+        "menuIcon" : true,
+        "type": "png",
+        "name" : "WATCHTOWER_MENU_ICON_28",
+        "file" : "images/light_watchtower_28_bw.png"
+      },
+      {
+        "type": "png",
+        "name" : "QUESTION_MARK_64",
+        "file" : "images/question_mark_64.png"
+      },
+      {
+        "type" : "png",
+        "name" : "DOUBLE_ARROW_RIGHT_24",
+        "file" : "images/double_arrow_right_24.png"
+      },
+      {
+        "type" : "png",
+        "name" : "DOUBLE_ARROW_UP_24",
+        "file" : "images/double_arrow_up_24.png"
+      },
+      {
+        "type" : "png",
+        "name" : "DOUBLE_ARROW_DOWN_24",
+        "file" : "images/double_arrow_down_24.png"
+      },
+      {
+        "type" : "png",
+        "name" : "DOUBLE_ARROW_UP_32",
+        "file" : "images/double_arrow_up_32.png"
+      },
+      {
+        "type" : "png",
+        "name" : "DOUBLE_ARROW_DOWN_32",
+        "file" : "images/double_arrow_down_32.png"
+      },
+      {
+        "type" : "png",
+        "name" : "BLUETOOTH_ICON_24",
+        "file" : "images/bluetooth_icon_24.png"
+      },
+      {
+        "type" : "png",
+        "name" : "BLUETOOTH_ICON_48",
+        "file" : "images/bluetooth_icon_48.png"
+      },
+      {
+        "type" : "png",
+        "name" : "X_MARK_24",
+        "file" : "images/x_mark_24.png"
+      },
+      {
+        "type" : "png",
+        "name" : "CHECK_MARK_24",
+        "file" : "images/check_mark_24.png"
+      },
+      {
+        "type" : "png",
+        "name" : "BT_CONNECT_HELP_TEXT_144_750",
+        "file" : "images/PK_BT_connect_help_text_144_750.png"
+      }
+    ]
+  },
+  "targetPlatforms": [
+    "aplite",
+    "basalt"
+  ],
+  "sdkVersion": "3"
+}
