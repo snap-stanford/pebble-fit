@@ -1,4 +1,5 @@
 build/
+data-backbone/build
 pebble-nts/build/
 .lock-waf_darwin_build
 
