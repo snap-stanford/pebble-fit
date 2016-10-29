@@ -1,18 +1,21 @@
-var log = require('./logging')
-log.set_level(2)
+var Clay = require('pebble-clay');
+var clayConfig = require('./config.json');
+var customClay = require('./custom-clay');
+var clay = new Clay(clayConfig, customClay);
+
+var log = require('./logging');
+log.set_level(2);
 
 // URL at which to send data
-var SERVER = 'http://192.168.1.2:3000'
+var SERVER = 'http://192.168.1.2:3000';
 
 // Flag to switch off server communication
-var USE_OFFLINE = true
+var USE_OFFLINE = true;
 
 // Start by sending message to watch that ready.
 Pebble.addEventListener('ready', function () {
-  log.info('PebbleKit JS ready!')
-  Pebble.sendAppMessage({
-    'AppKeyJSReady': 1
-  })
+  log.info('PebbleKit JS ready!');
+  Pebble.sendAppMessage({ 'AppKeyJSReady': 1 });
 })
 
 function send_data_to_route (route) {

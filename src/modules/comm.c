@@ -5,7 +5,9 @@ static void js_ready_handler(DictionaryIterator *iter, void *context) {
   if(dict_find(iter, AppKeyJSReady)) {
     APP_LOG(APP_LOG_LEVEL_INFO, "Connected to JS!");
     ((CommCallback *) context)();
-  }
+  } else {
+    APP_LOG(APP_LOG_LEVEL_INFO, "other received");
+	}
 }
 
 /* Open app message. */
@@ -42,7 +44,7 @@ void comm_send_data(
 
   // init dict
   if(app_message_outbox_begin(&out) != APP_MSG_OK) {
-    APP_LOG(APP_LOG_LEVEL_ERROR, "Error beginning message.");
+    //APP_LOG(APP_LOG_LEVEL_ERROR, "Error beginning message.");
     return;
   }
 

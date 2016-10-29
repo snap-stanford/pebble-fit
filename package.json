@@ -1,22 +1,32 @@
 {
   "author": "pranav.rajpurkar@gmail.com",
-  "dependencies": {},
+  "dependencies": {
+    "enamel": "^1.2.4",
+    "pebble-clay": "^1.0.3"
+  },
   "keywords": [],
   "name": "pebble-fit",
   "pebble": {
     "messageKeys": {
       "AppKeyJSReady": 0,
       "AppKeyDate": 1,
-      "AppKeyServerReceived" : 2,
-      "AppKeyLaunchReason" : 3,
+      "AppKeyServerReceived": 2,
+      "AppKeyLaunchReason": 3,
       "AppKeyDelaunchReason": 4,
-      "AppKeyStorageKey" : 5,
+      "AppKeyStorageKey": 5,
       "AppKeyStepsData": 6,
       "AppKeyStorageData": 7,
       "AppKeyArrayLength": 8,
-      "AppKeyArrayStart": 9
+      "AppKeyArrayStart": 9,
+      "optin": 1000,
+      "sleep_minutes": 1001,
+      "step_threshold": 1002,
+      "daily_start_time": 1003,
+      "daily_end_time": 1004,
+      "display_duration": 1005
     },
     "capabilities": [
+      "configurable",
       "location",
       "health"
     ],

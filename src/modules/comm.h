@@ -2,7 +2,7 @@
 
 #include <pebble.h>
 
-typedef void(CommCallback)(void);
+typedef void (CommCallback)(void);
 typedef void (DataWriteCallback)(DictionaryIterator*);
 typedef enum {
   AppKeyJSReady,

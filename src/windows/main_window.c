@@ -9,7 +9,7 @@ static bool liveliness_increase;
 
 static int s_step_count = 0, s_step_goal = 0, s_step_average = 0;
 
-/* Set standard attributes on new text layer. */
+/* Set standard attributes on new text layer in this window */
 static TextLayer* make_text_layer(GRect bounds, GFont font, GTextAlignment align) {
   TextLayer *this = text_layer_create(bounds);
   text_layer_set_background_color(this, GColorClear);
