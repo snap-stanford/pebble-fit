@@ -1,7 +1,11 @@
 #pragma once
 
 #include <pebble.h>
+#include "enamel.h"
+#include <pebble-events/pebble-events.h>
+
 #include "comm.h"
+#include "constants.h"
 #include "../windows/wakeup_window.h"
 
 /* Send steps in time frame */
