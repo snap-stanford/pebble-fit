@@ -62,7 +62,7 @@ void prv_write_wakeup_id_pm(uint8_t wakeup_i, WakeupId wakeup_id) {
 }
 
 /* Reschedule a wakeup event given its persistent storage index and next timestamp. */
-WakeupId prv_reschedule_wakeup_event(uint8_t wakeup_i, time_t wakeup_time_t) {
+static WakeupId prv_reschedule_wakeup_event(uint8_t wakeup_i, time_t wakeup_time_t) {
   WakeupId wakeup_id = -1;
   uint8_t try = 0;
 
@@ -71,6 +71,7 @@ WakeupId prv_reschedule_wakeup_event(uint8_t wakeup_i, time_t wakeup_time_t) {
     wakeup_cancel(wakeup_id);
 	  while (wakeup_id < 0 && try <= MAX_RETRY) {
     	wakeup_id = wakeup_schedule(wakeup_time_t, (int32_t)wakeup_i, false);
+      try++;
 		}
 		if (wakeup_id < 0) {
     	APP_LOG(APP_LOG_LEVEL_ERROR, 
@@ -79,7 +80,8 @@ WakeupId prv_reschedule_wakeup_event(uint8_t wakeup_i, time_t wakeup_time_t) {
 		}
     prv_write_wakeup_id_pm(wakeup_i, wakeup_id);
   } else {
-  	APP_LOG(APP_LOG_LEVEL_ERROR, "The given wakeup_i %d is out of range", (int)wakeup_i);
+  	APP_LOG(APP_LOG_LEVEL_ERROR, "The given wakeup_i %d or wakeup_time_t %d is invalid", 
+      (int)wakeup_i, (int)wakeup_time_t);
 	}
 
   APP_LOG(APP_LOG_LEVEL_INFO, 
@@ -113,10 +115,11 @@ void schedule_wakeup_events(bool force) {
   	} else if (t_event > t_end) {
   	  t_event = t_start + SECONDS_PER_DAY;
   	}
-		prv_reschedule_wakeup_event(1, t_curr + 12 * SECONDS_PER_HOUR);
+		prv_reschedule_wakeup_event(0, t_event); // Next wakeup event
   }
 
+  // Fallback wakeup events
 	prv_reschedule_wakeup_event(1, t_curr + 12 * SECONDS_PER_HOUR);
-	prv_reschedule_wakeup_event(2, t_start - 1 * SECONDS_PER_HOUR);
+	prv_reschedule_wakeup_event(2, t_start + SECONDS_PER_DAY - 1 * SECONDS_PER_HOUR);
 	prv_reschedule_wakeup_event(3, time_start_of_today() + SECONDS_PER_WEEK + 60);
 }
