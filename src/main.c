@@ -20,11 +20,18 @@ static EventHandle s_enamel_handler;
 static void prv_window_push(bool optin) {
  switch (launch_reason()) {
     case APP_LAUNCH_WAKEUP:
-      // Must be optind
-      APP_LOG(APP_LOG_LEVEL_INFO, "Wake up!!!!!!!!!!!!!!!!!!!!!!!");
       steps_update_wakeup_window_steps();
       wakeup_window_push();
       tick_second_subscribe(true);
+      break;
+    case APP_LAUNCH_PHONE:
+      wakeup_cancel_all();
+      if (optin) {
+        steps_update_wakeup_window_steps();
+        wakeup_window_push();
+      } else {
+        dialog_window_push();
+      }
       break;
     default:
       wakeup_cancel_all();
@@ -54,12 +61,12 @@ static void prv_init_callback() {
   init_stage++;
   */
 }
-
 static void prv_update_config(void *context) {
   APP_LOG(APP_LOG_LEVEL_INFO, "in prv_update_config");
   if (enamel_get_optin()) {
-    schedule_event(true);
     prv_window_push(true);
+    schedule_event(true);
+    tick_second_subscribe(true);
   } else {
     prv_window_push(false);
   }
@@ -77,10 +84,11 @@ static void init(void) {
   // call pebble-events app_message_open function
   events_app_message_open(); 
 
-  prv_update_config(NULL);
+  prv_window_push(enamel_get_optin());
 }
 
 static void deinit(void) {
+  APP_LOG(APP_LOG_LEVEL_INFO, "main.c deinit");
   //launch_send_off_notification();
 
   // Deinit Enamel to unregister App Message handlers and save settings

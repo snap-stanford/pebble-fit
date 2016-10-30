@@ -35,11 +35,12 @@
       "AppKeyArrayLength": 8,
       "AppKeyArrayStart": 9,
       "optin": 1000,
-      "sleep_minutes": 1001,
+      "vibrate": 1001,
       "step_threshold": 1002,
       "daily_start_time": 1003,
       "daily_end_time": 1004,
-      "display_duration": 1005
+      "sleep_minutes": 1005,
+      "display_duration": 1006
     },
     "resources": {
       "media": []

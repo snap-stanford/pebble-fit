@@ -28,7 +28,6 @@ static TextLayer* make_text_layer(GRect bounds, GFont font, GTextAlignment align
 
 /* Set steps text according to number of steps taken. */
 static void update_steps_text(char * s_buffer, int s_buf_len, int steps, char * prefix, TextLayer * layer) {
-  // prepare format
   int thousands = steps / 1000;
   if (thousands > 0) {
     int hundreds = steps / 100;
@@ -55,7 +54,7 @@ static void window_load(Window *window) {
     text_layer_set_text(s_title_layer, "Keep up");
   } else {
     text_layer_set_text(s_title_layer, "Let's Move");
-    //vibes_short_pulse();
+    if (enamel_get_vibrate()) vibes_short_pulse();
   }
 
   int subtitle_height = 25;
@@ -85,21 +84,37 @@ static void window_load(Window *window) {
 }
 
 static void window_unload(Window *window) {
-  text_layer_destroy(s_title_layer);
-  text_layer_destroy(s_subtitle_layer);
-  text_layer_destroy(s_foot_layer);
-  text_layer_destroy(s_debug1_layer);
+  if (s_title_layer) {
+    text_layer_destroy(s_title_layer);
+    s_title_layer = NULL;
+  }
+  if (s_subtitle_layer) {
+    text_layer_destroy(s_subtitle_layer);
+    s_subtitle_layer = NULL;
+  }
+  if (s_foot_layer) {
+    text_layer_destroy(s_foot_layer);
+    s_foot_layer = NULL;
+  }
+  if (s_debug1_layer) {
+    text_layer_destroy(s_debug1_layer);
+    s_debug1_layer = NULL;
+  }
+
   window_destroy(s_window);
+  s_window = NULL;
 }
 
 /* Create a window and push to the window stack. */
 void wakeup_window_push() {
-  s_window = window_create();
+  if (!s_window) {
+    s_window = window_create();
 
-  window_set_window_handlers(s_window, (WindowHandlers) {
-    .load  = window_load,
-    .unload = window_unload,
-  });
+    window_set_window_handlers(s_window, (WindowHandlers) {
+      .load  = window_load,
+      .unload = window_unload,
+    });
+  }
   window_stack_push(s_window, true);
 }
 

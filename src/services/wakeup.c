@@ -46,7 +46,14 @@ void schedule_event(bool force){
   time_t t_start = t_sod + enamel_get_daily_start_time();
   time_t t_end   = t_sod + enamel_get_daily_end_time() ;
   
-  if (t_end <= t_start) { t_end += SECONDS_PER_DAY; }
+  char start_buf[12]; char end_buf[12];
+  strftime(start_buf, sizeof(start_buf), clock_is_24h_style() ? "%H:%M:%S" : "%I:%M:%S", localtime(&t_start));
+  strftime(end_buf, sizeof(end_buf), clock_is_24h_style() ? "%H:%M:%S" : "%I:%M:%S", localtime(&t_end));
+  APP_LOG(APP_LOG_LEVEL_INFO,"start=%s, end=%s", start_buf, end_buf);
+
+  if (t_end <= t_start)
+    t_end += SECONDS_PER_DAY;
+
   if (t_event < t_start) {
     t_event = t_start;
   } else if (t_event > t_end) {

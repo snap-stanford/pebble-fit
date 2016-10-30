@@ -32,6 +32,12 @@
       "defaultValue": "Configuration"
     },
     {
+      "type": "toggle",
+      "messageKey": "vibrate",
+      "label": "Turn on/off vibration",
+      "defaultValue": false
+    },
+    {
       "type": "input",
       "messageKey": "daily_start_time",
       "defaultValue": "09:00",

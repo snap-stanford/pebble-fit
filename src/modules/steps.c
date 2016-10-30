@@ -41,15 +41,17 @@ static void load_data(time_t * start, time_t * end) {
   s_start = *start;
   s_debug_entry_count = 0;
   for(int i = 0; i < enamel_get_sleep_minutes(); i++) {
-    s_step_records[i] = minute_data[i].steps;
-    
-    if (s_step_records[i] > 0) { s_debug_entry_count = 0; }
-    else { s_debug_entry_count++; }
 		if (minute_data[i].is_invalid) {
     	APP_LOG(APP_LOG_LEVEL_INFO, "(Data invalid) Entry %d = %d", (int)i, (int)s_step_records[i]);
 		} else {
+      s_step_records[i] = minute_data[i].steps;
     	APP_LOG(APP_LOG_LEVEL_INFO, "Entry %d = %d", (int)i, (int)s_step_records[i]);
 		}
+    if (s_step_records[i] > 0) {
+      s_debug_entry_count = 0;
+    } else {
+      s_debug_entry_count++;
+    }
   }
 
   APP_LOG(APP_LOG_LEVEL_INFO, "Got %d/%d new entries for steps data from %d to %d", (int)s_num_records, MAX_ENTRIES, (int) *start, (int) *end);
