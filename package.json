@@ -1,5 +1,6 @@
 {
-  "author": "pranav.rajpurkar@gmail.com",
+  "version": "1.0.0",
+  "author": "Stanford SNAP",
   "dependencies": {
     "enamel": "^1.2.4",
     "pebble-clay": "^1.0.3"
@@ -7,6 +8,21 @@
   "keywords": [],
   "name": "pebble-fit",
   "pebble": {
+    "sdkVersion": "3",
+    "displayName": "pebble-fit",
+    "enableMultiJS": true,
+    "projectType": "native",
+    "uuid": "550d6e34-f534-4572-8325-e6e34583019a",
+    "capabilities": [
+      "configurable",
+      "location",
+      "health"
+    ],
+    "targetPlatforms": [
+      "aplite",
+      "basalt",
+      "chalk"
+    ],
     "messageKeys": {
       "AppKeyJSReady": 0,
       "AppKeyDate": 1,
@@ -25,27 +41,11 @@
       "daily_end_time": 1004,
       "display_duration": 1005
     },
-    "capabilities": [
-      "configurable",
-      "location",
-      "health"
-    ],
-    "displayName": "pebble-fit",
-    "enableMultiJS": true,
-    "projectType": "native",
     "resources": {
       "media": []
     },
-    "sdkVersion": "3",
-    "targetPlatforms": [
-      "aplite",
-      "basalt",
-      "chalk"
-    ],
-    "uuid": "550d6e34-f534-4572-8325-e6e34583019a",
     "watchapp": {
       "watchface": false
     }
-  },
-  "version": "1.0.0"
+  }
 }

@@ -1,10 +1,12 @@
+var packageinfo = require('../../package.json');
+
 var Clay = require('pebble-clay');
 var clayConfig = require('./config.json');
 var customClay = require('./custom-clay');
 var clay = new Clay(clayConfig, customClay);
 
 var log = require('./logging');
-log.set_level(2);
+log.set_level(3);
 
 // URL at which to send data
 var SERVER = 'http://192.168.1.2:3000';
@@ -14,7 +16,8 @@ var USE_OFFLINE = true;
 
 // Start by sending message to watch that ready.
 Pebble.addEventListener('ready', function () {
-  log.info('PebbleKit JS ready!');
+  log.info(packageinfo.pebble.displayName + " " + packageinfo.version + " ready !"    );
+
   Pebble.sendAppMessage({ 'AppKeyJSReady': 1 });
 })
 

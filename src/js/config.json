@@ -5,26 +5,31 @@
   "defaultValue": "This pebble-fit App is in testing. It does not upload data to the backend server in the current version. Appreciate your feedback."
 },
 {
-  "type": "heading",
-  "defaultValue": "App Activation"
-},
-{
-  "type": "text",
-  "id": "optin_text",
-  "defaultValue": "By activating this App, you agree to participate in this study."
-},
-{
-  "type": "toggle",
-  "messageKey": "optin",
-  "label": "Activate pebble-fit App",
-  "defaultValue": false
+  "type": "section",
+  "items": [
+    {
+      "type": "heading",
+      "defaultValue": "App Activation"
+    },
+    {
+      "type": "text",
+      "id": "optin_text",
+      "defaultValue": "By activating this App, you agree to participate in this study."
+    },
+    {
+      "type": "toggle",
+      "messageKey": "optin",
+      "label": "Activate pebble-fit App",
+      "defaultValue": false
+    }
+  ]
 },
 {
   "type": "section",
   "items": [
     {
       "type": "heading",
-      "defaultValue": "App Configuration"
+      "defaultValue": "Configuration"
     },
     {
       "type": "input",
