@@ -1,10 +1,6 @@
 #include "steps.h"
-#include "enamel.h"
-#include <pebble-events/pebble-events.h>
 
-#define MAX_ENTRIES 60 		// Maximum number of minutes history acquire
-
-static int s_step_records[MAX_ENTRIES]; // TODO: correct type is uint8_t
+static uint8_t s_step_records[MAX_ENTRIES];
 static int s_num_records;
 static int s_steps;
 static time_t s_start, s_end;

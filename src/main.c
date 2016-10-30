@@ -3,28 +3,35 @@
 #include "enamel.h"
 #include <pebble-events/pebble-events.h>
 
+#include "constants.h"
 #include "modules/comm.h"
 #include "modules/steps.h"
 #include "modules/launch.h"
-
 #include "services/health.h"
 #include "services/tick.h"
 #include "services/wakeup.h"
-
 #include "windows/main_window.h"
 #include "windows/wakeup_window.h"
 #include "windows/dialog_window.h"
 
 static EventHandle s_enamel_handler;
 
+// TODO: upload data to server
 static void prv_window_push(bool optin) {
- switch (launch_reason()) {
+  WakeupId wakeup_id;
+	int32_t wakeup_cookie;
+ 	switch (launch_reason()) {
     case APP_LAUNCH_WAKEUP:
-      // Must be optind
-      APP_LOG(APP_LOG_LEVEL_INFO, "Wake up!!!!!!!!!!!!!!!!!!!!!!!");
-      steps_update_wakeup_window_steps();
-      wakeup_window_push();
-      tick_second_subscribe(true);
+	  	wakeup_get_launch_event(&wakeup_id, &wakeup_cookie);
+	  	APP_LOG(APP_LOG_LEVEL_INFO, "wakeup %d , cookie %d", (int)wakeup_id, (int)wakeup_cookie);
+	
+			if (wakeup_cookie == 0) {
+      	steps_update_wakeup_window_steps();
+      	wakeup_window_push();
+      	tick_second_subscribe(true);
+			} else {
+	  		APP_LOG(APP_LOG_LEVEL_ERROR, "Fallback wakeup!");
+			}
       break;
     default:
       wakeup_cancel_all();
@@ -58,7 +65,7 @@ static void prv_init_callback() {
 static void prv_update_config(void *context) {
   APP_LOG(APP_LOG_LEVEL_INFO, "in prv_update_config");
   if (enamel_get_optin()) {
-    schedule_event(true);
+    schedule_wakeup_events(true);
     prv_window_push(true);
   } else {
     prv_window_push(false);
