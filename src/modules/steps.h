@@ -14,6 +14,6 @@ void steps_send_in_between(time_t start, time_t end);
 void steps_send_latest();
 
 /* Return the latest step count */
-int steps_get_latest_step();
+int steps_get_latest();
 
 void steps_update_wakeup_window_steps();
