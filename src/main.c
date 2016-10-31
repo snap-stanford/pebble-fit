@@ -24,6 +24,9 @@ static void prv_window_push(bool optin) {
     WakeupId wakeup_id;
     int32_t wakeup_cookie;
 
+    // Always re-schedule wakeup events
+    schedule_wakeup_events(true);
+
     APP_LOG(APP_LOG_LEVEL_INFO, "launch_reason = %d", (int)launch_reason());
     switch (launch_reason()) {
       case APP_LAUNCH_WAKEUP:
@@ -51,7 +54,6 @@ static void prv_window_push(bool optin) {
         //tick_second_subscribe(true);
         //main_window_push();
     }
-    schedule_wakeup_events(true);
   } else {
     dialog_window_push();
   }
