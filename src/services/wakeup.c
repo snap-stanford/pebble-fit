@@ -10,18 +10,18 @@
 //}
 
 /* Cancel a specific scheduled wakeup event. */
-static void prv_cancel_event(){
-  APP_LOG(APP_LOG_LEVEL_INFO, "in prv_cancel_event");
-  uint32_t key = WAKEUP_ID_PERSIST_KEY;
-  if (persist_exists(key)) {
-    WakeupId wakeup_id = persist_read_int(key);
-    time_t wakeup_timestamp = 0;
-    if (wakeup_query(wakeup_id, &wakeup_timestamp)) {
-      //APP_LOG(APP_LOG_LEVEL_INFO, "Cancelling previously scheduled wakeup event at %s, ");
-      wakeup_cancel(wakeup_id);
-    }
-  }
-}
+//static void prv_cancel_event(){
+//  APP_LOG(APP_LOG_LEVEL_INFO, "in prv_cancel_event");
+//  uint32_t key = WAKEUP_ID_PERSIST_KEY;
+//  if (persist_exists(key)) {
+//    WakeupId wakeup_id = persist_read_int(key);
+//    time_t wakeup_timestamp = 0;
+//    if (wakeup_query(wakeup_id, &wakeup_timestamp)) {
+//      //APP_LOG(APP_LOG_LEVEL_INFO, "Cancelling previously scheduled wakeup event at %s, ");
+//      wakeup_cancel(wakeup_id);
+//    }
+//  }
+//}
 
 /* Get the timestamp of a specific wakeup event. */
 //static time_t prv_event_timestamp() {
@@ -68,25 +68,33 @@ static WakeupId prv_reschedule_wakeup_event(uint8_t wakeup_i, time_t wakeup_time
 
   if ((wakeup_i < NUM_TOTAL_WAKEUP) && (wakeup_time_t > time(NULL))) {
     wakeup_id = prv_read_wakeup_id_pm(wakeup_i);
+    //APP_LOG(APP_LOG_LEVEL_ERROR, "Cancelling wakeup_id %d", (int)wakeup_id);
     wakeup_cancel(wakeup_id);
-	  while (wakeup_id < 0 && try <= MAX_RETRY) {
-    	wakeup_id = wakeup_schedule(wakeup_time_t, (int32_t)wakeup_i, false);
+	  
+    // Automatically retry for a fixed number of iterations (increment by minutes)
+    do {
+    	wakeup_id = wakeup_schedule(wakeup_time_t + try * SECONDS_PER_MINUTE, 
+                                  (int32_t)wakeup_i, false);
       try++;
-		}
+		} while (wakeup_id < 0 && try <= MAX_RETRY); 
+
 		if (wakeup_id < 0) {
     	APP_LOG(APP_LOG_LEVEL_ERROR, 
 				"Failed to reschedule wakeup_i %d for wakeup_time_t %d with wakeup_id %d",
         (int)wakeup_i, (int)wakeup_time_t, (int)wakeup_id);
-		}
+		} else {
+      // Debug message
+      char buf[12];
+      strftime(buf, sizeof(buf), "%H:%M:%S", localtime(&wakeup_time_t));
+      APP_LOG(APP_LOG_LEVEL_INFO, 
+	    	"reschedule_wakeup_event(): wakeup_i %d for time_t %s with wakeup_id %d",
+        (int) wakeup_i, buf, (int)wakeup_id);
+    }
     prv_write_wakeup_id_pm(wakeup_i, wakeup_id);
   } else {
   	APP_LOG(APP_LOG_LEVEL_ERROR, "The given wakeup_i %d or wakeup_time_t %d is invalid", 
       (int)wakeup_i, (int)wakeup_time_t);
 	}
-
-  APP_LOG(APP_LOG_LEVEL_INFO, 
-		"reschedule_wakeup_event(): wakeup_i %d for time_t %d with wakeup_id %d",
-    (int) wakeup_i,(int) wakeup_time_t, (int)wakeup_id);
 
   return wakeup_id;
 }
@@ -105,7 +113,14 @@ void schedule_wakeup_events(bool force) {
   time_t t_start = t_sod + enamel_get_daily_start_time();
   time_t t_end   = t_sod + enamel_get_daily_end_time() ;
 
-  //force = force || t_event < prv_event_timestamp(WAKEUP_ID_PERSIST_KEY); // TODO
+  // Debug messages
+  char curr_buf[12], start_buf[12], end_buf[12];
+  strftime(curr_buf, sizeof(curr_buf),"%H:%M:%S", localtime(&t_curr));
+  strftime(start_buf, sizeof(start_buf),"%H:%M:%S", localtime(&t_start));
+  strftime(end_buf, sizeof(end_buf), "%H:%M:%S", localtime(&t_end));
+  APP_LOG(APP_LOG_LEVEL_INFO,"curr=%s, start=%s, end=%s", curr_buf, start_buf, end_buf);
+
+  //force = force || t_event < prv_event_timestamp(WAKEUP_ID_PERSIST_KEY); // TODO: refine
   if(force){
     //prv_cancel_event();
   	time_t t_event = t_curr + enamel_get_sleep_minutes() * SECONDS_PER_MINUTE;

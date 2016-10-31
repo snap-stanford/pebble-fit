@@ -17,32 +17,43 @@
 static EventHandle s_enamel_handler;
 
 // TODO: upload data to server
+
+/* Push a window depends on whether this App is activated or not. */ 
 static void prv_window_push(bool optin) {
-  WakeupId wakeup_id;
-	int32_t wakeup_cookie;
- 	switch (launch_reason()) {
-    case APP_LAUNCH_WAKEUP:
-	  	wakeup_get_launch_event(&wakeup_id, &wakeup_cookie);
-	  	APP_LOG(APP_LOG_LEVEL_INFO, "wakeup %d , cookie %d", (int)wakeup_id, (int)wakeup_cookie);
-	
-			if (wakeup_cookie == 0) {
-      	steps_update_wakeup_window_steps();
-      	wakeup_window_push();
-      	tick_second_subscribe(true);
-			} else {
-	  		APP_LOG(APP_LOG_LEVEL_ERROR, "Fallback wakeup!");
-			}
-      break;
-    default:
-      wakeup_cancel_all();
-      if (optin) {
+  if (optin) {
+    WakeupId wakeup_id;
+    int32_t wakeup_cookie;
+
+    APP_LOG(APP_LOG_LEVEL_INFO, "launch_reason = %d", (int)launch_reason());
+    switch (launch_reason()) {
+      case APP_LAUNCH_WAKEUP:
+        wakeup_get_launch_event(&wakeup_id, &wakeup_cookie);
+        APP_LOG(APP_LOG_LEVEL_INFO, "wakeup %d , cookie %d", (int)wakeup_id, (int)wakeup_cookie);
+    
+        if (wakeup_cookie == 0) {
+          if (steps_get_latest() >= enamel_get_step_threshold()) return; // Silent wakeup
+          steps_update_wakeup_window_steps();
+          wakeup_window_push();
+          tick_second_subscribe(true); // Will timeout
+        } else {
+          APP_LOG(APP_LOG_LEVEL_ERROR, "Fallback wakeup!");
+        }
+        break;
+      case APP_LAUNCH_PHONE:
         steps_update_wakeup_window_steps();
         wakeup_window_push();
-        tick_second_subscribe(true);
-      } else {
-        dialog_window_push();
-      }
-      //main_window_push();
+        break;
+      default:
+        APP_LOG(APP_LOG_LEVEL_ERROR, "Cancelling all wakeup events!");
+        wakeup_cancel_all();
+        steps_update_wakeup_window_steps();
+        wakeup_window_push();
+        //tick_second_subscribe(true);
+        //main_window_push();
+    }
+    schedule_wakeup_events(true);
+  } else {
+    dialog_window_push();
   }
 }
 
@@ -62,14 +73,17 @@ static void prv_init_callback() {
   */
 }
 
+/* Received configuration update from the phone. */
 static void prv_update_config(void *context) {
   APP_LOG(APP_LOG_LEVEL_INFO, "in prv_update_config");
   if (enamel_get_optin()) {
-    schedule_wakeup_events(true);
     prv_window_push(true);
   } else {
+    APP_LOG(APP_LOG_LEVEL_ERROR, "Cancelling all wakeup events!");
+    wakeup_cancel_all();
     prv_window_push(false);
   }
+  tick_second_subscribe(true); // Will timeout
 }
 
 static void init(void) {
@@ -84,7 +98,7 @@ static void init(void) {
   // call pebble-events app_message_open function
   events_app_message_open(); 
 
-  prv_update_config(NULL);
+  prv_window_push(enamel_get_optin());
 }
 
 static void deinit(void) {

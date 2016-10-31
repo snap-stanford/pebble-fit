@@ -37,15 +37,19 @@ static void load_data(time_t * start, time_t * end) {
   s_start = *start;
   s_debug_entry_count = 0;
   for(int i = 0; i < enamel_get_sleep_minutes(); i++) {
-    s_step_records[i] = minute_data[i].steps;
-    
-    if (s_step_records[i] > 0) { s_debug_entry_count = 0; }
-    else { s_debug_entry_count++; }
-		if (minute_data[i].is_invalid) {
-    	APP_LOG(APP_LOG_LEVEL_INFO, "(Data invalid) Entry %d = %d", (int)i, (int)s_step_records[i]);
-		} else {
-    	APP_LOG(APP_LOG_LEVEL_INFO, "Entry %d = %d", (int)i, (int)s_step_records[i]);
-		}
+    if (minute_data[i].is_invalid) {
+      APP_LOG(APP_LOG_LEVEL_INFO, "(Data invalid) Entry %d = %d", (int)i, (int)s_step_records[i]);
+    } else {
+      s_step_records[i] = minute_data[i].steps;
+      
+      if (s_step_records[i] > 0) {
+        s_debug_entry_count = 0;
+      } else {
+        s_debug_entry_count++;
+      }
+
+      //APP_LOG(APP_LOG_LEVEL_INFO, "Entry %d = %d", (int)i, (int)s_step_records[i]);
+    }
   }
 
   APP_LOG(APP_LOG_LEVEL_INFO, "Got %d/%d new entries for steps data from %d to %d", (int)s_num_records, MAX_ENTRIES, (int) *start, (int) *end);
@@ -123,11 +127,11 @@ int steps_get_latest() {
 
 /* Update the wakeup_window with the number of steps in the last sleep period. */
 void steps_update_wakeup_window_steps() { 
-  steps_get_latest();
+  steps_get_latest(); // TODO: optimize
 
   char start_buf[12]; char end_buf[12];
-  strftime(start_buf, sizeof(start_buf), clock_is_24h_style() ? "%H:%M:%S" : "%I:%M:%S", localtime(&s_start));
-  strftime(end_buf, sizeof(end_buf), clock_is_24h_style() ? "%H:%M:%S" : "%I:%M:%S", localtime(&s_end));
+  strftime(start_buf, sizeof(start_buf), "%H:%M:%S", localtime(&s_start));
+  strftime(end_buf, sizeof(end_buf), "%H:%M:%S", localtime(&s_end));
   APP_LOG(APP_LOG_LEVEL_INFO, "Got %d step count from %s to %s", s_steps, start_buf, end_buf);
 
   wakeup_window_update_steps(s_steps, start_buf, end_buf, s_debug_entry_count);
