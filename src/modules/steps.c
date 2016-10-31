@@ -48,7 +48,7 @@ static void load_data(time_t * start, time_t * end) {
         s_debug_entry_count++;
       }
 
-      //APP_LOG(APP_LOG_LEVEL_INFO, "Entry %d = %d", (int)i, (int)s_step_records[i]);
+      APP_LOG(APP_LOG_LEVEL_INFO, "Entry %d = %d", (int)i, (int)s_step_records[i]);
     }
   }
 

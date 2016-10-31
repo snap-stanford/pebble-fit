@@ -40,9 +40,6 @@ static void update_steps_text(char * s_buffer, int s_buf_len, int steps, char * 
 }
 
 static void window_load(Window *window) {
-  if (s_latest_step > enamel_get_step_threshold()) {
-    return; // If step goal is met TODO: refine
-  }
   Layer *root_layer = window_get_root_layer(window);
 
   GRect bounds = layer_get_bounds(root_layer);
