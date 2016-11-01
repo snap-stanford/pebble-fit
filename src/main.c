@@ -24,9 +24,6 @@ static void prv_window_push(bool optin) {
     WakeupId wakeup_id;
     int32_t wakeup_cookie;
 
-    // Always re-schedule wakeup events
-    schedule_wakeup_events(true);
-
     APP_LOG(APP_LOG_LEVEL_INFO, "launch_reason = %d", (int)launch_reason());
     switch (launch_reason()) {
       case APP_LAUNCH_WAKEUP:
@@ -34,10 +31,13 @@ static void prv_window_push(bool optin) {
         APP_LOG(APP_LOG_LEVEL_INFO, "wakeup %d , cookie %d", (int)wakeup_id, (int)wakeup_cookie);
     
         if (wakeup_cookie == 0) {
-          if (steps_get_latest() >= enamel_get_step_threshold()) return; // Silent wakeup
-          steps_update_wakeup_window_steps();
-          wakeup_window_push();
-          tick_second_subscribe(true); // Will timeout
+          if (steps_get_latest() < enamel_get_step_threshold()) {
+            steps_update_wakeup_window_steps();
+            wakeup_window_push();
+            tick_second_subscribe(true); // Will timeout
+          } else {
+            APP_LOG(APP_LOG_LEVEL_INFO, "Step goal is met. Silent wakeup.");
+          }
         } else {
           APP_LOG(APP_LOG_LEVEL_ERROR, "Fallback wakeup!");
         }
@@ -47,13 +47,17 @@ static void prv_window_push(bool optin) {
         wakeup_window_push();
         break;
       default:
-        APP_LOG(APP_LOG_LEVEL_ERROR, "Cancelling all wakeup events!");
+        APP_LOG(APP_LOG_LEVEL_ERROR, "Cancelling all wakeup events! Must be rescheduled.");
         wakeup_cancel_all();
         steps_update_wakeup_window_steps();
         wakeup_window_push();
         //tick_second_subscribe(true);
         //main_window_push();
     }
+
+    // Always re-schedule wakeup events (do not put return in the above code)
+    schedule_wakeup_events(true);
+
   } else {
     dialog_window_push();
   }
