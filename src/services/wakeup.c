@@ -101,11 +101,12 @@ static WakeupId prv_reschedule_wakeup_event(uint8_t wakeup_i, time_t wakeup_time
 
 
 /* Schedule the next wakeup event and reschedule fallback wakeup events.
+ * Try to set fallback wakeups also be within the start and end time
  *  Index		| Description
  * 	0				| depends on the value set by Clay configuration from the phone
- * 	1				| in 12 hours from now, 
- *  2				| in 1 hour before the start time of tomorrow 
- * 	3				| in 7 days @ 12:01 AM
+ *  1				| in 1 hour after the start time of tomorrow 
+ * 	2				| in 24 hours from now 
+ * 	3				| in 1 week from now
  */
 void schedule_wakeup_events(bool force) {
 	time_t t_curr  = time(NULL);
@@ -134,7 +135,7 @@ void schedule_wakeup_events(bool force) {
   }
 
   // Fallback wakeup events
-	prv_reschedule_wakeup_event(1, t_curr + 12 * SECONDS_PER_HOUR);
-	prv_reschedule_wakeup_event(2, t_start + SECONDS_PER_DAY - 1 * SECONDS_PER_HOUR);
-	prv_reschedule_wakeup_event(3, time_start_of_today() + SECONDS_PER_WEEK + 60);
+	prv_reschedule_wakeup_event(1, t_start + SECONDS_PER_DAY + SECONDS_PER_HOUR);
+	prv_reschedule_wakeup_event(2, t_curr + SECONDS_PER_DAY);
+	prv_reschedule_wakeup_event(3, t_curr + SECONDS_PER_WEEK);
 }

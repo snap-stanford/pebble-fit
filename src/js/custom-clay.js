@@ -6,6 +6,7 @@ module.exports = function(minified) {
 
   function changeEnableApp() {
     if (this.get()) {
+      clayConfig.getItemByMessageKey('vibrate').enable();
       clayConfig.getItemByMessageKey('sleep_minutes').enable();
       clayConfig.getItemByMessageKey('step_threshold').enable();
       clayConfig.getItemByMessageKey('daily_start_time').enable();
@@ -13,6 +14,7 @@ module.exports = function(minified) {
       clayConfig.getItemByMessageKey('display_duration').enable();
       clayConfig.getItemById('optin-text').hide();
     } else {
+      clayConfig.getItemByMessageKey('vibrate').disable();
       clayConfig.getItemByMessageKey('sleep_minutes').disable();
       clayConfig.getItemByMessageKey('step_threshold').disable();
       clayConfig.getItemByMessageKey('daily_start_time').disable();
