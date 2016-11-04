@@ -53,8 +53,7 @@ static void window_load(Window *window) {
   int text_below_height = 40;
 
   // The text layer that is above the main text layer
-  GEdgeInsets text_above_insets = {.top = 10, .bottom = 10 + text_above_height, 
-    .right = 10, .left = 10};
+  GEdgeInsets text_above_insets = {.top = 10, .right = 10, .left = 10};
   s_text_above_layer = make_text_layer(
     grect_inset(bounds, text_above_insets),
     fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD), GTextAlignmentCenter);
