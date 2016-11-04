@@ -52,7 +52,7 @@
       "messageKey": "daily_end_time",
       "defaultValue": "20:00",
       "label": "End time",
-      "description": "could be earlier than the start time (next day)",
+      "description": "Could be earlier than the start time (next day)",
       "attributes": {
         "type": "time",
         "step": "3600"
@@ -63,7 +63,7 @@
       "messageKey": "sleep_minutes",
       "defaultValue": 60,
       "label": "How frequently to be notified?",
-      "description": "time duration between notifications",
+      "description": "The time duration between notifications.",
       "options": [
         { 
           "label": "1 hour",
@@ -100,7 +100,7 @@
       "messageKey": "step_threshold",
       "defaultValue": 500,
       "label": "How many steps expected?",
-      "description": "App will alert you if steps taken in the last period is lower than this threshold",
+      "description": "The App will alert you if steps taken in the last period is lower than this threshold.",
       "options": [
         { 
           "label": "500",
@@ -124,8 +124,8 @@
       "type": "select",
       "messageKey": "display_duration",
       "defaultValue": 10,
-      "label": "How long will notification being displayed",
-      "description": "App will alert you if steps taken in the last period is lower than this threshold",
+      "label": "Display duration (in seconds)",
+      "description": "The notification message will only be displayed for a few seconds, and then the App will automatically go back into the sleep mode. You can still press the back button to manually suppress it before this timeout.",
       "options": [
         { 
           "label": "15",
