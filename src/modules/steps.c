@@ -113,6 +113,9 @@ void steps_send_latest() {
 
 /* Return the number of steps in the last sleep period. */
 int steps_get_latest() {
+  // TODO: Change s_end to a timestamp slightly in the future, otherwise, Pebble health
+  // service will round it down to the boundary of one minute, likely will lose the latest
+  // step count (less accurate especially when sleep duration is small)
   s_end = time(NULL);
   s_start = s_end - ((int)enamel_get_sleep_minutes() * SECONDS_PER_MINUTE);
 

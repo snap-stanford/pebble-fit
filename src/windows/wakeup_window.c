@@ -1,19 +1,22 @@
 #include "wakeup_window.h"
 
 static Window *s_window;
-static TextLayer *s_title_layer, *s_subtitle_layer, *s_foot_layer;
+static TextLayer *s_main_text_layer, *s_text_above_layer, *s_text_below_layer;
+
 static int s_latest_step;
 static char s_start[12], s_end[12];
+static char s_text_above_buf[40];
+static char s_text_below_buf[40];
+  
 
-static TextLayer *s_debug1_layer;
-static int s_debug_entry_count;
+//static TextLayer *s_debug1_layer;
+static int s_rest_mins;
 
 void wakeup_window_update_steps(int steps, char *start, char *end, int entries) {
     s_latest_step = steps;
     strncpy(s_start, start, sizeof(s_start));
     strncpy(s_end, end, sizeof(s_end));
-
-    s_debug_entry_count = entries;
+    s_rest_mins = entries;
 }
 
 /* Set standard attributes on new text layer in this window. */
@@ -27,79 +30,84 @@ static TextLayer* make_text_layer(GRect bounds, GFont font, GTextAlignment align
 }
 
 /* Set steps text according to number of steps taken. */
-static void update_steps_text(char * s_buffer, int s_buf_len, int steps, char * prefix, TextLayer * layer) {
-  int thousands = steps / 1000;
-  if (thousands > 0) {
-    int hundreds = steps / 100;
-    snprintf(s_buffer, s_buf_len, "%s%d.%dk", prefix, thousands, hundreds);
-  } else {
-    snprintf(s_buffer, s_buf_len, "%s%d", prefix, steps);
-  }
-
-  text_layer_set_text(layer, s_buffer);
-}
+//static void update_steps_text(char * s_buffer, int s_buf_len, int steps, char * prefix, TextLayer * layer) {
+//  int thousands = steps / 1000;
+//  if (thousands > 0) {
+//    int hundreds = steps / 100;
+//    snprintf(s_buffer, s_buf_len, "%s%d.%dk", prefix, thousands, hundreds);
+//  } else {
+//    snprintf(s_buffer, s_buf_len, "%s%d", prefix, steps);
+//  }
+//
+//  text_layer_set_text(layer, s_buffer);
+//}
 
 static void window_load(Window *window) {
   Layer *root_layer = window_get_root_layer(window);
-
   GRect bounds = layer_get_bounds(root_layer);
 
-  // Create text layers, and set their texts
-  int padding = 15;
-  float center = bounds.size.h / 2 - padding;
-  
-  int title_height = 60;
-  s_title_layer = make_text_layer(GRect(0, center - title_height, bounds.size.w, title_height), fonts_get_system_font(FONT_KEY_BITHAM_30_BLACK), GTextAlignmentCenter);
+  int padding = PBL_IF_ROUND_ELSE(10, 0);
+  float center = bounds.size.h / 2;
+  int text_above_height = 50;
+  int main_text_height = PBL_IF_ROUND_ELSE(60, 70);
+  int text_below_height = 40;
+
+  // The text layer that is above the main text layer
+  GEdgeInsets text_above_insets = {.top = 10, .bottom = 10 + text_above_height, 
+    .right = 10, .left = 10};
+  s_text_above_layer = make_text_layer(
+    grect_inset(bounds, text_above_insets),
+    fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD), GTextAlignmentCenter);
+  APP_LOG(APP_LOG_LEVEL_INFO, "Steps: %d", s_latest_step);
+  snprintf(s_text_above_buf, sizeof(s_text_above_buf), 
+           "Steps: %d\n%s-%s", s_latest_step, s_start, s_end);
+  text_layer_set_text(s_text_above_layer, s_text_above_buf);
+
+  // The main text layer that resides in the center of the screen
+  s_main_text_layer = make_text_layer(
+    GRect(0, center - main_text_height/2  - padding, bounds.size.w, main_text_height), 
+    fonts_get_system_font(FONT_KEY_BITHAM_30_BLACK), GTextAlignmentCenter);
   if (s_latest_step > enamel_get_step_threshold()) {
-    text_layer_set_text(s_title_layer, "Keep up");
+    //text_layer_set_text(s_main_text_layer, "Keep\nup");
+    text_layer_set_text(s_main_text_layer, "Let's\nMove");
   } else {
-    text_layer_set_text(s_title_layer, "Let's Move");
+    text_layer_set_text(s_main_text_layer, "Let's\nMove");
+    // TODO: maybe move this vibration to somewhere else
     if (enamel_get_vibrate()) vibes_short_pulse();
   }
 
-  int subtitle_height = 25;
-  s_subtitle_layer = make_text_layer(GRect(0, center, bounds.size.w, subtitle_height), fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD), GTextAlignmentCenter);
-  static char step_buf[16];
-  APP_LOG(APP_LOG_LEVEL_INFO, "Steps: %d", s_latest_step);
-  snprintf(step_buf, sizeof(step_buf), "Steps: %d", s_latest_step);
-  text_layer_set_text(s_subtitle_layer, step_buf);
+  // The text layer that is below the main text layer
+  GEdgeInsets text_below_insets = {.top = center+main_text_height/2, .right = 10, .left = 10};
+  s_text_below_layer = make_text_layer(
+    grect_inset(bounds, text_below_insets),
+    fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD), GTextAlignmentCenter);
+  snprintf(s_text_below_buf, sizeof(s_text_below_buf), 
+           "Been resting for the last %dmins", s_rest_mins);
+  text_layer_set_text(s_text_below_layer, s_text_below_buf);
 
-  int foot_height = 22;
-  s_foot_layer = make_text_layer(GRect(0, center + subtitle_height, bounds.size.w, foot_height), fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD), GTextAlignmentCenter);
-  static char time_buf[32];
-  snprintf(time_buf, sizeof(time_buf), "%s-%s", s_start, s_end);
-  text_layer_set_text(s_foot_layer, time_buf);
-
-  int debug1_height = 40;
-  s_debug1_layer = make_text_layer(GRect(0, center + subtitle_height + foot_height, bounds.size.w, debug1_height), fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD), GTextAlignmentCenter);
-  static char debug1_buf[32];
-  snprintf(debug1_buf, sizeof(debug1_buf), "Been resting for the last %dmins", s_debug_entry_count);
-  text_layer_set_text(s_debug1_layer, debug1_buf);
-
-  // Add text layer to the window
-  layer_add_child(root_layer, text_layer_get_layer(s_title_layer));
-  layer_add_child(root_layer, text_layer_get_layer(s_subtitle_layer));
-  layer_add_child(root_layer, text_layer_get_layer(s_foot_layer));
-  layer_add_child(root_layer, text_layer_get_layer(s_debug1_layer));
+  // Add text layers to the window
+  layer_add_child(root_layer, text_layer_get_layer(s_main_text_layer));
+  layer_add_child(root_layer, text_layer_get_layer(s_text_above_layer));
+  layer_add_child(root_layer, text_layer_get_layer(s_text_below_layer));
 }
 
 static void window_unload(Window *window) {
-  if (s_title_layer) {
-    text_layer_destroy(s_title_layer);
-    s_title_layer = NULL;
+  if (s_main_text_layer) {
+    text_layer_destroy(s_main_text_layer);
+    s_main_text_layer = NULL;
   }
-  if (s_subtitle_layer) {
-    text_layer_destroy(s_subtitle_layer);
-    s_subtitle_layer = NULL;
+  if (s_text_above_layer) {
+    text_layer_destroy(s_text_above_layer);
+    s_text_above_layer = NULL;
   }
-  if (s_foot_layer) {
-    text_layer_destroy(s_foot_layer);
-    s_foot_layer = NULL;
+  if (s_text_below_layer) {
+    text_layer_destroy(s_text_below_layer);
+    s_text_below_layer = NULL;
   }
-  if (s_debug1_layer) {
-    text_layer_destroy(s_debug1_layer);
-    s_debug1_layer = NULL;
-  }
+  //if (s_debug1_layer) {
+  //  text_layer_destroy(s_debug1_layer);
+  //  s_debug1_layer = NULL;
+  //}
 
   window_destroy(s_window);
   s_window = NULL;
