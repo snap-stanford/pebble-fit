@@ -1,41 +1,36 @@
 #include "steps.h"
 
 static uint8_t s_step_records[MAX_ENTRIES];
+static const int AppKeyArrayData = 200;
 static int s_num_records;
 static int s_steps;
 static time_t s_start, s_end;
-static const int AppKeyArrayData = 200;
+static int s_valid_entry_count;
+static char s_start_buf[12];
+static char s_end_buf[12];
 
-static int s_debug_entry_count;
 
-/* Set static array to zeros. */
-static void clear_old_data() {
+/* Load health service data into a static array. */
+static void load_data(time_t * start, time_t * end) {
+  // Set the static array to zeros
   s_num_records = 0;
   for(int i = 0; i < MAX_ENTRIES; i++) {
     s_step_records[i] = 0;
   }
-}
-
-/* Load health service data into static array. */
-static void load_data(time_t * start, time_t * end) {
-  clear_old_data();
 
   // Check data is available
   HealthServiceAccessibilityMask result = 
     health_service_metric_accessible(HealthMetricStepCount, *start, *end);
-
-  if(result != HealthServiceAccessibilityMaskAvailable) {
-    APP_LOG(APP_LOG_LEVEL_INFO, "No steps data available from %d to %d!", (int) *start, (int) *end);
+  if (result != HealthServiceAccessibilityMaskAvailable) {
+    APP_LOG(APP_LOG_LEVEL_ERROR, "No steps data available from %d to %d!", (int) *start, (int) *end);
     return;
   }
 
-  // Read the data
+  // Read the data and store into the static array
   HealthMinuteData minute_data[MAX_ENTRIES];
-  
-  // store new static variables
   s_num_records = health_service_get_minute_history(&minute_data[0], MAX_ENTRIES, start, end);
   s_start = *start;
-  s_debug_entry_count = 0;
+  s_valid_entry_count = 0;
   for(int i = 0; i < enamel_get_sleep_minutes(); i++) {
     if (minute_data[i].is_invalid) {
       APP_LOG(APP_LOG_LEVEL_INFO, "(Data invalid) Entry %d = %d", (int)i, (int)s_step_records[i]);
@@ -43,19 +38,19 @@ static void load_data(time_t * start, time_t * end) {
       s_step_records[i] = minute_data[i].steps;
       
       if (s_step_records[i] > 0) {
-        s_debug_entry_count = 0;
+        s_valid_entry_count = 0;
       } else {
-        s_debug_entry_count++;
+        s_valid_entry_count++;
       }
 
       APP_LOG(APP_LOG_LEVEL_INFO, "Entry %d = %d", (int)i, (int)s_step_records[i]);
     }
   }
 
-  APP_LOG(APP_LOG_LEVEL_INFO, "Got %d/%d new entries for steps data from %d to %d", (int)s_num_records, MAX_ENTRIES, (int) *start, (int) *end);
+  //APP_LOG(APP_LOG_LEVEL_INFO, "Got %d/%d new entries for steps data from %d to %d", (int)s_num_records, MAX_ENTRIES, (int) *start, (int) *end);
 
 
-
+  // TODO: below is for debug purpose for now
   // Make a timestamp for now
   time_t db_end = time(NULL);
   
@@ -113,11 +108,14 @@ void steps_send_latest() {
 
 /* Return the number of steps in the last sleep period. */
 int steps_get_latest() {
-  // TODO: Change s_end to a timestamp slightly in the future, otherwise, Pebble health
-  // service will round it down to the boundary of one minute, likely will lose the latest
-  // step count (less accurate especially when sleep duration is small)
+  // TODO: double check the accuracy
   s_end = time(NULL);
   s_start = s_end - ((int)enamel_get_sleep_minutes() * SECONDS_PER_MINUTE);
+
+  // Convert to human readable time for display purpose
+  strftime(s_start_buf, sizeof(s_start_buf), "%H:%M:%S", localtime(&s_start));
+  strftime(s_end_buf, sizeof(s_end_buf), "%H:%M:%S", localtime(&s_end));
+  APP_LOG(APP_LOG_LEVEL_INFO, "Got %d step count from %s to %s", s_steps, s_start_buf, s_end_buf);
 
   load_data(&s_start, &s_end);
 
@@ -132,10 +130,5 @@ int steps_get_latest() {
 void steps_update_wakeup_window_steps() { 
   steps_get_latest(); // TODO: optimize
 
-  char start_buf[12]; char end_buf[12];
-  strftime(start_buf, sizeof(start_buf), "%H:%M:%S", localtime(&s_start));
-  strftime(end_buf, sizeof(end_buf), "%H:%M:%S", localtime(&s_end));
-  APP_LOG(APP_LOG_LEVEL_INFO, "Got %d step count from %s to %s", s_steps, start_buf, end_buf);
-
-  wakeup_window_update_steps(s_steps, start_buf, end_buf, s_debug_entry_count);
+  wakeup_window_update_steps(s_steps, s_start_buf, s_end_buf, s_valid_entry_count);
 }
