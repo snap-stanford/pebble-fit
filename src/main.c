@@ -104,8 +104,7 @@ static void init(void) {
   // call pebble-events app_message_open function
   events_app_message_open(); 
 
-  //prv_window_push(enamel_get_optin());
-  prv_window_push(true);
+  prv_window_push(enamel_get_optin());
 }
 
 static void deinit(void) {
