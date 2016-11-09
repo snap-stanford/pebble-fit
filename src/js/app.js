@@ -5,6 +5,8 @@ var clayConfig = require('./config.json');
 var customClay = require('./custom-clay');
 var clay = new Clay(clayConfig, customClay);
 
+clay.registerComponent(require('./pfbutton'));
+
 var log = require('./logging');
 log.set_level(3);
 

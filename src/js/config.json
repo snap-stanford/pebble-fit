@@ -1,44 +1,173 @@
 [
 {
-  "type": "text",
-  "id": "main_text",
-  "defaultValue": "This pebble-fit App is in testing. It does not upload data to the backend server in the current version. Appreciate your feedback."
-},
-{
   "type": "section",
+  "id": "eligible_section",
   "items": [
+    { 
+      "type": "pfbutton",
+      "id": "test"
+    },
     {
       "type": "heading",
-      "defaultValue": "App Activation"
+      "id": "eligible_heading",
+      "defaultValue": "Eligibility"
     },
     {
       "type": "text",
-      "id": "optin_text",
-      "defaultValue": "By activating this App, you agree to participate in this study."
+      "id": "eligible_text",
+      "defaultValue": "Please complete the questionaire below to determine your eligible to participate in this study."
     },
     {
       "type": "toggle",
-      "messageKey": "optin",
-      "label": "Activate pebble-fit App",
+      "id": "eligible_1",
+      "label": "1. Are you 18 years of age or older?",
       "defaultValue": false
+    },
+    {
+      "type": "toggle",
+      "id": "eligible_2",
+      "label": "2. Can you read and understand English in order to provide informed consent?",
+      "defaultValue": false
+    },
+    {
+      "type": "select",
+      "id": "eligible_3",
+      "label": "3. Has your doctor ever said that you have a heart condition and that you should only do physical activity recommended by a doctor?",
+      "defaultValue": "null",
+      "options": [
+        { "label": "Select", "value": "null" },
+        { "label": "Yes", "value": true },
+        { "label": "No", "value": false }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "eligible_4",
+      "label": "4. Do you feel pain in your chest when you do physical activity?",
+      "defaultValue": "null",
+      "options": [
+        { "label": "Select", "value": "null" },
+        { "label": "Yes", "value": true },
+        { "label": "No", "value": false }
+      ]
+    },
+    {
+      "type": "button",
+      "id": "eligible_4_yes_button",
+      "primary": true,
+      "defaultValue": "Yes"
+    },
+    {
+      "type": "button",
+      "id": "eligible_4_no_button",
+      "primary": false,
+      "defaultValue": "No"
+    },
+    {
+      "type": "select",
+      "id": "eligible_5",
+      "label": "5. In the past month, have you had chest pain when you were not doing physical activity?",
+      "defaultValue": "null",
+      "options": [
+        { "label": "Select", "value": "null" },
+        { "label": "Yes", "value": true },
+        { "label": "No", "value": false }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "eligible_6",
+      "label": "6. Do you lose your balance because of dizziness or do you ever lose consciousness?",
+      "defaultValue": "null",
+      "options": [
+        { "label": "Select", "value": "null" },
+        { "label": "Yes", "value": true },
+        { "label": "No", "value": false }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "eligible_7",
+      "label": "7. Do you have a bone or joint problem (for example, back, knee or hip) that could be made worse by a change in your physical activity?",
+      "defaultValue": "null",
+      "options": [
+        { "label": "Select", "value": "null" },
+        { "label": "Yes", "value": true },
+        { "label": "No", "value": false }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "eligible_8",
+      "label": "8. Is your doctor currently prescribing drugs (for example, water pills) for your blood pressure or heart condition?",
+      "defaultValue": "null",
+      "options": [
+        { "label": "Select", "value": "null" },
+        { "label": "Yes", "value": true },
+        { "label": "No", "value": false }
+      ]
+    },
+    {
+      "type": "text",
+      "id": "eligible_warn_text",
+      "defaultValue": "Please select an answer for each of the questions above."
+    },
+    {
+      "type": "button",
+      "id": "eligible_button",
+      "primary": false,
+      "defaultValue": "Next"
     }
   ]
 },
+
+
+
 {
   "type": "section",
+  "id": "eligible_result_section",
+  "items": [
+    {
+      "type": "text",
+      "id": "eligible_result_text",
+      "defaultValue": "You are eligible to join the study. Tap the button below to begin the consent process."
+    },
+    {
+      "type": "button",
+      "id": "eligible_result_button",
+      "defaultValue": "Start Consent"
+    }
+  ]
+},
+
+
+
+{
+  "type": "section",
+  "id": "config_section",
   "items": [
     {
       "type": "heading",
-      "defaultValue": "Configuration"
+      "id": "settings",
+      "defaultValue": "Settings"
     },
     {
       "type": "toggle",
+      "id": "optin",
+      "messageKey": "optin",
+      "label": "Activate pebble-fit App",
+      "defaultValue": false
+    },
+    {
+      "type": "toggle",
+      "id": "vibrate",
       "messageKey": "vibrate",
       "label": "Turn on/off vibration",
       "defaultValue": false
     },
     {
       "type": "input",
+      "id": "daily_start_time",
       "messageKey": "daily_start_time",
       "defaultValue": "09:00",
       "label": "Start time",
@@ -49,6 +178,7 @@
     },
     {
       "type": "input",
+      "id": "daily_end_time",
       "messageKey": "daily_end_time",
       "defaultValue": "20:00",
       "label": "End time",
@@ -60,92 +190,53 @@
     },
     {
       "type": "select",
+      "id": "sleep_minutes",
       "messageKey": "sleep_minutes",
       "defaultValue": 60,
       "label": "How frequently to be notified?",
       "description": "The time duration between notifications.",
       "options": [
-        { 
-          "label": "1 hour",
-          "value": 60 
-        },
-        { 
-          "label": "30 minutes",
-          "value": 30 
-        },
-        { 
-          "label": "15 minutes", 
-          "value": 15
-        },
-        { 
-          "label": "10 minutes", 
-          "value": 10
-        },
-        { 
-          "label": "5 minutes", 
-          "value": 5
-        },
-        { 
-          "label": "3 minutes", 
-          "value": 3
-        },
-        { 
-          "label": "1 minute", 
-          "value": 1
-        }
+        { "label": "1 hour",        "value": 60 },
+        { "label": "30 minutes",    "value": 30 },
+        { "label": "15 minutes",    "value": 15 },
+        { "label": "10 minutes",    "value": 10 },
+        { "label": "5 minutes",     "value": 5 },
+        { "label": "3 minutes",     "value": 3 },
+        { "label": "1 minute",      "value": 1 }
       ]
     },
     {
       "type": "select",
+      "id": "step_threshold",
       "messageKey": "step_threshold",
       "defaultValue": 500,
       "label": "How many steps expected?",
       "description": "The App will alert you if steps taken in the last period is lower than this threshold.",
       "options": [
-        { 
-          "label": "500",
-          "value": 500 
-        },
-        { 
-          "label": "200",
-          "value": 200 
-        },
-        { 
-          "label": "100",
-          "value": 100 
-        },
-        { 
-          "label": "10",
-          "value": 10 
-        }
+        { "label": "500",   "value": 500 },
+        { "label": "200",   "value": 200 },
+        { "label": "100",   "value": 100 },
+        { "label": "10",    "value": 10 }
       ]
     },
     {
       "type": "select",
+      "id": "display_duration",
       "messageKey": "display_duration",
       "defaultValue": 10,
       "label": "Display duration (in seconds)",
       "description": "The notification message will only be displayed for a few seconds, and then the App will automatically go back into the sleep mode. You can still press the back button to manually suppress it before this timeout.",
       "options": [
-        { 
-          "label": "15",
-          "value": 15 
-        },
-        { 
-          "label": "10",
-          "value": 10 
-        },
-        { 
-          "label": "5",
-          "value": 5 
-        }
+        { "label": "10",    "value": 10 },
+        { "label": "15",    "value": 15 },
+        { "label": "5",     "value": 5 }
       ]
     }
-
   ]
 },
 {
   "type": "submit",
+  "id": "submit",
   "defaultValue": "Save Settings"
 }
 ]
