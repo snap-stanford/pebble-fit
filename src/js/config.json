@@ -3,10 +3,6 @@
   "type": "section",
   "id": "eligible_section",
   "items": [
-    { 
-      "type": "pfbutton",
-      "id": "test"
-    },
     {
       "type": "heading",
       "id": "eligible_heading",
@@ -36,8 +32,8 @@
       "defaultValue": "null",
       "options": [
         { "label": "Select", "value": "null" },
-        { "label": "Yes", "value": true },
-        { "label": "No", "value": false }
+        { "label": "Yes", "value": "true" },
+        { "label": "No", "value": "false" }
       ]
     },
     {
@@ -47,21 +43,9 @@
       "defaultValue": "null",
       "options": [
         { "label": "Select", "value": "null" },
-        { "label": "Yes", "value": true },
-        { "label": "No", "value": false }
+        { "label": "Yes",    "value": "true" },
+        { "label": "No",     "value": "false" }
       ]
-    },
-    {
-      "type": "button",
-      "id": "eligible_4_yes_button",
-      "primary": true,
-      "defaultValue": "Yes"
-    },
-    {
-      "type": "button",
-      "id": "eligible_4_no_button",
-      "primary": false,
-      "defaultValue": "No"
     },
     {
       "type": "select",
@@ -70,8 +54,8 @@
       "defaultValue": "null",
       "options": [
         { "label": "Select", "value": "null" },
-        { "label": "Yes", "value": true },
-        { "label": "No", "value": false }
+        { "label": "Yes",    "value": "true" },
+        { "label": "No",     "value": "false" }
       ]
     },
     {
@@ -81,31 +65,34 @@
       "defaultValue": "null",
       "options": [
         { "label": "Select", "value": "null" },
-        { "label": "Yes", "value": true },
-        { "label": "No", "value": false }
+        { "label": "Yes",    "value": "true" },
+        { "label": "No",     "value": "false" }
       ]
     },
     {
-      "type": "select",
+      "type": "radiogroup",
       "id": "eligible_7",
+      "messageKey": "eligible_7",
       "label": "7. Do you have a bone or joint problem (for example, back, knee or hip) that could be made worse by a change in your physical activity?",
-      "defaultValue": "null",
       "options": [
-        { "label": "Select", "value": "null" },
-        { "label": "Yes", "value": true },
-        { "label": "No", "value": false }
+        { 
+          "label": "Yes", 
+          "value": "true" 
+        },
+        { 
+          "label": "No", 
+          "value": "false" 
+        }
       ]
     },
     {
-      "type": "select",
+      "type": "text",
       "id": "eligible_8",
-      "label": "8. Is your doctor currently prescribing drugs (for example, water pills) for your blood pressure or heart condition?",
-      "defaultValue": "null",
-      "options": [
-        { "label": "Select", "value": "null" },
-        { "label": "Yes", "value": true },
-        { "label": "No", "value": false }
-      ]
+      "defaultValue": "8. Is your doctor currently prescribing drugs (for example, water pills) for your blood pressure or heart condition?"
+    },
+    { 
+      "type": "pfbutton",
+      "id": "pfbutton_8"
     },
     {
       "type": "text",
@@ -136,6 +123,94 @@
       "type": "button",
       "id": "eligible_result_button",
       "defaultValue": "Start Consent"
+    }
+  ]
+},
+
+
+
+{
+  "type": "section",
+  "id": "consent_section",
+  "items": [
+    {
+      "type": "heading",
+      "id": "consent_heading_start",
+      "defaultValue": "Study Description and Consent"
+    },
+    {
+      "type": "text",
+      "id": "consent_text_start",
+      "defaultValue": "This simple walk through will explain the research study, how participating may affect you, and what it means to consent to participate."
+    },
+    {
+      "type": "button",
+      "id": "consent_button_start",
+      "defaultValue": "Get Started"
+    },
+    {
+      "type": "heading",
+      "id": "consent_heading",
+      "defaultValue": "Study Purpose"
+    },
+    {
+      "type": "text",
+      "id": "consent_text",
+      "defaultValue": "The goal of this study is to test different methods of reducing sedentary time and motivating physical activity using a smartwatch and mobile phone."
+    },
+    {
+      "type": "text",
+      "id": "consent_icon",
+      "defaultValue": "(This is a placeholder for icon, which is not a default component, requires a bit work to create a custom component)"
+    },
+    {
+      "type": "button",
+      "id": "consent_button",
+      "defaultValue": "Next"
+    },
+    {
+      "type": "heading",
+      "id": "consent_heading_review",
+      "defaultValue": "Review"
+    },
+    {
+      "type": "text",
+      "id": "consent_text_review",
+      "defaultValue": "Please review the consent form below and tap to agree if you are ready to continue."
+    },
+    {
+      "type": "text",
+      "id": "consent_form_review",
+      "defaultValue": "(This is a placeholder for the consent form, might be available as an inline frame)"
+    },
+    {
+      "type": "button",
+      "id": "consent_button_agree",
+      "defaultValue": "Agree"
+    },
+    {
+      "type": "button",
+      "id": "consent_button_disagree",
+      "defaultValue": "Disagree"
+    }
+  ]
+},
+
+
+
+{
+  "type": "section",
+  "id": "consent_result_section",
+  "items": [
+    {
+      "type": "text",
+      "id": "consent_result_text",
+      "defaultValue": "Thank you for enrolling in the study! You can access your consent form or change your privacy settings at any time in the app."
+    },
+    {
+      "type": "button",
+      "id": "consent_result_button",
+      "defaultValue": "Proceed to Study Survey"
     }
   ]
 },
@@ -234,6 +309,9 @@
     }
   ]
 },
+
+
+
 {
   "type": "submit",
   "id": "submit",

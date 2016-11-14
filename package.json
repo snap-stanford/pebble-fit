@@ -40,7 +40,8 @@
       "daily_start_time": 1003,
       "daily_end_time": 1004,
       "sleep_minutes": 1005,
-      "display_duration": 1006
+      "display_duration": 1006,
+      "eligible_7": 2007
     },
     "resources": {
       "media": []
