@@ -30,6 +30,86 @@ static uint32_t s_dict_size = 0;
 static bool s_config_changed;
 
 // -----------------------------------------------------
+// Getter for 'is_consent'
+bool enamel_get_is_consent(){
+	Tuple* tuple = dict_find(&s_dict, 2703378645);
+	return tuple ? tuple->value->int32 == 1 : false;
+}
+// -----------------------------------------------------
+
+// -----------------------------------------------------
+// Getter for 'consent_name'
+const char* enamel_get_consent_name(){
+	Tuple* tuple = dict_find(&s_dict, 4163168280);
+	return tuple ? tuple->value->cstring : "";
+}
+// -----------------------------------------------------
+
+// -----------------------------------------------------
+// Getter for 'consent_email'
+const char* enamel_get_consent_email(){
+	Tuple* tuple = dict_find(&s_dict, 3428345362);
+	return tuple ? tuple->value->cstring : "";
+}
+// -----------------------------------------------------
+
+// -----------------------------------------------------
+// Getter for 'survey_age'
+const char* enamel_get_survey_age(){
+	Tuple* tuple = dict_find(&s_dict, 3769805684);
+	return tuple ? tuple->value->cstring : "";
+}
+// -----------------------------------------------------
+
+// -----------------------------------------------------
+// Getter for 'survey_gender'
+const char* enamel_get_survey_gender(){
+	Tuple* tuple = dict_find(&s_dict, 3415907915);
+	return tuple ? tuple->value->cstring : "null";
+}
+// -----------------------------------------------------
+
+// -----------------------------------------------------
+// Getter for 'survey_height_unit'
+const char* enamel_get_survey_height_unit(){
+	Tuple* tuple = dict_find(&s_dict, 3564860411);
+	return tuple ? tuple->value->cstring : "null";
+}
+// -----------------------------------------------------
+
+// -----------------------------------------------------
+// Getter for 'survey_height'
+const char* enamel_get_survey_height(){
+	Tuple* tuple = dict_find(&s_dict, 2106823441);
+	return tuple ? tuple->value->cstring : "";
+}
+// -----------------------------------------------------
+
+// -----------------------------------------------------
+// Getter for 'survey_weight_unit'
+const char* enamel_get_survey_weight_unit(){
+	Tuple* tuple = dict_find(&s_dict, 3788605488);
+	return tuple ? tuple->value->cstring : "null";
+}
+// -----------------------------------------------------
+
+// -----------------------------------------------------
+// Getter for 'survey_weight'
+const char* enamel_get_survey_weight(){
+	Tuple* tuple = dict_find(&s_dict, 17578608);
+	return tuple ? tuple->value->cstring : "";
+}
+// -----------------------------------------------------
+
+// -----------------------------------------------------
+// Getter for 'survey_race'
+const char* enamel_get_survey_race(){
+	Tuple* tuple = dict_find(&s_dict, 4017778921);
+	return tuple ? tuple->value->cstring : "null";
+}
+// -----------------------------------------------------
+
+// -----------------------------------------------------
 // Getter for 'optin'
 bool enamel_get_optin(){
 	Tuple* tuple = dict_find(&s_dict, 251311563);
@@ -99,6 +179,16 @@ DISPLAY_DURATIONValue enamel_get_display_duration(){
 static uint16_t prv_get_inbound_size() {
 	return 1
 		+ 7 + 4
+		+ 7 + ENAMEL_MAX_STRING_LENGTH
+		+ 7 + ENAMEL_MAX_STRING_LENGTH
+		+ 7 + ENAMEL_MAX_STRING_LENGTH
+		+ 7 + 12
+		+ 7 + 7
+		+ 7 + ENAMEL_MAX_STRING_LENGTH
+		+ 7 + 5
+		+ 7 + ENAMEL_MAX_STRING_LENGTH
+		+ 7 + 9
+		+ 7 + 4
 		+ 7 + 4
 		+ 7 + ENAMEL_MAX_STRING_LENGTH
 		+ 7 + ENAMEL_MAX_STRING_LENGTH
@@ -109,6 +199,16 @@ static uint16_t prv_get_inbound_size() {
 }
 
 static uint32_t prv_map_messagekey(const uint32_t key){
+	if( key == MESSAGE_KEY_is_consent) return 2703378645;
+	if( key == MESSAGE_KEY_consent_name) return 4163168280;
+	if( key == MESSAGE_KEY_consent_email) return 3428345362;
+	if( key == MESSAGE_KEY_survey_age) return 3769805684;
+	if( key == MESSAGE_KEY_survey_gender) return 3415907915;
+	if( key == MESSAGE_KEY_survey_height_unit) return 3564860411;
+	if( key == MESSAGE_KEY_survey_height) return 2106823441;
+	if( key == MESSAGE_KEY_survey_weight_unit) return 3788605488;
+	if( key == MESSAGE_KEY_survey_weight) return 17578608;
+	if( key == MESSAGE_KEY_survey_race) return 4017778921;
 	if( key == MESSAGE_KEY_optin) return 251311563;
 	if( key == MESSAGE_KEY_vibrate) return 3086721838;
 	if( key == MESSAGE_KEY_daily_start_time) return 280095890;
@@ -129,7 +229,7 @@ static bool prv_each_settings_received(void *this, void *context) {
 }
 
 static void prv_inbox_received_handle(DictionaryIterator *iter, void *context) {
-	if(dict_find(iter, MESSAGE_KEY_optin)){
+	if(dict_find(iter, MESSAGE_KEY_is_consent)){
 		if(s_dict_buffer){
 			free(s_dict_buffer);
 			s_dict_buffer = NULL;

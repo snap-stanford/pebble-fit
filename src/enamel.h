@@ -8,6 +8,56 @@
 #include <pebble.h>
 
 // -----------------------------------------------------
+// Getter for 'is_consent'
+bool enamel_get_is_consent();
+// -----------------------------------------------------
+
+// -----------------------------------------------------
+// Getter for 'consent_name'
+const char* enamel_get_consent_name();
+// -----------------------------------------------------
+
+// -----------------------------------------------------
+// Getter for 'consent_email'
+const char* enamel_get_consent_email();
+// -----------------------------------------------------
+
+// -----------------------------------------------------
+// Getter for 'survey_age'
+const char* enamel_get_survey_age();
+// -----------------------------------------------------
+
+// -----------------------------------------------------
+// Getter for 'survey_gender'
+const char* enamel_get_survey_gender();
+// -----------------------------------------------------
+
+// -----------------------------------------------------
+// Getter for 'survey_height_unit'
+const char* enamel_get_survey_height_unit();
+// -----------------------------------------------------
+
+// -----------------------------------------------------
+// Getter for 'survey_height'
+const char* enamel_get_survey_height();
+// -----------------------------------------------------
+
+// -----------------------------------------------------
+// Getter for 'survey_weight_unit'
+const char* enamel_get_survey_weight_unit();
+// -----------------------------------------------------
+
+// -----------------------------------------------------
+// Getter for 'survey_weight'
+const char* enamel_get_survey_weight();
+// -----------------------------------------------------
+
+// -----------------------------------------------------
+// Getter for 'survey_race'
+const char* enamel_get_survey_race();
+// -----------------------------------------------------
+
+// -----------------------------------------------------
 // Getter for 'optin'
 bool enamel_get_optin();
 // -----------------------------------------------------
@@ -55,8 +105,8 @@ STEP_THRESHOLDValue enamel_get_step_threshold();
 // -----------------------------------------------------
 // Getter for 'display_duration'
 typedef enum {
-	DISPLAY_DURATION_15 = 15,
 	DISPLAY_DURATION_10 = 10,
+	DISPLAY_DURATION_15 = 15,
 	DISPLAY_DURATION_5 = 5,
 } DISPLAY_DURATIONValue;
 DISPLAY_DURATIONValue enamel_get_display_duration();

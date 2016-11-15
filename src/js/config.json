@@ -1,44 +1,396 @@
 [
 {
-  "type": "text",
-  "id": "main_text",
-  "defaultValue": "This pebble-fit App is in testing. It does not upload data to the backend server in the current version. Appreciate your feedback."
+  "type": "toggle",
+  "messageKey": "is_consent",
+  "defaultValue": false
 },
 {
   "type": "section",
+  "id": "eligible_section",
   "items": [
     {
       "type": "heading",
-      "defaultValue": "App Activation"
+      "id": "eligible_heading",
+      "defaultValue": "Eligibility"
     },
     {
       "type": "text",
-      "id": "optin_text",
-      "defaultValue": "By activating this App, you agree to participate in this study."
+      "id": "eligible_text",
+      "defaultValue": "Please complete the questionaire below to determine your eligible to participate in this study."
     },
     {
       "type": "toggle",
-      "messageKey": "optin",
-      "label": "Activate pebble-fit App",
+      "id": "eligible_1",
+      "label": "1. Are you 18 years of age or older?",
       "defaultValue": false
+    },
+    {
+      "type": "toggle",
+      "id": "eligible_2",
+      "label": "2. Can you read and understand English in order to provide informed consent?",
+      "defaultValue": false
+    },
+    {
+      "type": "select",
+      "id": "eligible_3",
+      "label": "3. Has your doctor ever said that you have a heart condition and that you should only do physical activity recommended by a doctor?",
+      "defaultValue": "null",
+      "options": [
+        { "label": "Select", "value": "null" },
+        { "label": "Yes", "value": "true" },
+        { "label": "No", "value": "false" }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "eligible_4",
+      "label": "4. Do you feel pain in your chest when you do physical activity?",
+      "defaultValue": "null",
+      "options": [
+        { "label": "Select", "value": "null" },
+        { "label": "Yes",    "value": "true" },
+        { "label": "No",     "value": "false" }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "eligible_5",
+      "label": "5. In the past month, have you had chest pain when you were not doing physical activity?",
+      "defaultValue": "null",
+      "options": [
+        { "label": "Select", "value": "null" },
+        { "label": "Yes",    "value": "true" },
+        { "label": "No",     "value": "false" }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "eligible_6",
+      "label": "6. Do you lose your balance because of dizziness or do you ever lose consciousness?",
+      "defaultValue": "null",
+      "options": [
+        { "label": "Select", "value": "null" },
+        { "label": "Yes",    "value": "true" },
+        { "label": "No",     "value": "false" }
+      ]
+    },
+    {
+      "type": "radiogroup",
+      "id": "eligible_7",
+      "label": "7. Do you have a bone or joint problem (for example, back, knee or hip) that could be made worse by a change in your physical activity?",
+      "options": [
+        { 
+          "label": "Yes", 
+          "value": "true" 
+        },
+        { 
+          "label": "No", 
+          "value": "false" 
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "id": "eligible_8",
+      "defaultValue": "8. Is your doctor currently prescribing drugs (for example, water pills) for your blood pressure or heart condition?"
+    },
+    { 
+      "type": "pfbutton",
+      "id": "pfbutton_8"
+    },
+    {
+      "type": "text",
+      "id": "eligible_warn_text",
+      "defaultValue": "Please select an answer for each of the questions above."
+    },
+    {
+      "type": "button",
+      "id": "eligible_button",
+      "primary": false,
+      "defaultValue": "Next"
     }
   ]
 },
+
+
+
 {
   "type": "section",
+  "id": "eligible_result_section",
+  "items": [
+    {
+      "type": "text",
+      "id": "eligible_result_text",
+      "defaultValue": "You are eligible to join the study. Tap the button below to begin the consent process."
+    },
+    {
+      "type": "button",
+      "id": "eligible_result_button",
+      "defaultValue": "Start Consent"
+    }
+  ]
+},
+
+
+
+{
+  "type": "section",
+  "id": "consent_section",
   "items": [
     {
       "type": "heading",
-      "defaultValue": "Configuration"
+      "id": "consent_heading_start",
+      "defaultValue": "Study Description and Consent"
+    },
+    {
+      "type": "text",
+      "id": "consent_text_start",
+      "defaultValue": "This simple walk through will explain the research study, how participating may affect you, and what it means to consent to participate."
+    },
+    {
+      "type": "button",
+      "id": "consent_button_start",
+      "defaultValue": "Get Started"
+    },
+    {
+      "type": "heading",
+      "id": "consent_heading",
+      "defaultValue": "Study Purpose"
+    },
+    {
+      "type": "text",
+      "id": "consent_icon",
+      "defaultValue": "(This is a placeholder for icon, which is not a default component, requires a bit work to create a custom component)"
+    },
+    {
+      "type": "text",
+      "id": "consent_text",
+      "defaultValue": "The goal of this study is to test different methods of reducing sedentary time and motivating physical activity using a smartwatch and mobile phone."
+    },
+    {
+      "type": "button",
+      "id": "consent_button_next",
+      "defaultValue": "Next"
+    },
+    {
+      "type": "heading",
+      "id": "consent_review_heading",
+      "defaultValue": "Review"
+    },
+    {
+      "type": "text",
+      "id": "consent_review_text",
+      "defaultValue": "Please review the consent form below and tap to agree if you are ready to continue."
+    },
+    {
+      "type": "heading",
+      "id": "consent_review_heading_form",
+      "defaultValue": "CONSENT FORM"
+    },
+    {
+      "type": "text",
+      "id": "consent_review_approve_text",
+      "defaultValue": "Approval Date: TBD"
+    },
+    {
+      "type": "text",
+      "id": "consent_review_expire_text",
+      "defaultValue": "Expiration Date: TBD"
+    },
+    {
+      "type": "text",
+      "id": "consent_review_text_form",
+      "defaultValue": "For questions about the study, contact: Dr. Jennifer Hicks, Department of Bioengineering, Clark Center Room S342, 318 Campus Drive West, Stanford CA 94305, (650) 498-4403.   DESCRIPTION: You are invited to participate in a research study testing the use of a mobile phone and smartwatch application (‘MyMobilize’) to reduce sedentary time and motivate physical activity. Mobile phones and wearable devices can now be used to measure physical activity as users go about their daily lives. For example, things like the number of steps taken in a day or the amount of time sitting can be easily recorded. Yet, little is known about how to best use these measurements to encourage people to be active. The goal of this study is to test different methods of motivating physical activity using a smartwatch and mobile phone, in particular to increase physical activity and reduce sedentary time.  During study enrolment, you will be asked to install the MyMobilize app on your smartphone and go through a series of screens that will determine eligibility, describe the study to you, and ask you to provide informed consent. If you provide consent, a copy of this consent form will be emailed to you. You will then be asked to allow the MyMobilize app to collect activity data from your smartwatch and phone. Next, you will be asked a few questions about your current physical activity, as well as any possible medical conditions that might limit your participation in the study. We will also ask a few basic demographic questions. In total, answering these questions should take about 10-15 minutes.  Once enrolled in the study, the MyMobilize app will collect activity data (steps and sedentary time) as you go about your daily activities for as long as you continue to be enrolled in the study. This could last up to two years. The app will also send you notifications through the smartwatch to encourage physical activity throughout the day. The physical activity changes encouraged in the study will be small and will not be strenuous (i.e., adding light and short bouts of activity, like short walks, throughout the day). These notifications will come in the form of written text, icons, or vibrations through the smartwatch. You will have the ability to turn off, silence, or personalize the frequency of the notifications if you so choose. Your response to the notifications will be collected along with your activity data. You will also be able to view your data on your smartwatch.. At times during the study, the app may ask you to complete additional questionnaires.  CONFIDENTIALLY AND DATA STORAGE: Your study data, collected on the smartwatch, will be uploaded daily to an encrypted and secure server in the Stanford University campus. To prevent improper access to your data, we will use an anonymous code, not your name, to identify your study data. Your coded data (without your name) will be combined with data from other participants for analysis by Stanford researchers and our research partners. Stanford will maintain your consent and personal information and the link to your study data to enable future research.  RISKS AND BENEFITS: As with any increase in activity, there are small risks of temporary and minor   injury, such as muscle fatigue and soreness. Serious medical complications are uncommon with the moderate format of physical activity recommended in this study. In the case that medical complications do arise from your participation in this study, reimbursement for all related costs of care first will be sought from your insurer, managed care plan, or other benefits program. You will be responsible for any associated co-payments or deductibles as required by your insurance. If costs of care related to such an injury are not covered by your insurer, managed care plan or other benefits program, you may be responsible for these costs. If you are unable to pay for such costs, the Protocol Director will assist you in applying for supplemental benefits and explain how to apply for patient financial assistance from the hospital. Additionally, Stanford is not responsible for research and medical care by other institutions or personnel participating in this study. You do not waive any liability rights for personal injury by signing this form.  The benefits which may reasonably be expected to result from this study are physical and emotional benefits from increasing physical activity and decreasing sedentary.  We cannot and do not guarantee or promise that you will receive any benefits from this study.  TIME INVOLVEMENT: Your participation in this study may last as little as 1 week, but you can remain in the study for up to 2 years if you chose. At the beginning of the study, you will be asked to complete a study survey, requiring about 10-15 minutes of your time. You may also receive short 5-minute survey questionnaires at other time points of the study. Furthermore, the smartwatch will guide you through a daily intervention program that you can devote additional time to.  PAYMENTS: There is no payment for participating in this research. There is no cost to you to participate in this study.  SUBJECT'S RIGHTS: If you have read this form and have decided to participate in this project, please understand your participation is voluntary and you have the right to withdraw your consent or discontinue participation at any time without penalty or loss of benefits to which you are otherwise entitled. You have the right to refuse to answer particular questions. Your individual privacy will be maintained in all published and written data resulting from the study.  CONTACT INFORMATION: If you have any questions, concerns or complaints about this research study, its procedures, risks and benefits, or alternative courses of treatment, you should ask the Protocol Director, Dr. Jennifer Hicks, (650) 498-4403, mobilize@stanford.edu. You should also contact her at any time if you feel you have been hurt by being a part of this study.  Independent Contact: If you are not satisfied with how this study is being conducted, or if you have any concerns, complaints, or general questions about the research or your rights as a participant, please contact the Stanford Institutional Review Board (IRB) to speak to someone independent of the research team at (650)-723-5244 or toll free at 1-866-680-2906. You can also write to the Stanford IRB, Stanford University, Stanford, CA 94305-5401.  A copy of this consent form is available for your records."
+    },
+    {
+      "type": "input",
+      "id": "consent_name",
+      "messageKey": "consent_name",
+      "label": "Name (Optional)"
+    },
+    {
+      "type": "input",
+      "id": "consent_email",
+      "messageKey": "consent_email",
+      "label": "Email (Optional)",
+      "description": "If you provide your email, we may contact you in the future with additional questions or information about this study or future related studies.",
+      "attributes": {
+        "type": "email",
+        "placeholder": "eg: name@domain.com",
+        "limit": 64
+      }
+    },
+    {
+      "type": "button",
+      "id": "consent_button_agree",
+      "defaultValue": "Agree"
+    },
+    {
+      "type": "button",
+      "id": "consent_button_disagree",
+      "defaultValue": "Disagree"
+    }
+  ]
+},
+
+
+
+{
+  "type": "section",
+  "id": "consent_result_section",
+  "items": [
+    {
+      "type": "text",
+      "id": "consent_result_text",
+      "defaultValue": "Thank you for enrolling in the study! You can access your consent form or change your privacy settings at any time in the app."
+    },
+    {
+      "type": "button",
+      "id": "consent_result_button",
+      "defaultValue": "Proceed to Study Survey"
+    }
+  ]
+},
+
+
+
+{
+  "type": "section",
+  "id": "survey_section",
+  "items": [
+    {
+      "type": "heading",
+      "id": "survey_heading_0",
+      "defaultValue": "Study Survey"
+    },
+    {
+      "type": "text",
+      "id": "survey_text_0",
+      "defaultValue": "In this survey we will ask you some questions about you, your current physical activity, and the time you spend sitting. It should only take about 10-15 minutes to complete."
+    },
+    {
+      "type": "heading",
+      "id": "survey_heading_1",
+      "defaultValue": "About You …"
+    },
+    {
+      "type": "text",
+      "id": "survey_text_1",
+      "defaultValue": "It is useful for us to know a little bit about who you are and what your lifestyle is like."
+    },
+    {
+      "type": "input",
+      "id": "survey_age",
+      "messageKey": "survey_age",
+      "label": "1. What is your age?",
+      "attributes": {
+        "type": "number",
+        "min": 18
+      }
+    },
+    {
+      "type": "select",
+      "id": "survey_gender",
+      "messageKey": "survey_gender",
+      "label": "2. What is your gender identity?",
+      "defaultValue": "null",
+      "options": [
+        { "label": "Select",                "value": "null" },
+        { "label": "Female",                "value": "Female"},
+        { "label": "Male",                  "value": "Male"},
+        { "label": "Transgender",           "value": "Transgender"},
+        { "label": "Other",                 "value": "Other"},
+        { "label": "Choose not to answer",  "value": "NA"}
+      ]
+    },
+    {
+      "type": "select",
+      "id": "survey_height_unit",
+      "messageKey": "survey_height_unit",
+      "label": "3. What is your current height?",
+      "defaultValue": "null",
+      "options": [
+        { "label": "Select", "value": "null" },
+        { "label": "cm",     "value": "cm"},
+        { "label": "inches", "value": "inches"}
+      ]
+    },
+    {
+      "type": "input",
+      "id": "survey_height",
+      "messageKey": "survey_height",
+      "attributes": {
+        "type": "number"
+      }
+    },
+    {
+      "type": "select",
+      "id": "survey_weight_unit",
+      "messageKey": "survey_weight_unit",
+      "label": "3. What is your current weight?",
+      "defaultValue": "null",
+      "options": [
+        { "label": "Select", "value": "null" },
+        { "label": "kgs",    "value": "kgs"},
+        { "label": "lbs",    "value": "lbs"}
+      ]
+    },
+    {
+      "type": "input",
+      "id": "survey_weight",
+      "messageKey": "survey_weight",
+      "attributes": {
+        "type": "number"
+      }
+    },
+    {
+      "type": "select",
+      "id": "survey_race",
+      "messageKey": "survey_race",
+      "label": "5. What race do you consider yourself to be?",
+      "defaultValue": "null",
+      "options": [
+        { "label": "Select",                              "value": "null" },
+        { "label": "White",                               "value": "White"},
+        { "label": "Black or African American",           "value": "Black"},
+        { "label": "Hispanic or Latino",                  "value": "Hispanic"},
+        { "label": "Native American or American Indian",  "value": "Native"},
+        { "label": "Asian/ or Pacific Islander",          "value": "Asian"},
+        { "label": "Other",                               "value": "Other"},
+        { "label": "Choose not to answer",                "value": "NA"}
+      ]
+    }
+  ]
+},
+
+
+
+{
+  "type": "section",
+  "id": "config_section",
+  "items": [
+    {
+      "type": "heading",
+      "id": "settings",
+      "defaultValue": "Settings"
     },
     {
       "type": "toggle",
+      "id": "optin",
+      "messageKey": "optin",
+      "label": "Activate pebble-fit App",
+      "defaultValue": false
+    },
+    {
+      "type": "toggle",
+      "id": "vibrate",
       "messageKey": "vibrate",
       "label": "Turn on/off vibration",
       "defaultValue": false
     },
     {
       "type": "input",
+      "id": "daily_start_time",
       "messageKey": "daily_start_time",
       "defaultValue": "09:00",
       "label": "Start time",
@@ -49,6 +401,7 @@
     },
     {
       "type": "input",
+      "id": "daily_end_time",
       "messageKey": "daily_end_time",
       "defaultValue": "20:00",
       "label": "End time",
@@ -60,92 +413,62 @@
     },
     {
       "type": "select",
+      "id": "sleep_minutes",
       "messageKey": "sleep_minutes",
       "defaultValue": 60,
       "label": "How frequently to be notified?",
       "description": "The time duration between notifications.",
       "options": [
-        { 
-          "label": "1 hour",
-          "value": 60 
-        },
-        { 
-          "label": "30 minutes",
-          "value": 30 
-        },
-        { 
-          "label": "15 minutes", 
-          "value": 15
-        },
-        { 
-          "label": "10 minutes", 
-          "value": 10
-        },
-        { 
-          "label": "5 minutes", 
-          "value": 5
-        },
-        { 
-          "label": "3 minutes", 
-          "value": 3
-        },
-        { 
-          "label": "1 minute", 
-          "value": 1
-        }
+        { "label": "1 hour",        "value": 60 },
+        { "label": "30 minutes",    "value": 30 },
+        { "label": "15 minutes",    "value": 15 },
+        { "label": "10 minutes",    "value": 10 },
+        { "label": "5 minutes",     "value": 5 },
+        { "label": "3 minutes",     "value": 3 },
+        { "label": "1 minute",      "value": 1 }
       ]
     },
     {
       "type": "select",
+      "id": "step_threshold",
       "messageKey": "step_threshold",
       "defaultValue": 500,
       "label": "How many steps expected?",
       "description": "The App will alert you if steps taken in the last period is lower than this threshold.",
       "options": [
-        { 
-          "label": "500",
-          "value": 500 
-        },
-        { 
-          "label": "200",
-          "value": 200 
-        },
-        { 
-          "label": "100",
-          "value": 100 
-        },
-        { 
-          "label": "10",
-          "value": 10 
-        }
+        { "label": "500",   "value": 500 },
+        { "label": "200",   "value": 200 },
+        { "label": "100",   "value": 100 },
+        { "label": "10",    "value": 10 }
       ]
     },
     {
       "type": "select",
+      "id": "display_duration",
       "messageKey": "display_duration",
       "defaultValue": 10,
       "label": "Display duration (in seconds)",
       "description": "The notification message will only be displayed for a few seconds, and then the App will automatically go back into the sleep mode. You can still press the back button to manually suppress it before this timeout.",
       "options": [
-        { 
-          "label": "15",
-          "value": 15 
-        },
-        { 
-          "label": "10",
-          "value": 10 
-        },
-        { 
-          "label": "5",
-          "value": 5 
-        }
+        { "label": "10",    "value": 10 },
+        { "label": "15",    "value": 15 },
+        { "label": "5",     "value": 5 }
       ]
     }
-
   ]
 },
+
+
+
 {
   "type": "submit",
+  "id": "submit",
   "defaultValue": "Save Settings"
+},
+
+{
+  "type": "button",
+  "id": "view_consent_button",
+  "defaultValue": "View Consent Form"
 }
 ]
