@@ -41,7 +41,7 @@
       "daily_end_time": 1004,
       "sleep_minutes": 1005,
       "display_duration": 1006,
-      "eligible_7": 2007
+      "is_consent": 999
     },
     "resources": {
       "media": []
