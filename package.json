@@ -34,14 +34,26 @@
       "AppKeyStorageData": 7,
       "AppKeyArrayLength": 8,
       "AppKeyArrayStart": 9,
-      "optin": 1000,
-      "vibrate": 1001,
-      "step_threshold": 1002,
-      "daily_start_time": 1003,
-      "daily_end_time": 1004,
-      "sleep_minutes": 1005,
-      "display_duration": 1006,
-      "is_consent": 999
+
+      "consent_name":       997,
+      "consent_email":      998,
+      "is_consent":         999,
+
+      "survey_age":         2001,
+      "survey_gender":      2002,
+      "survey_height":      2003,
+      "survey_height_unit": 2004,
+      "survey_weight":      2005,
+      "survey_weight_unit": 2006,
+      "survey_race":        2007,
+
+      "optin":              1000,
+      "vibrate":            1001,
+      "step_threshold":     1002,
+      "daily_start_time":   1003,
+      "daily_end_time":     1004,
+      "sleep_minutes":      1005,
+      "display_duration":   1006
     },
     "resources": {
       "media": []

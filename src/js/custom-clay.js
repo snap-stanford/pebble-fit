@@ -19,8 +19,12 @@ module.exports = function(minified) {
     'consent_button_next'];
   var consent_review_section = ['consent_review_heading', 'consent_review_text', 
     'consent_review_heading_form', 'consent_review_approve_text', 'consent_review_expire_text',
+    'consent_name', 'consent_email',
     'consent_review_text_form', 'consent_button_agree', 'consent_button_disagree'];
   var consent_result_section = ['consent_result_text', 'consent_result_button']; 
+  var survey_section = ['survey_heading_0', 'survey_text_0', 'survey_heading_1', 'survey_text_1',
+    'survey_age', 'survey_gender', 'survey_height', 'survey_height_unit', 
+    'survey_weight', 'survey_weight_unit', 'survey_race'];
   var config_section = ['settings', 'optin', 'vibrate', 
     'sleep_minutes', 
     'step_threshold', 'daily_start_time', 'daily_end_time', 
@@ -152,6 +156,8 @@ module.exports = function(minified) {
   }
 
   function consentButtonAgreeClick() {
+    // FIXME: consent_email input field does not verify if input format is valid
+
     clayConfig.getItemByMessageKey('is_consent').set(true);
 
     hideSection(consent_review_section);
@@ -169,8 +175,11 @@ module.exports = function(minified) {
   }
 
   function consentResultButtonClick() {
+    clayConfig.getItemById('submit').set('Submit');
+    clayConfig.getItemById('submit').show();
+
     hideSection(consent_result_section);
-    showConfigSection();
+    showSection(survey_section);
   }
 
   function viewConsentButtonClick() {
@@ -231,6 +240,7 @@ module.exports = function(minified) {
     hideSection(consent_section);
     hideSection(consent_review_section);
     hideSection(consent_result_section);
+    hideSection(survey_section);
 
     /* If the user has already completed the onboarding process, directly 
      * show the configuration page by hiding the eligibility section. */
