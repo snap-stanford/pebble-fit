@@ -4,5 +4,6 @@ pebble-nts/build/
 .lock-waf_darwin_build
 
 *.DS_Store
+*.bak
 .sw*
 *.swp

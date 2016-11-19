@@ -9,10 +9,11 @@ static void window_load(Window *window) {
   GRect bounds = layer_get_bounds(root_layer);
 
   float center = bounds.size.h / 2;
+  int padding = 10;
   
   int title_height = 100;
 
-  GEdgeInsets text_insets = {.top = center - title_height/2, .right = 10, .left = 10};
+  GEdgeInsets text_insets = {.top = center - title_height/2 - padding, .right = 10, .left = 10};
   s_text_layer = text_layer_create(grect_inset(bounds, text_insets));
   text_layer_set_background_color(s_text_layer, GColorClear);
 	text_layer_set_text_color(s_text_layer, GColorRed);
@@ -31,7 +32,7 @@ static void window_unload(Window *window) {
 }
 
 /* Create a window and push to the window stack. */
-void dialog_window_push() {
+Window * dialog_window_push() {
   s_window = window_create();
 
   window_set_window_handlers(s_window, (WindowHandlers) {
@@ -39,4 +40,5 @@ void dialog_window_push() {
     .unload = window_unload,
   });
   window_stack_push(s_window, true);
+  return s_window;
 }
