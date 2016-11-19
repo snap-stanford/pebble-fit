@@ -25,7 +25,7 @@ module.exports = function(minified) {
   var survey_section = ['survey_heading_0', 'survey_text_0', 'survey_heading_1', 'survey_text_1',
     'survey_age', 'survey_gender', 'survey_height', 'survey_height_unit', 
     'survey_weight', 'survey_weight_unit', 'survey_race'];
-  var config_section = ['settings', 'activate', 'vibrate', 'sleep_minutes', 
+  var config_section = ['settings', 'activate', 'vibrate', 'sleep_minutes', 'sliding_window', 
     'step_threshold', 'daily_start_time', 'daily_end_time', 'activate_text'];
   var sub_config_section = ['vibrate', 'sleep_minutes', 'sliding_window',
     'step_threshold', 'daily_start_time', 'daily_end_time', 'activate_text'];
@@ -97,12 +97,14 @@ module.exports = function(minified) {
    * Participants are eligible if they answer yes to questions 1-2 and no to questions 3-9.
    */
   function eligibleButtonClick() {
-    if (clayConfig.getItemById('eligible_3').get() === 'null' ||
+    if (clayConfig.getItemById('eligible_1').get() === undefined ||
+        clayConfig.getItemById('eligible_2').get() === undefined ||
         //clayConfig.getItemById('eligible_4').get() === 'null' ||
         //clayConfig.getItemById('eligible_5').get() === 'null' ||
         //clayConfig.getItemById('eligible_6').get() === 'null' ||
         clayConfig.getItemById('eligible_7').get() === undefined ||
-        clayConfig.getItemById('eligible_8').$element.get('ans') === undefined) {
+        clayConfig.getItemById('eligible_8').get() === undefined) {
+        //clayConfig.getItemById('eligible_8').$element.get('ans') === undefined) {
       showWarningText();
     } else {
       hidePFButtons();
@@ -110,14 +112,15 @@ module.exports = function(minified) {
       hideSection(eligible_section);
       showSection(eligible_result_section);
 
-      if (clayConfig.getItemById('eligible_1').get()  === true &&
-          clayConfig.getItemById('eligible_2').get()  === true &&
+      if (clayConfig.getItemById('eligible_1').get()  === 'true' &&
+          clayConfig.getItemById('eligible_2').get()  === 'true' &&
           clayConfig.getItemById('eligible_3').get()  === 'false' &&
           //clayConfig.getItemById('eligible_4').get() === 'false' &&
           //clayConfig.getItemById('eligible_5').get() === 'false' &&
           //clayConfig.getItemById('eligible_6').get() === 'false' &&
           clayConfig.getItemById('eligible_7').get() === 'false' &&
-          clayConfig.getItemById('eligible_8').$element.get('ans') === 'false') {
+          clayConfig.getItemById('eligible_8').get() === 'false') {
+          //clayConfig.getItemById('eligible_8').$element.get('ans') === 'false') {
         isEligible = true;
         clayConfig.getItemById('eligible_result_text').set('You are eligible to join the study. Tap the button below to begin the consent process.');
         clayConfig.getItemById('eligible_result_button').set('Start Consent');
@@ -229,12 +232,12 @@ module.exports = function(minified) {
     hideSection(consent_review_section);
     hideSection(consent_result_section);
     hideSection(survey_section);
+    hidePFButtons(); // Not using these custom buttons for now
 
     // If the user has already completed the onboarding process, directly 
     // show the configuration page by hiding the eligibility section.
     if (clayConfig.getItemByMessageKey('is_consent').get() === true) {
       hideSection(eligible_section);
-      hidePFButtons();
     } else {
       hideConfigSection();
     }

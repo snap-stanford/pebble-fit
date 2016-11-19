@@ -18,3 +18,9 @@ void steps_send_latest();
 
 /* Whether we should alert the user or not. */
 bool steps_whether_alert();
+
+/* Update steps count. */
+void steps_update();
+
+/* Return the inactive minutes. */
+int steps_get_inactive_minutes();

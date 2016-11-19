@@ -55,9 +55,9 @@ const char* enamel_get_consent_email(){
 
 // -----------------------------------------------------
 // Getter for 'survey_age'
-const char* enamel_get_survey_age(){
+SURVEY_AGEValue enamel_get_survey_age(){
 	Tuple* tuple = dict_find(&s_dict, 3769805684);
-	return tuple ? tuple->value->cstring : "";
+	return tuple ? atoi(tuple->value->cstring) : 0;
 }
 // -----------------------------------------------------
 
@@ -189,7 +189,7 @@ static uint16_t prv_get_inbound_size() {
 		+ 7 + 4
 		+ 7 + ENAMEL_MAX_STRING_LENGTH
 		+ 7 + ENAMEL_MAX_STRING_LENGTH
-		+ 7 + ENAMEL_MAX_STRING_LENGTH
+		+ 7 + 3
 		+ 7 + 12
 		+ 7 + 7
 		+ 7 + ENAMEL_MAX_STRING_LENGTH

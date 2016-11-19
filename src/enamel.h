@@ -24,7 +24,19 @@ const char* enamel_get_consent_email();
 
 // -----------------------------------------------------
 // Getter for 'survey_age'
-const char* enamel_get_survey_age();
+typedef enum {
+	SURVEY_AGE_18_24 = 18,
+	SURVEY_AGE_25_29 = 25,
+	SURVEY_AGE_30_34 = 30,
+	SURVEY_AGE_35_39 = 35,
+	SURVEY_AGE_40_44 = 40,
+	SURVEY_AGE_45_49 = 45,
+	SURVEY_AGE_50_54 = 50,
+	SURVEY_AGE_55_59 = 55,
+	SURVEY_AGE_60_64 = 60,
+	SURVEY_AGE_65_ = 65,
+} SURVEY_AGEValue;
+SURVEY_AGEValue enamel_get_survey_age();
 // -----------------------------------------------------
 
 // -----------------------------------------------------

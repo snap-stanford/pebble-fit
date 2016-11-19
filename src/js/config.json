@@ -20,26 +20,48 @@
       "defaultValue": "Please complete the questionaire below to determine your eligible to participate in this study."
     },
     {
-      "type": "toggle",
+      "type": "radiogroup",
       "id": "eligible_1",
       "label": "1. Are you 18 years of age or older?",
-      "defaultValue": false
+      "options": [
+        { 
+          "label": "Yes", 
+          "value": "true"
+        },
+        { 
+          "label": "No", 
+          "value": "false"
+        }
+      ]
     },
     {
-      "type": "toggle",
+      "type": "radiogroup",
       "id": "eligible_2",
       "label": "2. Can you read and understand English in order to provide informed consent?",
-      "defaultValue": false
+      "options": [
+        { 
+          "label": "Yes", 
+          "value": "true" 
+        },
+        { 
+          "label": "No", 
+          "value": "false" 
+        }
+      ]
     },
     {
-      "type": "select",
+      "type": "radiogroup",
       "id": "eligible_3",
       "label": "3. Has your doctor ever said that you have a heart condition and that you should only do physical activity recommended by a doctor?",
-      "defaultValue": "null",
       "options": [
-        { "label": "Select", "value": "null" },
-        { "label": "Yes", "value": "true" },
-        { "label": "No", "value": "false" }
+        { 
+          "label": "Yes", 
+          "value": "true" 
+        },
+        { 
+          "label": "No", 
+          "value": "false" 
+        }
       ]
     },
     {
@@ -91,9 +113,19 @@
       ]
     },
     {
-      "type": "text",
+      "type": "radiogroup",
       "id": "eligible_8",
-      "defaultValue": "8. Is your doctor currently prescribing drugs (for example, water pills) for your blood pressure or heart condition?"
+      "label": "8. Is your doctor currently prescribing drugs (for example, water pills) for your blood pressure or heart condition?",
+      "options": [
+        { 
+          "label": "Yes", 
+          "value": "true" 
+        },
+        { 
+          "label": "No", 
+          "value": "false" 
+        }
+      ]
     },
     { 
       "type": "pfbutton",
@@ -280,14 +312,22 @@
       "defaultValue": "It is useful for us to know a little bit about who you are and what your lifestyle is like."
     },
     {
-      "type": "input",
+      "type": "select",
       "id": "survey_age",
       "messageKey": "survey_age",
       "label": "1. What is your age?",
-      "attributes": {
-        "type": "number",
-        "min": 18
-      }
+      "options": [
+        { "label": "18-24", "value": 18 },
+        { "label": "25-29", "value": 25 },
+        { "label": "30-34", "value": 30 },
+        { "label": "35-39", "value": 35 },
+        { "label": "40-44", "value": 40 },
+        { "label": "45-49", "value": 45 },
+        { "label": "50-54", "value": 50 },
+        { "label": "55-59", "value": 55 },
+        { "label": "60-64", "value": 60 },
+        { "label": "65+",   "value": 65 }
+      ]
     },
     {
       "type": "select",
@@ -356,7 +396,7 @@
         { "label": "Black or African American",           "value": "Black"},
         { "label": "Hispanic or Latino",                  "value": "Hispanic"},
         { "label": "Native American or American Indian",  "value": "Native"},
-        { "label": "Asian/ or Pacific Islander",          "value": "Asian"},
+        { "label": "Asian or Pacific Islander",           "value": "Asian"},
         { "label": "Other",                               "value": "Other"},
         { "label": "Choose not to answer",                "value": "NA"}
       ]
@@ -425,7 +465,7 @@
       "messageKey": "sleep_minutes",
       "defaultValue": 60,
       "label": "Sleep interval:",
-      "description": "The time duration between alerts",
+      "description": "The maximum time interval between alerts. Regardless of this number, the App will always check the step data in the last 60 minutes.",
       "options": [
         { "label": "1 hour",        "value": 60 },
         { "label": "30 minutes",    "value": 30 },
@@ -438,7 +478,7 @@
       "messageKey": "sliding_window",
       "defaultValue": 3,
       "label": "Sliding window:",
-      "description": "Smaller intervals within the range of last 60 minutes. Might not be adjustable by the user in the final version.",
+      "description": "Smaller intervals within the range of the last 60 minutes. Might not be adjustable by the user in the final version.",
       "options": [
         { "label": "3 minutes",     "value": 3 },
         { "label": "5 minutes",     "value": 5 },
@@ -452,7 +492,7 @@
       "messageKey": "step_threshold",
       "defaultValue": 10,
       "label": "Step threshold:",
-      "description": "The minimum number of steps required to take, within each sliding window interval, in order to be considered active during that interval.",
+      "description": "The minimum number of steps required to take, within each sliding window interval, in order to be considered active during this interval.",
       "options": [
         { "label": "10",   "value": 10 },
         { "label": "200",   "value": 200 },
