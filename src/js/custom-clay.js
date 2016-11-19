@@ -7,7 +7,7 @@ module.exports = function(minified) {
   var isEligible = false;
   var isConsent = false;
 
-  /* List IDs of components in each section */
+  // List IDs of components in each section.
   var eligible_section = ['eligible_heading', 'eligible_text', 'eligible_button',
     'eligible_1', 'eligible_2', 'eligible_3', 'eligible_7', 'eligible_8'];
     //'eligible_4', 'eligible_5', 'eligible_6'];
@@ -25,17 +25,18 @@ module.exports = function(minified) {
   var survey_section = ['survey_heading_0', 'survey_text_0', 'survey_heading_1', 'survey_text_1',
     'survey_age', 'survey_gender', 'survey_height', 'survey_height_unit', 
     'survey_weight', 'survey_weight_unit', 'survey_race'];
-  var config_section = ['settings', 'optin', 'vibrate', 
-    'sleep_minutes', 
-    'step_threshold', 'daily_start_time', 'daily_end_time', 
-    'display_duration', 'optin_text'];
-  var sub_config_section = ['vibrate', 'sleep_minutes', 
-    'step_threshold', 'daily_start_time', 'daily_end_time', 
-    'display_duration', 'optin_text'];
+  var config_section = ['settings', 'activate', 'vibrate', 'sleep_minutes', 
+    'step_threshold', 'daily_start_time', 'daily_end_time', 'activate_text'];
+  var sub_config_section = ['vibrate', 'sleep_minutes', 'sliding_window',
+    'step_threshold', 'daily_start_time', 'daily_end_time', 'activate_text'];
+  // Components that should always be hidden.
+  var hidden_components = ['display_duration',
+    'eligible_4', 'eligible_5', 'eligible_6',
+    'is_consent']; // TODO: hiding some eligible components for now
 
-  /* Text to be displayed on each of the content pages. The idea is to use the same 
-     components, but change the text displayed for them. Note that the texts of the
-     first page is already supplied in the config.json file. */
+  // Text to be displayed on each of the content pages. The idea is to use the same 
+  // components, but change the text displayed for them. Note that the texts of the
+  // first page is already supplied in the config.json file.
   var consentPageIndex = 0;
   var consent_heading = ["Data Gathering", "Privacy", "Data Use"];
   var consent_text = [
@@ -185,36 +186,30 @@ module.exports = function(minified) {
   function viewConsentButtonClick() {
     showSection(consent_review_section);
     hideConfigSection();
-  };
+  }
 
 
   function changeEnableApp() {
     if (this.get()) {
-      clayConfig.getItemByMessageKey('vibrate').enable();
-      clayConfig.getItemByMessageKey('sleep_minutes').enable();
-      clayConfig.getItemByMessageKey('step_threshold').enable();
-      clayConfig.getItemByMessageKey('daily_start_time').enable();
-      clayConfig.getItemByMessageKey('daily_end_time').enable();
-      clayConfig.getItemByMessageKey('display_duration').enable();
-      clayConfig.getItemById('optin_text').hide();
+      sub_config_section.forEach(function(c) {
+        clayConfig.getItemByMessageKey(c).enable();
+      });
+      clayConfig.getItemById('activate_text').hide();
     } else {
-      clayConfig.getItemByMessageKey('vibrate').disable();
-      clayConfig.getItemByMessageKey('sleep_minutes').disable();
-      clayConfig.getItemByMessageKey('step_threshold').disable();
-      clayConfig.getItemByMessageKey('daily_start_time').disable();
-      clayConfig.getItemByMessageKey('daily_end_time').disable();
-      clayConfig.getItemByMessageKey('display_duration').disable();
-      clayConfig.getItemById('optin_text').show();
+      sub_config_section.forEach(function(c) {
+        clayConfig.getItemByMessageKey(c).disable();
+      });
+      clayConfig.getItemById('activate_text').show();
     }
     //clayConfig.build();
   }
 
   /* Define actions once the Clay page is built. */
   clayConfig.on(clayConfig.EVENTS.AFTER_BUILD, function() {
-    var optinToggle = clayConfig.getItemByMessageKey('optin');
+    var activateToggle = clayConfig.getItemByMessageKey('activate');
 
-    /* Register event callbacks. */
-    optinToggle.on('change', changeEnableApp);
+    // Register event callbacks.
+    activateToggle.on('change', changeEnableApp);
     clayConfig.getItemById('eligible_button').on('click', eligibleButtonClick);
     clayConfig.getItemById('eligible_result_button').on('click', eligibleResultButtonClick);
     clayConfig.getItemById('consent_button_start').on('click', consentButtonStartClick);
@@ -224,26 +219,19 @@ module.exports = function(minified) {
     clayConfig.getItemById('consent_button_disagree').on('click',consentButtonDisagreeClick);
     clayConfig.getItemById('view_consent_button').on('click',viewConsentButtonClick);
 
-    /* Show only the eligible section at the beginning. */
-    // FIXME: if user has already opted in, should skip this and directly show config page
-    // TODO: hiding these for now
-    clayConfig.getItemById('eligible_4').hide();
-    clayConfig.getItemById('eligible_5').hide();
-    clayConfig.getItemById('eligible_6').hide();
-
-    //clayConfig.getItemByMessageKey('is_consent').hide();
-    clayConfig.getItemByMessageKey('is_consent').hide();
+    // By default, every component is visible. We only want to display either the
+    // eligibility section or the configuration section.
+    hideSection(hidden_components);
     hideWarningText();
     hideSection(eligible_result_section);
-
     hideSection(consent_start_section);
     hideSection(consent_section);
     hideSection(consent_review_section);
     hideSection(consent_result_section);
     hideSection(survey_section);
 
-    /* If the user has already completed the onboarding process, directly 
-     * show the configuration page by hiding the eligibility section. */
+    // If the user has already completed the onboarding process, directly 
+    // show the configuration page by hiding the eligibility section.
     if (clayConfig.getItemByMessageKey('is_consent').get() === true) {
       hideSection(eligible_section);
       hidePFButtons();
@@ -251,7 +239,7 @@ module.exports = function(minified) {
       hideConfigSection();
     }
 
-    //changeEnableApp.call(optinToggle);
+    changeEnableApp.call(activateToggle);
   });
 
 };

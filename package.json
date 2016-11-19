@@ -47,13 +47,14 @@
       "survey_weight_unit": 2006,
       "survey_race":        2007,
 
-      "optin":              1000,
+      "activate":           1000,
       "vibrate":            1001,
-      "step_threshold":     1002,
-      "daily_start_time":   1003,
-      "daily_end_time":     1004,
-      "sleep_minutes":      1005,
-      "display_duration":   1006
+      "sliding_window":     1002,
+      "step_threshold":     1003,
+      "daily_start_time":   1004,
+      "daily_end_time":     1005,
+      "sleep_minutes":      1006,
+      "display_duration":   1007
     },
     "resources": {
       "media": []

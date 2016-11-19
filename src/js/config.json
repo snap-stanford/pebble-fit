@@ -1,6 +1,7 @@
 [
 {
   "type": "toggle",
+  "id": "is_consent",
   "messageKey": "is_consent",
   "defaultValue": false
 },
@@ -376,17 +377,24 @@
     },
     {
       "type": "toggle",
-      "id": "optin",
-      "messageKey": "optin",
+      "id": "activate",
+      "messageKey": "activate",
       "label": "Activate pebble-fit App",
       "defaultValue": false
     },
     {
-      "type": "toggle",
+      "type": "select",
       "id": "vibrate",
       "messageKey": "vibrate",
-      "label": "Turn on/off vibration",
-      "defaultValue": false
+      "label": "Alert vibration type",
+      "defaultValue": 1,
+      "options": [
+        { "label": "Single short pulse",  "value": 1 },
+        { "label": "Single long pulse",   "value": 2 },
+        { "label": "Double short pulse",  "value": 3 },
+        { "label": "Five short pulse",    "value": 4 },
+        { "label": "Off",                 "value": 0 }
+      ]
     },
     {
       "type": "input",
@@ -416,30 +424,40 @@
       "id": "sleep_minutes",
       "messageKey": "sleep_minutes",
       "defaultValue": 60,
-      "label": "How frequently to be notified?",
-      "description": "The time duration between notifications.",
+      "label": "Sleep interval:",
+      "description": "The time duration between alerts",
       "options": [
         { "label": "1 hour",        "value": 60 },
         { "label": "30 minutes",    "value": 30 },
-        { "label": "15 minutes",    "value": 15 },
-        { "label": "10 minutes",    "value": 10 },
-        { "label": "5 minutes",     "value": 5 },
+        { "label": "15 minutes",    "value": 15 }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "sliding_window",
+      "messageKey": "sliding_window",
+      "defaultValue": 3,
+      "label": "Sliding window:",
+      "description": "Smaller intervals within the range of last 60 minutes. Might not be adjustable by the user in the final version.",
+      "options": [
         { "label": "3 minutes",     "value": 3 },
-        { "label": "1 minute",      "value": 1 }
+        { "label": "5 minutes",     "value": 5 },
+        { "label": "10 minutes",    "value": 10 },
+        { "label": "15 minutes",    "value": 15 }
       ]
     },
     {
       "type": "select",
       "id": "step_threshold",
       "messageKey": "step_threshold",
-      "defaultValue": 500,
-      "label": "How many steps expected?",
-      "description": "The App will alert you if steps taken in the last period is lower than this threshold.",
+      "defaultValue": 10,
+      "label": "Step threshold:",
+      "description": "The minimum number of steps required to take, within each sliding window interval, in order to be considered active during that interval.",
       "options": [
-        { "label": "500",   "value": 500 },
+        { "label": "10",   "value": 10 },
         { "label": "200",   "value": 200 },
         { "label": "100",   "value": 100 },
-        { "label": "10",    "value": 10 }
+        { "label": "300",   "value": 300 }
       ]
     },
     {

@@ -3,15 +3,15 @@
 static uint8_t s_step_records[MAX_ENTRIES];
 static const int AppKeyArrayData = 200;
 static int s_num_records;
-static int s_steps;
+static int s_step;
 static time_t s_start, s_end;
-static int s_valid_entry_count;
+static int s_inactive_mins;
 static char s_start_buf[12];
 static char s_end_buf[12];
 
 
-/* Load health service data into a static array. */
-static void load_data(time_t * start, time_t * end) {
+/* Load health service data for the last hour into a static array. */
+static void load_data(time_t *start, time_t *end) {
   // Set the static array to zeros
   s_num_records = 0;
   for(int i = 0; i < MAX_ENTRIES; i++) {
@@ -30,46 +30,76 @@ static void load_data(time_t * start, time_t * end) {
   HealthMinuteData minute_data[MAX_ENTRIES];
   s_num_records = health_service_get_minute_history(&minute_data[0], MAX_ENTRIES, start, end);
   s_start = *start;
-  s_valid_entry_count = 0;
-  for(int i = 0; i < enamel_get_sleep_minutes(); i++) {
+  s_end = *end;
+
+  for (int i = 0; i < MAX_ENTRIES; i++) {
     if (minute_data[i].is_invalid) {
-      APP_LOG(APP_LOG_LEVEL_INFO, "(Data invalid) Entry %d = %d", (int)i, (int)s_step_records[i]);
+      // No valid data recorded; steps = -1. Treat it as 0 step count
+      //APP_LOG(APP_LOG_LEVEL_INFO, "Invalid data %d = %d", (int)i, (int)minute_data[i].steps);
+      s_step_records[i] = 0;
     } else {
       s_step_records[i] = minute_data[i].steps;
-      
-      if (s_step_records[i] > 0) {
-        s_valid_entry_count = 0;
-      } else {
-        s_valid_entry_count++;
-      }
+    }
+    APP_LOG(APP_LOG_LEVEL_INFO, "s_step_records %d = %d", (int)i, (int)s_step_records[i]);
+  }
+  //APP_LOG(APP_LOG_LEVEL_INFO, "Got %d/%d new entries for steps data from %d to %d", (int)s_num_records, MAX_ENTRIES, (int) *start, (int) *end);
+}
 
-      APP_LOG(APP_LOG_LEVEL_INFO, "Entry %d = %d", (int)i, (int)s_step_records[i]);
+/* Return the number of steps in the last sleep period. */
+static void steps_update() {
+  s_step = 0;
+  // Always load data of the last hour
+  s_end = time(NULL);
+  s_start = s_end - SECONDS_PER_MINUTE * 60; 
+
+  // Read recorded step count data from the Pebble Health service.
+  load_data(&s_start, &s_end);
+
+  // Calculate the total inactive minutes since the last active window.
+  // FIXME: make sure 60 can be divisible by sleep_minutes
+  s_inactive_mins = 0;
+  int sliding_window_sum;
+  for(int i = 0; i < MAX_ENTRIES; i += enamel_get_sliding_window()) {
+    sliding_window_sum = 0;
+    for (int j = i; j < i+enamel_get_sliding_window(); j++) {
+      sliding_window_sum += s_step_records[j];
+    }
+    if (sliding_window_sum >= enamel_get_step_threshold()) {
+      s_inactive_mins = 0;
+    } else {
+      s_inactive_mins += enamel_get_sliding_window();
+    }
+
+    // Count the total step count in the last sleeping interval.
+    if (i >= MAX_ENTRIES - enamel_get_sleep_minutes()) {
+      s_step += sliding_window_sum;
     }
   }
 
-  //APP_LOG(APP_LOG_LEVEL_INFO, "Got %d/%d new entries for steps data from %d to %d", (int)s_num_records, MAX_ENTRIES, (int) *start, (int) *end);
+  // Convert to human readable time for the display purpose.
+  s_start = s_end - ((int)enamel_get_sleep_minutes() * SECONDS_PER_MINUTE);
+  strftime(s_start_buf, sizeof(s_start_buf), "%H:%M:%S", localtime(&s_start));
+  strftime(s_end_buf, sizeof(s_end_buf), "%H:%M:%S", localtime(&s_end));
+  APP_LOG(APP_LOG_LEVEL_INFO, "%d steps from %s to %s", s_step, s_start_buf, s_end_buf);
 
+}
 
-  // TODO: below is for debug purpose for now
-  // Make a timestamp for now
-  time_t db_end = time(NULL);
-  
-  // Make a timestamp for the last hour's worth of data
-  time_t db_start = db_end - SECONDS_PER_HOUR;
-  
-  // Check data is available
-  HealthServiceAccessibilityMask res = 
-      health_service_metric_accessible(HealthMetricStepCount, db_start, db_end);
-  if(res & HealthServiceAccessibilityMaskAvailable) {
-    // Data is available! Read it
-    HealthValue steps = health_service_sum(HealthMetricStepCount, db_start, db_end);
-    //HealthValue steps = health_service_sum(HealthMetricStepCount, *start, *end);
-  
-    APP_LOG(APP_LOG_LEVEL_INFO, "Steps in the last hour (%d-%d): %d", (int)db_start, (int)db_end, (int)steps);
+/* Send updated info to wakeup_window for displaying on the watch. */
+void steps_wakeup_window_update() { 
+  steps_update();
+
+  wakeup_window_update(s_step, s_start_buf, s_end_buf, s_inactive_mins);
+}
+
+/* Whether we should alert the user or not. 
+ * Yes if the user was not active in any sliding window during last sleeping interval.
+ */
+bool steps_whether_alert() {
+  if (s_inactive_mins >= enamel_get_sleep_minutes()) {
+    return true;
   } else {
-    APP_LOG(APP_LOG_LEVEL_ERROR, "No data available!");
+    return false;
   }
-
 }
 
 /* Write steps array data to dict. */
@@ -98,7 +128,7 @@ void steps_send_in_between(time_t start, time_t end) {
   comm_send_data(data_write, comm_sent_handler, comm_server_received_handler);
 }
 
-/* Send the steps from before 15 minutes back. */
+/* FIXME: deprecated. Send the steps from before 15 minutes back. */
 void steps_send_latest() {
   // start from 15 minutes back (real time is not accurate)
   time_t now = time(NULL) - (15 * SECONDS_PER_MINUTE);
@@ -106,29 +136,4 @@ void steps_send_latest() {
   steps_send_in_between(start, now);
 }
 
-/* Return the number of steps in the last sleep period. */
-int steps_get_latest() {
-  // TODO: double check the accuracy
-  s_end = time(NULL);
-  s_start = s_end - ((int)enamel_get_sleep_minutes() * SECONDS_PER_MINUTE);
 
-  // Convert to human readable time for display purpose
-  strftime(s_start_buf, sizeof(s_start_buf), "%H:%M:%S", localtime(&s_start));
-  strftime(s_end_buf, sizeof(s_end_buf), "%H:%M:%S", localtime(&s_end));
-  APP_LOG(APP_LOG_LEVEL_INFO, "Got %d step count from %s to %s", s_steps, s_start_buf, s_end_buf);
-
-  load_data(&s_start, &s_end);
-
-  s_steps = 0;
-  for(int i = 0; i < (int)enamel_get_sleep_minutes(); i++) {
-    s_steps += s_step_records[i];
-  }
-  return s_steps;
-}
-
-/* Update the wakeup_window with the number of steps in the last sleep period. */
-void steps_update_wakeup_window_steps() { 
-  steps_get_latest(); // TODO: optimize
-
-  wakeup_window_update_steps(s_steps, s_start_buf, s_end_buf, s_valid_entry_count);
-}

@@ -3,20 +3,20 @@
 static Window *s_window;
 static TextLayer *s_main_text_layer, *s_text_above_layer, *s_text_below_layer;
 
-static int s_latest_step;
+static int s_step;
 static char s_start[12], s_end[12];
 static char s_text_above_buf[40];
 static char s_text_below_buf[40];
+static int s_inactive_mins;
   
 
 //static TextLayer *s_debug1_layer;
-static int s_rest_mins;
 
-void wakeup_window_update_steps(int steps, char *start, char *end, int entries) {
-    s_latest_step = steps;
+void wakeup_window_update(int steps, char *start, char *end, int inactive_mins) {
+    s_step = steps;
     strncpy(s_start, start, sizeof(s_start));
     strncpy(s_end, end, sizeof(s_end));
-    s_rest_mins = entries;
+    s_inactive_mins = inactive_mins;
 }
 
 /* Set standard attributes on new text layer in this window. */
@@ -57,22 +57,19 @@ static void window_load(Window *window) {
   s_text_above_layer = make_text_layer(
     grect_inset(bounds, text_above_insets),
     fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD), GTextAlignmentCenter);
-  APP_LOG(APP_LOG_LEVEL_INFO, "Steps: %d", s_latest_step);
+  APP_LOG(APP_LOG_LEVEL_INFO, "Steps: %d", s_step);
   snprintf(s_text_above_buf, sizeof(s_text_above_buf), 
-           "Steps: %d\n%s-%s", s_latest_step, s_start, s_end);
+           "%d steps during \n%s-%s", s_step, s_start, s_end);
   text_layer_set_text(s_text_above_layer, s_text_above_buf);
 
   // The main text layer that resides in the center of the screen
   s_main_text_layer = make_text_layer(
     GRect(0, center - main_text_height/2  - padding, bounds.size.w, main_text_height), 
     fonts_get_system_font(FONT_KEY_BITHAM_30_BLACK), GTextAlignmentCenter);
-  if (s_latest_step > enamel_get_step_threshold()) {
-    //text_layer_set_text(s_main_text_layer, "Keep\nup");
-    text_layer_set_text(s_main_text_layer, "Let's\nMove");
+  if (s_step > enamel_get_step_threshold()) {
+    text_layer_set_text(s_main_text_layer, "Keep\nup");
   } else {
     text_layer_set_text(s_main_text_layer, "Let's\nMove");
-    // TODO: maybe move this vibration to somewhere else
-    if (enamel_get_vibrate()) vibes_short_pulse();
   }
 
   // The text layer that is below the main text layer
@@ -81,7 +78,7 @@ static void window_load(Window *window) {
     grect_inset(bounds, text_below_insets),
     fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD), GTextAlignmentCenter);
   snprintf(s_text_below_buf, sizeof(s_text_below_buf), 
-           "Been resting for the last %dmins", s_rest_mins);
+           "been inactive for the last %dmins", s_inactive_mins);
   text_layer_set_text(s_text_below_layer, s_text_below_buf);
 
   // Add text layers to the window
@@ -113,7 +110,7 @@ static void window_unload(Window *window) {
 }
 
 /* Create a window and push to the window stack. */
-void wakeup_window_push() {
+Window * wakeup_window_push() {
   if (!s_window) {
     s_window = window_create();
 
@@ -123,6 +120,7 @@ void wakeup_window_push() {
     });
   }
   window_stack_push(s_window, true);
+  return s_window;
 }
 
 /* Pop window from the window stack. */
