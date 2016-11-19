@@ -8,7 +8,7 @@ static time_t s_start, s_end;
 static int s_inactive_mins;
 static char s_start_buf[12];
 static char s_end_buf[12];
-
+static bool s_is_update = false;
 
 /* Load health service data for the last hour into a static array. */
 static void load_data(time_t *start, time_t *end) {
@@ -45,49 +45,51 @@ static void load_data(time_t *start, time_t *end) {
   //APP_LOG(APP_LOG_LEVEL_INFO, "Got %d/%d new entries for steps data from %d to %d", (int)s_num_records, MAX_ENTRIES, (int) *start, (int) *end);
 }
 
-/* Return the number of steps in the last sleep period. */
-static void steps_update() {
-  s_step = 0;
-  // Always load data of the last hour
-  s_end = time(NULL);
-  s_start = s_end - SECONDS_PER_MINUTE * 60; 
+/* Update steps count. */
+void steps_update() {
+  if (!s_is_update) { // FIXME: wanted to avoid multiple updates in the same session (i.e. within 1 minute so that step count will not change at all)
+    s_step = 0;
+    // Always load data of the last hour
+    s_end = time(NULL);
+    s_start = s_end - SECONDS_PER_MINUTE * 60; 
 
-  // Read recorded step count data from the Pebble Health service.
-  load_data(&s_start, &s_end);
+    // Read recorded step count data from the Pebble Health service.
+    load_data(&s_start, &s_end);
 
-  // Calculate the total inactive minutes since the last active window.
-  // FIXME: make sure 60 can be divisible by sleep_minutes
-  s_inactive_mins = 0;
-  int sliding_window_sum;
-  for(int i = 0; i < MAX_ENTRIES; i += enamel_get_sliding_window()) {
-    sliding_window_sum = 0;
-    for (int j = i; j < i+enamel_get_sliding_window(); j++) {
-      sliding_window_sum += s_step_records[j];
-    }
-    if (sliding_window_sum >= enamel_get_step_threshold()) {
-      s_inactive_mins = 0;
-    } else {
-      s_inactive_mins += enamel_get_sliding_window();
+    // Calculate the total inactive minutes since the last active window. Up to 
+    // 60 regardless of the sleep_minutes value.
+    // FIXME: make sure 60 can be divisible by sleep_minutes
+    s_inactive_mins = 0;
+    int sliding_window_sum;
+    for(int i = 0; i < MAX_ENTRIES; i += enamel_get_sliding_window()) {
+      sliding_window_sum = 0;
+      for (int j = i; j < i+enamel_get_sliding_window(); j++) {
+        sliding_window_sum += s_step_records[j];
+      }
+      if (sliding_window_sum >= enamel_get_step_threshold()) {
+        s_inactive_mins = 0;
+      } else {
+        s_inactive_mins += enamel_get_sliding_window();
+      }
+
+      // Count the total step count in the last sleeping interval.
+      if (i >= MAX_ENTRIES - enamel_get_sleep_minutes()) {
+        s_step += sliding_window_sum;
+      }
     }
 
-    // Count the total step count in the last sleeping interval.
-    if (i >= MAX_ENTRIES - enamel_get_sleep_minutes()) {
-      s_step += sliding_window_sum;
-    }
+    // Convert to human readable time for the display purpose.
+    s_start = s_end - ((int)enamel_get_sleep_minutes() * SECONDS_PER_MINUTE);
+    strftime(s_start_buf, sizeof(s_start_buf), "%H:%M:%S", localtime(&s_start));
+    strftime(s_end_buf, sizeof(s_end_buf), "%H:%M:%S", localtime(&s_end));
+    APP_LOG(APP_LOG_LEVEL_INFO, "%d steps from %s to %s", s_step, s_start_buf, s_end_buf);
+
+    s_is_update = true;
   }
-
-  // Convert to human readable time for the display purpose.
-  s_start = s_end - ((int)enamel_get_sleep_minutes() * SECONDS_PER_MINUTE);
-  strftime(s_start_buf, sizeof(s_start_buf), "%H:%M:%S", localtime(&s_start));
-  strftime(s_end_buf, sizeof(s_end_buf), "%H:%M:%S", localtime(&s_end));
-  APP_LOG(APP_LOG_LEVEL_INFO, "%d steps from %s to %s", s_step, s_start_buf, s_end_buf);
-
 }
 
 /* Send updated info to wakeup_window for displaying on the watch. */
 void steps_wakeup_window_update() { 
-  steps_update();
-
   wakeup_window_update(s_step, s_start_buf, s_end_buf, s_inactive_mins);
 }
 
@@ -100,6 +102,11 @@ bool steps_whether_alert() {
   } else {
     return false;
   }
+}
+
+/* Return the inactive minutes. */
+int steps_get_inactive_minutes() {
+  return s_inactive_mins;
 }
 
 /* Write steps array data to dict. */

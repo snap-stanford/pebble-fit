@@ -111,6 +111,7 @@ static void window_unload(Window *window) {
 
 /* Create a window and push to the window stack. */
 Window * wakeup_window_push() {
+  steps_wakeup_window_update();
   if (!s_window) {
     s_window = window_create();
 

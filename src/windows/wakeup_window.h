@@ -3,7 +3,7 @@
 #include <pebble.h>
 #include <pebble-events/pebble-events.h>
 #include "../enamel.h"
-//#include "../modules/steps.h"
+#include "../modules/steps.h"
 
 /* Create the window and push to the window stack. */
 Window * wakeup_window_push();

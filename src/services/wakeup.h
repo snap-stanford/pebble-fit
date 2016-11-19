@@ -5,4 +5,4 @@
 #include "../constants.h"
 
 /* Schedule wakeup event */
-void schedule_wakeup_events(bool force_);
+void schedule_wakeup_events(int inactive_mins);
