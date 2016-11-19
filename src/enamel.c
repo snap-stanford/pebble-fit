@@ -110,18 +110,18 @@ const char* enamel_get_survey_race(){
 // -----------------------------------------------------
 
 // -----------------------------------------------------
-// Getter for 'optin'
-bool enamel_get_optin(){
-	Tuple* tuple = dict_find(&s_dict, 251311563);
+// Getter for 'activate'
+bool enamel_get_activate(){
+	Tuple* tuple = dict_find(&s_dict, 2910575235);
 	return tuple ? tuple->value->int32 == 1 : false;
 }
 // -----------------------------------------------------
 
 // -----------------------------------------------------
 // Getter for 'vibrate'
-bool enamel_get_vibrate(){
+VIBRATEValue enamel_get_vibrate(){
 	Tuple* tuple = dict_find(&s_dict, 3086721838);
-	return tuple ? tuple->value->int32 == 1 : false;
+	return tuple ? atoi(tuple->value->cstring) : 1;
 }
 // -----------------------------------------------------
 
@@ -160,10 +160,18 @@ SLEEP_MINUTESValue enamel_get_sleep_minutes(){
 // -----------------------------------------------------
 
 // -----------------------------------------------------
+// Getter for 'sliding_window'
+SLIDING_WINDOWValue enamel_get_sliding_window(){
+	Tuple* tuple = dict_find(&s_dict, 3755395031);
+	return tuple ? atoi(tuple->value->cstring) : 3;
+}
+// -----------------------------------------------------
+
+// -----------------------------------------------------
 // Getter for 'step_threshold'
 STEP_THRESHOLDValue enamel_get_step_threshold(){
 	Tuple* tuple = dict_find(&s_dict, 1001368360);
-	return tuple ? atoi(tuple->value->cstring) : 500;
+	return tuple ? atoi(tuple->value->cstring) : 10;
 }
 // -----------------------------------------------------
 
@@ -189,9 +197,10 @@ static uint16_t prv_get_inbound_size() {
 		+ 7 + ENAMEL_MAX_STRING_LENGTH
 		+ 7 + 9
 		+ 7 + 4
-		+ 7 + 4
+		+ 7 + 2
 		+ 7 + ENAMEL_MAX_STRING_LENGTH
 		+ 7 + ENAMEL_MAX_STRING_LENGTH
+		+ 7 + 3
 		+ 7 + 3
 		+ 7 + 4
 		+ 7 + 3
@@ -209,11 +218,12 @@ static uint32_t prv_map_messagekey(const uint32_t key){
 	if( key == MESSAGE_KEY_survey_weight_unit) return 3788605488;
 	if( key == MESSAGE_KEY_survey_weight) return 17578608;
 	if( key == MESSAGE_KEY_survey_race) return 4017778921;
-	if( key == MESSAGE_KEY_optin) return 251311563;
+	if( key == MESSAGE_KEY_activate) return 2910575235;
 	if( key == MESSAGE_KEY_vibrate) return 3086721838;
 	if( key == MESSAGE_KEY_daily_start_time) return 280095890;
 	if( key == MESSAGE_KEY_daily_end_time) return 988182165;
 	if( key == MESSAGE_KEY_sleep_minutes) return 2891097914;
+	if( key == MESSAGE_KEY_sliding_window) return 3755395031;
 	if( key == MESSAGE_KEY_step_threshold) return 1001368360;
 	if( key == MESSAGE_KEY_display_duration) return 1482180045;
 	return 0;

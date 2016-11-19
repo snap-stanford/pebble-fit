@@ -58,13 +58,20 @@ const char* enamel_get_survey_race();
 // -----------------------------------------------------
 
 // -----------------------------------------------------
-// Getter for 'optin'
-bool enamel_get_optin();
+// Getter for 'activate'
+bool enamel_get_activate();
 // -----------------------------------------------------
 
 // -----------------------------------------------------
 // Getter for 'vibrate'
-bool enamel_get_vibrate();
+typedef enum {
+	VIBRATE_SINGLE_SHORT_PULSE = 1,
+	VIBRATE_SINGLE_LONG_PULSE = 2,
+	VIBRATE_DOUBLE_SHORT_PULSE = 3,
+	VIBRATE_FIVE_SHORT_PULSE = 4,
+	VIBRATE_OFF = 0,
+} VIBRATEValue;
+VIBRATEValue enamel_get_vibrate();
 // -----------------------------------------------------
 
 // -----------------------------------------------------
@@ -83,21 +90,28 @@ typedef enum {
 	SLEEP_MINUTES_1_HOUR = 60,
 	SLEEP_MINUTES_30_MINUTES = 30,
 	SLEEP_MINUTES_15_MINUTES = 15,
-	SLEEP_MINUTES_10_MINUTES = 10,
-	SLEEP_MINUTES_5_MINUTES = 5,
-	SLEEP_MINUTES_3_MINUTES = 3,
-	SLEEP_MINUTES_1_MINUTE = 1,
 } SLEEP_MINUTESValue;
 SLEEP_MINUTESValue enamel_get_sleep_minutes();
 // -----------------------------------------------------
 
 // -----------------------------------------------------
+// Getter for 'sliding_window'
+typedef enum {
+	SLIDING_WINDOW_3_MINUTES = 3,
+	SLIDING_WINDOW_5_MINUTES = 5,
+	SLIDING_WINDOW_10_MINUTES = 10,
+	SLIDING_WINDOW_15_MINUTES = 15,
+} SLIDING_WINDOWValue;
+SLIDING_WINDOWValue enamel_get_sliding_window();
+// -----------------------------------------------------
+
+// -----------------------------------------------------
 // Getter for 'step_threshold'
 typedef enum {
-	STEP_THRESHOLD_500 = 500,
+	STEP_THRESHOLD_10 = 10,
 	STEP_THRESHOLD_200 = 200,
 	STEP_THRESHOLD_100 = 100,
-	STEP_THRESHOLD_10 = 10,
+	STEP_THRESHOLD_300 = 300,
 } STEP_THRESHOLDValue;
 STEP_THRESHOLDValue enamel_get_step_threshold();
 // -----------------------------------------------------
