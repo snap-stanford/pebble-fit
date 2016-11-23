@@ -54,7 +54,8 @@
       "daily_start_time":   1004,
       "daily_end_time":     1005,
       "sleep_minutes":      1006,
-      "display_duration":   1007
+      "display_duration":   1007,
+      "dynamic_wakeup":     1008
     },
     "resources": {
       "media": []

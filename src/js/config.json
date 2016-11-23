@@ -473,6 +473,14 @@
       ]
     },
     {
+      "type": "toggle",
+      "id": "dynamic_wakeup",
+      "messageKey": "dynamic_wakeup",
+      "label": "Dynamic wakeup scheduling:",
+      "description": "Schedule the next wakeup dynamically based on the current inactive minutes (minimum is 10 minutes). If turned off, the fixed number specified in the \"sleep interval\" will be used.",
+      "defaultValue": false
+    },
+    {
       "type": "select",
       "id": "sliding_window",
       "messageKey": "sliding_window",
@@ -490,14 +498,17 @@
       "type": "select",
       "id": "step_threshold",
       "messageKey": "step_threshold",
-      "defaultValue": 10,
+      "defaultValue": 50,
       "label": "Step threshold:",
       "description": "The minimum number of steps required to take, within each sliding window interval, in order to be considered active during this interval.",
       "options": [
-        { "label": "10",   "value": 10 },
-        { "label": "200",   "value": 200 },
+        { "label": "50",    "value": 50  },
         { "label": "100",   "value": 100 },
-        { "label": "300",   "value": 300 }
+        { "label": "150",   "value": 150 },
+        { "label": "200",   "value": 200 },
+        { "label": "250",   "value": 250 },
+        { "label": "300",   "value": 300 },
+        { "label": "350",   "value": 350 }
       ]
     },
     {
@@ -510,7 +521,11 @@
       "options": [
         { "label": "10",    "value": 10 },
         { "label": "15",    "value": 15 },
-        { "label": "5",     "value": 5 }
+        { "label": "20",    "value": 20 },
+        { "label": "30",    "value": 30 },
+        { "label": "40",    "value": 40 },
+        { "label": "50",    "value": 50 },
+        { "label": "60",    "value": 60 }
       ]
     }
   ]

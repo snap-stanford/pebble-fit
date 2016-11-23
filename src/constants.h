@@ -6,6 +6,9 @@
 /* Maximum number of retries when scheduling a wakeup event. */
 #define MAX_RETRY         10
 
+/* Minimum number of minutes before the next wakeup event. */
+#define MIN_SLEEP_MINUTES 10
+
 /* Persistent Storage Keys. */
 static const uint8_t WAKEUP_ID_PERSIST_KEY = 111;
 

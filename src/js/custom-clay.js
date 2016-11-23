@@ -25,12 +25,13 @@ module.exports = function(minified) {
   var survey_section = ['survey_heading_0', 'survey_text_0', 'survey_heading_1', 'survey_text_1',
     'survey_age', 'survey_gender', 'survey_height', 'survey_height_unit', 
     'survey_weight', 'survey_weight_unit', 'survey_race'];
-  var config_section = ['settings', 'activate', 'vibrate', 'sleep_minutes', 'sliding_window', 
-    'step_threshold', 'daily_start_time', 'daily_end_time', 'activate_text'];
+  var config_section = ['settings', 'activate', 'vibrate', 'sleep_minutes', 
+    'dynamic_wakeup', 'sliding_window', 'step_threshold', 'daily_start_time', 
+    'daily_end_time', 'display_duration', 'activate_text'];
   var sub_config_section = ['vibrate', 'sleep_minutes', 'sliding_window',
     'step_threshold', 'daily_start_time', 'daily_end_time', 'activate_text'];
   // Components that should always be hidden.
-  var hidden_components = ['display_duration',
+  var hidden_components = [
     'eligible_4', 'eligible_5', 'eligible_6',
     'is_consent']; // TODO: hiding some eligible components for now
 

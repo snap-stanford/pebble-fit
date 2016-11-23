@@ -47,7 +47,7 @@ static void load_data(time_t *start, time_t *end) {
 
 /* Update steps count. */
 void steps_update() {
-  if (!s_is_update) { // FIXME: wanted to avoid multiple updates in the same session (i.e. within 1 minute so that step count will not change at all)
+  //if (!s_is_update) { // FIXME: wanted to avoid multiple updates in the same session (i.e. within 1 minute so that step count will not change at all)
     s_step = 0;
     // Always load data of the last hour
     s_end = time(NULL);
@@ -84,8 +84,8 @@ void steps_update() {
     strftime(s_end_buf, sizeof(s_end_buf), "%H:%M:%S", localtime(&s_end));
     APP_LOG(APP_LOG_LEVEL_INFO, "%d steps from %s to %s", s_step, s_start_buf, s_end_buf);
 
-    s_is_update = true;
-  }
+    //s_is_update = true;
+  //}
 }
 
 /* Send updated info to wakeup_window for displaying on the watch. */
