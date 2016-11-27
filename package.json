@@ -35,11 +35,13 @@
       "AppKeyArrayLength": 8,
       "AppKeyArrayStart": 9,
 
+      "version":            996,
       "consent_name":       997,
       "consent_email":      998,
       "is_consent":         999,
 
       "survey_age":         2001,
+      "survey_age2":        2111,
       "survey_gender":      2002,
       "survey_height":      2003,
       "survey_height_unit": 2004,
@@ -47,15 +49,15 @@
       "survey_weight_unit": 2006,
       "survey_race":        2007,
 
-      "activate":           1000,
-      "vibrate":            1001,
-      "sliding_window":     1002,
-      "step_threshold":     1003,
-      "daily_start_time":   1004,
-      "daily_end_time":     1005,
-      "sleep_minutes":      1006,
-      "display_duration":   1007,
-      "dynamic_wakeup":     1008
+      "activate":           3000,
+      "vibrate":            3001,
+      "sliding_window":     3002,
+      "step_threshold":     3003,
+      "daily_start_time":   3004,
+      "daily_end_time":     3005,
+      "sleep_minutes":      3006,
+      "display_duration":   3007,
+      "dynamic_wakeup":     3008
     },
     "resources": {
       "media": []

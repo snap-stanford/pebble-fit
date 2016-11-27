@@ -80,8 +80,8 @@ void steps_update() {
 
     // Convert to human readable time for the display purpose.
     s_start = s_end - ((int)enamel_get_sleep_minutes() * SECONDS_PER_MINUTE);
-    strftime(s_start_buf, sizeof(s_start_buf), "%H:%M:%S", localtime(&s_start));
-    strftime(s_end_buf, sizeof(s_end_buf), "%H:%M:%S", localtime(&s_end));
+    strftime(s_start_buf, sizeof(s_start_buf), "%H:%M", localtime(&s_start));
+    strftime(s_end_buf, sizeof(s_end_buf), "%H:%M", localtime(&s_end));
     APP_LOG(APP_LOG_LEVEL_INFO, "%d steps from %s to %s", s_step, s_start_buf, s_end_buf);
 
     //s_is_update = true;

@@ -23,7 +23,7 @@ module.exports = function(minified) {
     'consent_review_text_form', 'consent_button_agree', 'consent_button_disagree'];
   var consent_result_section = ['consent_result_text', 'consent_result_button']; 
   var survey_section = ['survey_heading_0', 'survey_text_0', 'survey_heading_1', 'survey_text_1',
-    'survey_age', 'survey_gender', 'survey_height', 'survey_height_unit', 
+    'survey_age', 'survey_age2', 'survey_gender', 'survey_height', 'survey_height_unit', 
     'survey_weight', 'survey_weight_unit', 'survey_race'];
   var config_section = ['settings', 'activate', 'vibrate', 'sleep_minutes', 
     'dynamic_wakeup', 'sliding_window', 'step_threshold', 'daily_start_time', 

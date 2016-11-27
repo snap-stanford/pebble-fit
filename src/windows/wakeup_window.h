@@ -12,3 +12,5 @@ Window * wakeup_window_push();
 void wakeup_window_remove();
 
 void wakeup_window_update(int steps, char *start, char *end, int entries);
+
+void wakeup_window_breathe();

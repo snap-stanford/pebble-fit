@@ -2,6 +2,7 @@
 
 #include <pebble.h>
 #include "../enamel.h"
+#include "../windows/wakeup_window.h"
 
-/* handle second hand tick events. */
+/* Subscribe to a tick timer service. */
 void tick_second_subscribe(bool activate);

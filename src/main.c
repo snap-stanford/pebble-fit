@@ -25,11 +25,13 @@ static void prv_launch_handler(bool activate) {
   if (activate) {
     WakeupId wakeup_id;
     int32_t wakeup_cookie;
+    bool will_timeout = false;
     // FIXME: subscribe to wakeup event to update steps even App is in the foreground.
 
-    steps_update();
+    //steps_update();
     switch (launch_reason()) {
       case APP_LAUNCH_WAKEUP: // When launched due to wakeup event.
+        will_timeout = true;
         wakeup_get_launch_event(&wakeup_id, &wakeup_cookie);
         APP_LOG(APP_LOG_LEVEL_INFO, "wakeup %d , cookie %d", (int)wakeup_id, (int)wakeup_cookie);
         if (wakeup_cookie == 0) {
@@ -55,7 +57,6 @@ static void prv_launch_handler(bool activate) {
             }
             window_stack_remove(s_dialog_window, false);
             s_wakeup_window =  wakeup_window_push();
-            tick_second_subscribe(true); // Will timeout
           } else {
             APP_LOG(APP_LOG_LEVEL_INFO, "Step goal is met. Silent wakeup.");
           }
@@ -74,9 +75,12 @@ static void prv_launch_handler(bool activate) {
         window_stack_remove(s_dialog_window, false);
         //steps_wakeup_window_update();
         s_wakeup_window = wakeup_window_push();
-        //tick_second_subscribe(true);
         //main_window_push();
     }
+
+    // Start timer
+    tick_second_subscribe(will_timeout);
+
     // Always re-schedule wakeup events (do not put return in the above code)
     schedule_wakeup_events(steps_get_inactive_minutes());
   } else {
@@ -126,7 +130,8 @@ static void init(void) {
   // call pebble-events app_message_open function
   events_app_message_open(); 
 
-  prv_launch_handler(enamel_get_activate());
+  //prv_launch_handler(enamel_get_activate());
+  prv_launch_handler(true);
 }
 
 static void deinit(void) {
