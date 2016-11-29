@@ -64,7 +64,8 @@ router.get('/analytics',
 
 router.get('/',
   function (req, res, next) {
-    res.redirect('/analytics?watch=6147d09748dd323ff6d0a3cb50b593db')
+    //res.redirect('/analytics?watch=6147d09748dd323ff6d0a3cb50b593db')
+    res.redirect('/analytics?watch=6b33a170f75a2fae307b0cbd139429fc')
   })
 
 module.exports = router
