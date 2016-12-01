@@ -1,7 +1,4 @@
 #include "launch.h"
-#include "windows/main_window.h"
-#include "windows/wakeup_window.h"
-#include "windows/dialog_window.h"
 
 static Window *s_dialog_window, *s_wakeup_window;
 static time_t s_launch_time, s_delaunch_time;
