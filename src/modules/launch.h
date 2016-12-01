@@ -3,11 +3,8 @@
 #include <pebble.h>
 #include "../constants.h"
 #include "comm.h"
-#include "windows/main_window.h"
-#include "windows/wakeup_window.h"
-#include "windows/dialog_window.h"
-#include "modules/steps.h"
-#include "services/wakeup.h"
+#include "steps.h"
+#include "../services/wakeup.h"
 
 extern int delaunch_reason;
 
