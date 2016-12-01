@@ -1,8 +1,11 @@
 #include "comm.h"
 
+static bool s_js_ready = false;
+
 /* Log that js is ready. */
 static void js_ready_handler(DictionaryIterator *iter, void *context) {
   if(dict_find(iter, AppKeyJSReady)) {
+    s_js_ready = true;
     APP_LOG(APP_LOG_LEVEL_INFO, "Connected to JS!");
     ((CommCallback *) context)();
   } else {

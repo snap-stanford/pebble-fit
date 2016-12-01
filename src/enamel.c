@@ -62,6 +62,15 @@ SURVEY_AGEValue enamel_get_survey_age(){
 // -----------------------------------------------------
 
 // -----------------------------------------------------
+// Getter for 'survey_age2'
+int32_t enamel_get_survey_age2(){
+	Tuple* tuple = dict_find(&s_dict, 3948633539);
+		
+	return tuple ? tuple->value->int32 : 18;
+}
+// -----------------------------------------------------
+
+// -----------------------------------------------------
 // Getter for 'survey_gender'
 const char* enamel_get_survey_gender(){
 	Tuple* tuple = dict_find(&s_dict, 3415907915);
@@ -160,6 +169,14 @@ SLEEP_MINUTESValue enamel_get_sleep_minutes(){
 // -----------------------------------------------------
 
 // -----------------------------------------------------
+// Getter for 'dynamic_wakeup'
+bool enamel_get_dynamic_wakeup(){
+	Tuple* tuple = dict_find(&s_dict, 351746595);
+	return tuple ? tuple->value->int32 == 1 : false;
+}
+// -----------------------------------------------------
+
+// -----------------------------------------------------
 // Getter for 'sliding_window'
 SLIDING_WINDOWValue enamel_get_sliding_window(){
 	Tuple* tuple = dict_find(&s_dict, 3755395031);
@@ -171,7 +188,7 @@ SLIDING_WINDOWValue enamel_get_sliding_window(){
 // Getter for 'step_threshold'
 STEP_THRESHOLDValue enamel_get_step_threshold(){
 	Tuple* tuple = dict_find(&s_dict, 1001368360);
-	return tuple ? atoi(tuple->value->cstring) : 10;
+	return tuple ? atoi(tuple->value->cstring) : 50;
 }
 // -----------------------------------------------------
 
@@ -183,6 +200,10 @@ DISPLAY_DURATIONValue enamel_get_display_duration(){
 }
 // -----------------------------------------------------
 
+// -----------------------------------------------------
+// Getter for 'version'
+// -----------------------------------------------------
+
 
 static uint16_t prv_get_inbound_size() {
 	return 1
@@ -190,6 +211,7 @@ static uint16_t prv_get_inbound_size() {
 		+ 7 + ENAMEL_MAX_STRING_LENGTH
 		+ 7 + ENAMEL_MAX_STRING_LENGTH
 		+ 7 + 3
+		+ 7 + 4
 		+ 7 + 12
 		+ 7 + 7
 		+ 7 + ENAMEL_MAX_STRING_LENGTH
@@ -201,6 +223,7 @@ static uint16_t prv_get_inbound_size() {
 		+ 7 + ENAMEL_MAX_STRING_LENGTH
 		+ 7 + ENAMEL_MAX_STRING_LENGTH
 		+ 7 + 3
+		+ 7 + 4
 		+ 7 + 3
 		+ 7 + 4
 		+ 7 + 3
@@ -212,6 +235,7 @@ static uint32_t prv_map_messagekey(const uint32_t key){
 	if( key == MESSAGE_KEY_consent_name) return 4163168280;
 	if( key == MESSAGE_KEY_consent_email) return 3428345362;
 	if( key == MESSAGE_KEY_survey_age) return 3769805684;
+	if( key == MESSAGE_KEY_survey_age2) return 3948633539;
 	if( key == MESSAGE_KEY_survey_gender) return 3415907915;
 	if( key == MESSAGE_KEY_survey_height_unit) return 3564860411;
 	if( key == MESSAGE_KEY_survey_height) return 2106823441;
@@ -223,9 +247,11 @@ static uint32_t prv_map_messagekey(const uint32_t key){
 	if( key == MESSAGE_KEY_daily_start_time) return 280095890;
 	if( key == MESSAGE_KEY_daily_end_time) return 988182165;
 	if( key == MESSAGE_KEY_sleep_minutes) return 2891097914;
+	if( key == MESSAGE_KEY_dynamic_wakeup) return 351746595;
 	if( key == MESSAGE_KEY_sliding_window) return 3755395031;
 	if( key == MESSAGE_KEY_step_threshold) return 1001368360;
 	if( key == MESSAGE_KEY_display_duration) return 1482180045;
+	if( key == MESSAGE_KEY_version) return 4003360947;
 	return 0;
 }
 

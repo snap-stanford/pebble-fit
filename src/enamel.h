@@ -40,6 +40,12 @@ SURVEY_AGEValue enamel_get_survey_age();
 // -----------------------------------------------------
 
 // -----------------------------------------------------
+// Getter for 'survey_age2'
+#define SURVEY_AGE2_PRECISION 1
+int32_t enamel_get_survey_age2();
+// -----------------------------------------------------
+
+// -----------------------------------------------------
 // Getter for 'survey_gender'
 const char* enamel_get_survey_gender();
 // -----------------------------------------------------
@@ -107,6 +113,11 @@ SLEEP_MINUTESValue enamel_get_sleep_minutes();
 // -----------------------------------------------------
 
 // -----------------------------------------------------
+// Getter for 'dynamic_wakeup'
+bool enamel_get_dynamic_wakeup();
+// -----------------------------------------------------
+
+// -----------------------------------------------------
 // Getter for 'sliding_window'
 typedef enum {
 	SLIDING_WINDOW_3_MINUTES = 3,
@@ -120,10 +131,13 @@ SLIDING_WINDOWValue enamel_get_sliding_window();
 // -----------------------------------------------------
 // Getter for 'step_threshold'
 typedef enum {
-	STEP_THRESHOLD_10 = 10,
-	STEP_THRESHOLD_200 = 200,
+	STEP_THRESHOLD_50 = 50,
 	STEP_THRESHOLD_100 = 100,
+	STEP_THRESHOLD_150 = 150,
+	STEP_THRESHOLD_200 = 200,
+	STEP_THRESHOLD_250 = 250,
 	STEP_THRESHOLD_300 = 300,
+	STEP_THRESHOLD_350 = 350,
 } STEP_THRESHOLDValue;
 STEP_THRESHOLDValue enamel_get_step_threshold();
 // -----------------------------------------------------
@@ -133,9 +147,17 @@ STEP_THRESHOLDValue enamel_get_step_threshold();
 typedef enum {
 	DISPLAY_DURATION_10 = 10,
 	DISPLAY_DURATION_15 = 15,
-	DISPLAY_DURATION_5 = 5,
+	DISPLAY_DURATION_20 = 20,
+	DISPLAY_DURATION_30 = 30,
+	DISPLAY_DURATION_40 = 40,
+	DISPLAY_DURATION_50 = 50,
+	DISPLAY_DURATION_60 = 60,
 } DISPLAY_DURATIONValue;
 DISPLAY_DURATIONValue enamel_get_display_duration();
+// -----------------------------------------------------
+
+// -----------------------------------------------------
+// Getter for 'version'
 // -----------------------------------------------------
 
 void enamel_init();

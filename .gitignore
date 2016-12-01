@@ -1,3 +1,4 @@
+node_modules/
 build/
 data-backbone/build
 pebble-nts/build/
@@ -5,5 +6,5 @@ pebble-nts/build/
 
 *.DS_Store
 *.bak
-.sw*
+*.sw*
 *.swp

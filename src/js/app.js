@@ -5,13 +5,15 @@ var clayConfig = require('./config.json');
 var customClay = require('./custom-clay');
 var clay = new Clay(clayConfig, customClay);
 
+// Register custom Clay components.
 clay.registerComponent(require('./pfbutton'));
 
 var log = require('./logging');
 log.set_level(3);
 
 // URL at which to send data
-var SERVER = 'http://192.168.1.2:3000';
+//var SERVER = 'http://192.168.1.2:3000';
+var SERVER = 'http://pebble-fit.herokuapp.com';
 
 // Flag to switch off server communication
 var USE_OFFLINE = true;
@@ -56,7 +58,8 @@ function send_data_to_route (route) {
 }
 
 function send_steps_data (data, date) {
-  log.debug('Uploading steps data...')
+  //log.debug('Uploading steps data...')
+  log.info('Uploading steps data...')
   // Convert to string
   var str = '' + data[0]
   for (var i = 1; i < data.length; i++) {
@@ -80,10 +83,11 @@ function send_launch_data (reason, date) {
   send_data_to_route(url)
 }
 
-function send_delaunch_data (date) {
+function send_delaunch_data (reason, date) {
   log.debug('Uploading delaunch data...')
   var url = '/delaunch' +
   '?date=' + date +
+  '&reason=' + reason +
   '&watch=' + Pebble.getWatchToken()
 
   send_data_to_route(url)
@@ -117,12 +121,13 @@ Pebble.addEventListener('appmessage', function (dict) {
 
   if (dict.payload['AppKeyLaunchReason'] !== undefined) {
     var reason = dict.payload['AppKeyLaunchReason']
-    log.debug('Reason: ' + reason)
+    log.debug('Launched. Reason: ' + reason)
     send_launch_data(reason, date)
   }
 
   if (dict.payload['AppKeyDelaunchReason'] !== undefined) {
-    log.debug('Delaunched')
-    send_delaunch_data(date)
+    var reason = dict.payload['AppKeyDelaunchReason']
+    log.debug('Delaunched. Reason: ' + reason)
+    send_delaunch_data(reason, date)
   }
 })
