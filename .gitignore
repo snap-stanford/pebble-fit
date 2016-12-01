@@ -6,5 +6,5 @@ pebble-nts/build/
 
 *.DS_Store
 *.bak
-.sw*
+*.sw*
 *.swp

@@ -5,6 +5,8 @@
 #include "../enamel.h"
 #include "../modules/steps.h"
 
+extern int delaunch_reason; // Should be accessable by ticks
+
 /* Create the window and push to the window stack. */
 Window * wakeup_window_push();
 

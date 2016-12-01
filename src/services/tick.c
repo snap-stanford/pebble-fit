@@ -12,14 +12,15 @@ static void prv_tick_step_progress_handle(struct tm *tick_time, TimeUnits units_
   }
   if (s_will_timeout && s_count >= enamel_get_display_duration()) {
     // Exit after timeout via pop all windows of this App out
-		window_stack_pop_all(false);
+    delaunch_reason = TIMEOUT_DELAUNCH;
+    window_stack_pop_all(false);
   }
-	s_count += 1;
+  s_count += 1;
 }
 
 /* Subscribe to a tick timer service. */
 void tick_second_subscribe(bool will_timeout) {
   s_count = 0;
-	s_will_timeout = will_timeout;
+  s_will_timeout = will_timeout;
   tick_timer_service_subscribe(SECOND_UNIT, prv_tick_step_progress_handle);
 }

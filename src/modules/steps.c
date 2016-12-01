@@ -8,41 +8,45 @@ static time_t s_start, s_end;
 static int s_inactive_mins;
 static char s_start_buf[12];
 static char s_end_buf[12];
+static bool s_is_loaded = false;
 static bool s_is_update = false;
 
 /* Load health service data for the last hour into a static array. */
 static void load_data(time_t *start, time_t *end) {
-  // Set the static array to zeros
-  s_num_records = 0;
-  for(int i = 0; i < MAX_ENTRIES; i++) {
-    s_step_records[i] = 0;
-  }
+	if (!s_is_loaded) {
+  	// Set the static array to zeros
+  	s_num_records = 0;
+  	for(int i = 0; i < MAX_ENTRIES; i++) {
+  	  s_step_records[i] = 0;
+  	}
 
-  // Check data is available
-  HealthServiceAccessibilityMask result = 
-    health_service_metric_accessible(HealthMetricStepCount, *start, *end);
-  if (result != HealthServiceAccessibilityMaskAvailable) {
-    APP_LOG(APP_LOG_LEVEL_ERROR, "No steps data available from %d to %d!", (int) *start, (int) *end);
-    return;
-  }
+  	// Check data is available
+  	HealthServiceAccessibilityMask result = 
+  	  health_service_metric_accessible(HealthMetricStepCount, *start, *end);
+  	if (result != HealthServiceAccessibilityMaskAvailable) {
+  	  APP_LOG(APP_LOG_LEVEL_ERROR, "No steps data available from %d to %d!", (int) *start, (int) *end);
+  	  return;
+  	}
 
-  // Read the data and store into the static array
-  HealthMinuteData minute_data[MAX_ENTRIES];
-  s_num_records = health_service_get_minute_history(&minute_data[0], MAX_ENTRIES, start, end);
-  s_start = *start;
-  s_end = *end;
+  	// Read the data and store into the static array
+  	HealthMinuteData minute_data[MAX_ENTRIES];
+  	s_num_records = health_service_get_minute_history(&minute_data[0], MAX_ENTRIES, start, end);
+  	s_start = *start;
+  	s_end = *end;
 
-  for (int i = 0; i < MAX_ENTRIES; i++) {
-    if (minute_data[i].is_invalid) {
-      // No valid data recorded; steps = -1. Treat it as 0 step count
-      //APP_LOG(APP_LOG_LEVEL_INFO, "Invalid data %d = %d", (int)i, (int)minute_data[i].steps);
-      s_step_records[i] = 0;
-    } else {
-      s_step_records[i] = minute_data[i].steps;
-    }
-    APP_LOG(APP_LOG_LEVEL_INFO, "s_step_records %d = %d", (int)i, (int)s_step_records[i]);
-  }
-  //APP_LOG(APP_LOG_LEVEL_INFO, "Got %d/%d new entries for steps data from %d to %d", (int)s_num_records, MAX_ENTRIES, (int) *start, (int) *end);
+  	for (int i = 0; i < MAX_ENTRIES; i++) {
+  	  if (minute_data[i].is_invalid) {
+  	    // No valid data recorded; steps = -1. Treat it as 0 step count.
+  	    s_step_records[i] = 0;
+  	    APP_LOG(APP_LOG_LEVEL_INFO, "Invalid data %d = %d", (int)i, (int)minute_data[i].steps);
+  	  } else {
+  	    s_step_records[i] = minute_data[i].steps;
+				if (s_step_records[i] > 0)
+  	  		APP_LOG(APP_LOG_LEVEL_INFO, "s_step_records %d = %d", (int)i, (int)s_step_records[i]);
+  	  }
+  	}
+		s_is_loaded = true;
+	}
 }
 
 /* Update steps count. */
@@ -54,6 +58,7 @@ void steps_update() {
     s_start = s_end - SECONDS_PER_MINUTE * 60; 
 
     // Read recorded step count data from the Pebble Health service.
+		s_is_loaded = false; // Force to load new data from Health service.
     load_data(&s_start, &s_end);
 
     // Calculate the total inactive minutes since the last active window. Up to 
@@ -97,6 +102,7 @@ void steps_wakeup_window_update() {
  * Yes if the user was not active in any sliding window during last sleeping interval.
  */
 bool steps_whether_alert() {
+	APP_LOG(APP_LOG_LEVEL_INFO, "%d/%d", s_inactive_mins, enamel_get_sleep_minutes());
   if (s_inactive_mins >= enamel_get_sleep_minutes()) {
     return true;
   } else {
@@ -119,7 +125,9 @@ static void data_write(DictionaryIterator * out) {
   dict_write_int(out, AppKeyArrayLength, &s_num_records, sizeof(int), true);
   dict_write_int(out, AppKeyArrayStart, &AppKeyArrayData, sizeof(int), true);
   for (int i = 0; i < s_num_records; i++) {
-    dict_write_int(out, AppKeyArrayData + i, &s_step_records[i], sizeof(int), true);
+    //dict_write_int(out, AppKeyArrayData + i, &s_step_records[i], sizeof(int), true);
+		// FIXME: s_step_records is the type of uint8_t[]
+    dict_write_uint8(out, AppKeyArrayData + i, s_step_records[i]);
   }
 }
 
@@ -138,7 +146,8 @@ void steps_send_in_between(time_t start, time_t end) {
 /* FIXME: deprecated. Send the steps from before 15 minutes back. */
 void steps_send_latest() {
   // start from 15 minutes back (real time is not accurate)
-  time_t now = time(NULL) - (15 * SECONDS_PER_MINUTE);
+  //time_t now = time(NULL) - (15 * SECONDS_PER_MINUTE);
+  time_t now = time(NULL);
   time_t start = now - (MAX_ENTRIES * SECONDS_PER_MINUTE);
   steps_send_in_between(start, now);
 }

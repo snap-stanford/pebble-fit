@@ -1,5 +1,8 @@
 #include "wakeup_window.h"
 
+static time_t s_time;
+int delaunch_reason = OTHER_DELAUNCH;
+
 static Window *s_window;
 static TextLayer *s_main_text_layer, *s_top_text_layer, *s_bot_text_layer;
 
@@ -54,13 +57,17 @@ static void layer_mark_dirty_all() {
   layer_mark_dirty((Layer *)s_bot_text_layer);
 }
 
+static void prv_update_text() {
+	top_text_layer_update_proc();
+	main_text_layer_update_proc();
+	bot_text_layer_update_proc();
+}
+
 /* Get the latest step count and update texts on the watch accordingly. */
 void wakeup_window_breathe() {
   steps_update();
   steps_wakeup_window_update();
-	top_text_layer_update_proc();
-	main_text_layer_update_proc();
-	bot_text_layer_update_proc();
+	prv_update_text();
   //layer_mark_dirty_all();
 }
 
@@ -102,7 +109,7 @@ static void window_load(Window *window) {
 	//top_text_layer_update_proc();
 	//main_text_layer_update_proc();
 	//bot_text_layer_update_proc();
-  wakeup_window_breathe();
+  prv_update_text();
 
   // Add text layers to the window
   layer_add_child(root_layer, text_layer_get_layer(s_top_text_layer));
@@ -111,6 +118,11 @@ static void window_load(Window *window) {
 
   // Mark them as dirty so that they can be rendered by update procedure immediately
   //layer_mark_dirty_all();
+}
+
+static void prv_delaunch_write(DictionaryIterator * out) {
+  dict_write_int(out, AppKeyDelaunchReason, &delaunch_reason, sizeof(int), true);
+  dict_write_int(out, AppKeyDate, &s_time, sizeof(int), true);
 }
 
 static void window_unload(Window *window) {
@@ -135,11 +147,26 @@ static void window_unload(Window *window) {
   s_window = NULL;
 }
 
+/* Back button click handler. */
+static void back_click_handler(ClickRecognizerRef recognizer, void *context) {
+	delaunch_reason = USER_DELAUNCH;
+	window_stack_pop_all(false);
+}
+
+/* Set click event handlers. */
+static void click_config_provider(void *context) {
+  window_single_click_subscribe(BUTTON_ID_BACK, back_click_handler);
+}
+
 /* Create a window and push to the window stack. */
 Window * wakeup_window_push() {
   steps_wakeup_window_update();
   if (!s_window) {
     s_window = window_create();
+
+		// Set click handlers for windows.
+  	window_set_click_config_provider(s_window, click_config_provider);
+
 
     window_set_window_handlers(s_window, (WindowHandlers) {
       .load  = window_load,

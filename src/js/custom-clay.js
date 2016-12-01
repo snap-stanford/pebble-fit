@@ -27,7 +27,7 @@ module.exports = function(minified) {
     'survey_weight', 'survey_weight_unit', 'survey_race'];
   var config_section = ['settings', 'activate', 'vibrate', 'sleep_minutes', 
     'dynamic_wakeup', 'sliding_window', 'step_threshold', 'daily_start_time', 
-    'daily_end_time', 'display_duration', 'activate_text'];
+    'daily_end_time', 'display_duration', 'activate_text', 'version', 'watchtoken'];
   var sub_config_section = ['vibrate', 'sleep_minutes', 'sliding_window',
     'step_threshold', 'daily_start_time', 'daily_end_time', 'activate_text'];
   // Components that should always be hidden.
@@ -208,7 +208,7 @@ module.exports = function(minified) {
     //clayConfig.build();
   }
 
-  /* Define actions once the Clay page is built. */
+  /* Main: perform actions once the Clay page is built. */
   clayConfig.on(clayConfig.EVENTS.AFTER_BUILD, function() {
     var activateToggle = clayConfig.getItemByMessageKey('activate');
 
@@ -242,6 +242,8 @@ module.exports = function(minified) {
     } else {
       hideConfigSection();
     }
+
+	clayConfig.getItemById('watchtoken').set(clayConfig.meta.watchToken);
 
     changeEnableApp.call(activateToggle);
   });
