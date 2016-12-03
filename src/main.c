@@ -150,7 +150,7 @@ static void prv_launch_handler(bool activate) {
         // FIXME: if not initialize our own, could use the communication set up by Enamel, but
         // seems that outbox size is not large enough. Since this conflicts with channels used
         // by Enamel, the current workaround will upload data only at wakeup event.
-        comm_init(prv_init_callback); 
+        //comm_init(prv_init_callback); 
 
         break;
       case APP_LAUNCH_PHONE: // When open the App's settings page or after installation 

@@ -36,9 +36,15 @@ static void top_text_layer_update_proc() {
 //static void main_text_layer_update_proc(Layer *layer, GContext *ctx) {
 static void main_text_layer_update_proc() {
   if (s_step > enamel_get_step_threshold()) {
-    text_layer_set_text(s_main_text_layer, "Keep up");
+    if (connection_service_peek_pebble_app_connection()) 
+        text_layer_set_text(s_main_text_layer, "Keep up!");
+    else 
+        text_layer_set_text(s_main_text_layer, "Keep up.");
   } else {
-    text_layer_set_text(s_main_text_layer, "Let's Move");
+    if (connection_service_peek_pebble_app_connection()) 
+        text_layer_set_text(s_main_text_layer, "Let's Move!");
+    else
+        text_layer_set_text(s_main_text_layer, "Let's Move.");
   }
 }
 
