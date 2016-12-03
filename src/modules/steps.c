@@ -38,12 +38,14 @@ static void load_data(time_t *start, time_t *end) {
   	  if (minute_data[i].is_invalid) {
   	    // No valid data recorded; steps = -1. Treat it as 0 step count.
   	    s_step_records[i] = 0;
-  	    APP_LOG(APP_LOG_LEVEL_INFO, "Invalid data %d = %d", (int)i, (int)minute_data[i].steps);
+  	    //APP_LOG(APP_LOG_LEVEL_INFO, "Invalid data %d = %d", (int)i, (int)minute_data[i].steps);
   	  } else {
   	    s_step_records[i] = minute_data[i].steps;
-				if (s_step_records[i] > 0)
+				if (s_step_records[i] > 0) {
   	  		APP_LOG(APP_LOG_LEVEL_INFO, "s_step_records %d = %d", (int)i, (int)s_step_records[i]);
+        }
   	  }
+  	  //APP_LOG(APP_LOG_LEVEL_INFO, "s_step_records %d = %d", (int)i, (int)s_step_records[i]);
   	}
 		s_is_loaded = true;
 	}
@@ -80,10 +82,12 @@ void steps_update() {
       // Count the total step count in the last sleeping interval.
       if (i >= MAX_ENTRIES - enamel_get_sleep_minutes()) {
         s_step += sliding_window_sum;
+        //APP_LOG(APP_LOG_LEVEL_INFO, "s_steps=%d; sliding_window_sum=%d", s_step, sliding_window_sum);
       }
     }
 
     // Convert to human readable time for the display purpose.
+    //APP_LOG(APP_LOG_LEVEL_ERROR, "enamel_get_sleep_minutes=%d", enamel_get_sleep_minutes());
     s_start = s_end - ((int)enamel_get_sleep_minutes() * SECONDS_PER_MINUTE);
     strftime(s_start_buf, sizeof(s_start_buf), "%H:%M", localtime(&s_start));
     strftime(s_end_buf, sizeof(s_end_buf), "%H:%M", localtime(&s_end));
@@ -93,7 +97,9 @@ void steps_update() {
   //}
 }
 
-/* Send updated info to wakeup_window for displaying on the watch. */
+/* Send updated info to wakeup_window for displaying on the watch. 
+ * This assume steps_update() was called recently.
+ */
 void steps_wakeup_window_update() { 
   wakeup_window_update(s_step, s_start_buf, s_end_buf, s_inactive_mins);
 }

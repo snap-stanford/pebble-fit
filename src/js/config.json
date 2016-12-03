@@ -473,7 +473,7 @@
       "type": "select",
       "id": "sleep_minutes",
       "messageKey": "sleep_minutes",
-      "defaultValue": 60,
+      "defaultValue": 30,
       "label": "Sleep interval:",
       "description": "The maximum time interval between alerts. Regardless of this number, the App will always check the step data in the last 60 minutes.",
       "options": [

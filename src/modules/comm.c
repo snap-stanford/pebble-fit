@@ -1,11 +1,11 @@
 #include "comm.h"
 
-static bool s_js_ready = false;
+bool js_ready = false;
 
 /* Log that js is ready. */
 static void js_ready_handler(DictionaryIterator *iter, void *context) {
   if(dict_find(iter, AppKeyJSReady)) {
-    s_js_ready = true;
+    js_ready = true;
     APP_LOG(APP_LOG_LEVEL_INFO, "Connected to JS!");
     ((CommCallback *) context)();
   } else {
@@ -42,12 +42,16 @@ void comm_send_data(
   AppMessageOutboxSent sent_handler,
   AppMessageInboxReceived received_handler
 ) {
+  if (!js_ready) {
+    APP_LOG(APP_LOG_LEVEL_ERROR, "Communication is not ready.");
+    return;
+  }
   
   DictionaryIterator *out;
 
   // init dict
   if(app_message_outbox_begin(&out) != APP_MSG_OK) {
-    //APP_LOG(APP_LOG_LEVEL_ERROR, "Error beginning message.");
+    APP_LOG(APP_LOG_LEVEL_ERROR, "Error beginning message.");
     return;
   }
 
