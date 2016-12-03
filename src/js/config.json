@@ -361,18 +361,17 @@
       "label": "3. What is your current height?",
       "defaultValue": "null",
       "options": [
-        { "label": "Select", "value": "null" },
-        { "label": "cm",     "value": "cm"},
-        { "label": "inches", "value": "inches"}
+        { "label": "cm",     "value": "cm"}
       ]
     },
     {
-      "type": "input",
+      "type": "slider",
       "id": "survey_height",
       "messageKey": "survey_height",
-      "attributes": {
-        "type": "number"
-      }
+      "defaultValue": 150,
+      "min": 80,
+      "max": 220,
+      "step": 1
     },
     {
       "type": "select",
@@ -473,7 +472,7 @@
       "type": "select",
       "id": "sleep_minutes",
       "messageKey": "sleep_minutes",
-      "defaultValue": 30,
+      "defaultValue": 60,
       "label": "Sleep interval:",
       "description": "The maximum time interval between alerts. Regardless of this number, the App will always check the step data in the last 60 minutes.",
       "options": [
