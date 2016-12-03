@@ -361,18 +361,17 @@
       "label": "3. What is your current height?",
       "defaultValue": "null",
       "options": [
-        { "label": "Select", "value": "null" },
-        { "label": "cm",     "value": "cm"},
-        { "label": "inches", "value": "inches"}
+        { "label": "cm",     "value": "cm"}
       ]
     },
     {
-      "type": "input",
+      "type": "slider",
       "id": "survey_height",
       "messageKey": "survey_height",
-      "attributes": {
-        "type": "number"
-      }
+      "defaultValue": 150,
+      "min": 80,
+      "max": 220,
+      "step": 1
     },
     {
       "type": "select",

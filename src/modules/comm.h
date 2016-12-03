@@ -2,6 +2,8 @@
 
 #include <pebble.h>
 
+extern bool js_ready;
+
 typedef void (CommCallback)(void);
 typedef void (DataWriteCallback)(DictionaryIterator*);
 typedef enum {
