@@ -37,7 +37,7 @@ router.get(
   })
 
 router.get(
-  '/launchexit'],
+  '/launchexit',
   query.requireParam('query', ['launchtime', 'exittime', 'launchreason', 'exitreason']),
   function (req, res, next) {
     events.save('launch', req.path.substr(1), req.query.launchreason, 
