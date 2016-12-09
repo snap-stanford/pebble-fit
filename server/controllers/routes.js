@@ -22,7 +22,7 @@ router.get('/steps',
 
 // Keep delaunch for backward compatibility for a while.
 router.get(
-  ['/launch', '/delaunch', 'exit'],
+  ['/launch', '/delaunch', '/exit'],
   query.requireParam('query', ['watch', 'date']),
   function (req, res, next) {
     events.save(
@@ -37,23 +37,23 @@ router.get(
   })
 
 router.get(
-  '/launchexit',
+  ['/launchexit'],
   query.requireParam('query', ['launchtime', 'exittime', 'launchreason', 'exitreason']),
   function (req, res, next) {
-    events.save('launch', req.path.substr(1), req.query.launchreason, 
+    events.save('launch', req.query.launchreason, 
       req.query.launchtime, req.query.watch,
       function (err) {
         if (err) return next(err)
         res.status(200).end()
       });
-    events.save('exit', req.path.substr(1), req.query.exitreason, 
+    events.save('exit', req.query.exitreason, 
       req.query.exittime, req.query.watch,
       function (err) {
         if (err) return next(err)
         res.status(200).end()
       });
   }
-);
+)
 
 router.get(['/latest_hour', '/latest_day'],
   query.requireParam('query', ['watch']),
