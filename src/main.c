@@ -7,6 +7,7 @@
 #include "modules/comm.h"
 #include "modules/steps.h"
 #include "modules/launch.h"
+#include "modules/store.h"
 #include "services/health.h"
 #include "services/tick.h"
 #include "services/wakeup.h"
@@ -16,36 +17,35 @@
 
 static EventHandle s_enamel_handler;
 static Window *s_dialog_window, *s_wakeup_window;
-static int s_launch_reason = OTHER_LAUNCH;
 static time_t s_launch_time;
+static time_t s_exit_time;
 static bool s_enamel_on = false;
 
-static void prv_launch_write(DictionaryIterator * out);
+//static void prv_launch_write(DictionaryIterator * out);
 static void prv_update_config(void *context);
 static void prv_init_callback();
 static void prv_wakeup_alert();
 static void prv_launch_handler(bool activate);
 
-/* Add reason and date to out dict. */
-static void prv_launch_write(DictionaryIterator * out) {
-  dict_write_int(out, AppKeyDate, &s_launch_time, sizeof(int), true);
-  dict_write_int(out, AppKeyLaunchReason, &s_launch_reason, sizeof(int), true);
-}
 
 /* Received message from the Pebble phone app. */
 static void prv_init_callback() {
-  static int init_stage = 0;
+  static int init_stage = 1; // FIXME.
   APP_LOG(APP_LOG_LEVEL_INFO, "Init stage %d", init_stage);
   switch (init_stage) {
     case 0:
       js_ready = true;
-      // Upload launch and steps data to the server.
+      // Firstly, send the launch event.
       //comm_send_data(prv_launch_write, comm_sent_handler, comm_server_received_handler);
-      launch_send_on_notification();
+      launch_send_on_notification(s_launch_time);
       break;
     case 1:
+      // And then send the steps data.
       steps_send_latest();
       break;
+    default:
+      // Now resend the stored data that we were not able to send previously.
+      store_send_launch_exit_event();
   }
   init_stage++;
 }
@@ -129,13 +129,13 @@ static void prv_launch_handler(bool activate) {
     steps_update(); // Essential for steps_whether_alert in prv_wakeup_alert.
     switch (launch_reason()) {
       case APP_LAUNCH_USER: // When launched via the launch menu on the watch.
-        s_launch_reason = USER_LAUNCH;
+        e_launch_reason = USER_LAUNCH;
         APP_LOG(APP_LOG_LEVEL_ERROR, "Cancelling all wakeup events! Must be rescheduled.");
         wakeup_cancel_all();
         s_wakeup_window = wakeup_window_push();
         break;
       case APP_LAUNCH_WAKEUP: // When launched due to wakeup event.
-        s_launch_reason = WAKEUP_LAUNCH;
+        e_launch_reason = WAKEUP_LAUNCH;
         will_timeout = true;
         wakeup_get_launch_event(&wakeup_id, &wakeup_cookie);
         APP_LOG(APP_LOG_LEVEL_INFO, "wakeup %d , cookie %d", (int)wakeup_id, (int)wakeup_cookie);
@@ -154,14 +154,14 @@ static void prv_launch_handler(bool activate) {
 
         break;
       case APP_LAUNCH_PHONE: // When open the App's settings page or after installation 
-        s_launch_reason = PHONE_LAUNCH;
+        e_launch_reason = PHONE_LAUNCH;
         //window_stack_remove(s_dialog_window, false);
         //steps_wakeup_window_update();
         prv_wakeup_alert();
         s_wakeup_window = wakeup_window_push();
         break;
       default: 
-        s_launch_reason = OTHER_LAUNCH;
+        e_launch_reason = OTHER_LAUNCH;
         APP_LOG(APP_LOG_LEVEL_ERROR, "Cancelling all wakeup events! Must be rescheduled.");
         wakeup_cancel_all();
         //window_stack_remove(s_dialog_window, false);
@@ -207,10 +207,15 @@ static void init(void) {
 }
 
 static void deinit(void) {
-  // Send the delaunch reason to the server.
-  if (js_ready) {
-    launch_send_off_notification();
-  }
+  s_exit_time = time(NULL);
+  //if (js_ready) {
+  //  // Send the exit record (the launch record has already been uploaded).
+  //  launch_send_off_notification(s_exit_time);
+  //} else {
+  //  // Store launch-exit record if the connection could not be established right now.
+  //  store_write_launch_exit_event(s_launch_time, s_exit_time, e_launch_reason, e_exit_reason);
+  //}
+  store_write_launch_exit_event(s_launch_time, s_exit_time, e_launch_reason, e_exit_reason);
 
   // Deinit Enamel to unregister App Message handlers and save settings
   if (s_enamel_on) {

@@ -6,12 +6,16 @@ extern bool js_ready;
 
 typedef void (CommCallback)(void);
 typedef void (DataWriteCallback)(DictionaryIterator*);
+
+/* Message keys (consistent with package.json). */
 typedef enum {
   AppKeyJSReady,
   AppKeyDate,
   AppKeyServerReceived,
+  AppKeyLaunchTime,
   AppKeyLaunchReason,
-  AppKeyDelaunchReason,
+  AppKeyExitTime,
+  AppKeyExitReason,
   AppKeyStorageKey,
   AppKeyStepsData,
   AppKeyStorageData,

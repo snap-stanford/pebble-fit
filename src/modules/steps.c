@@ -1,7 +1,6 @@
 #include "steps.h"
 
 static uint8_t s_step_records[MAX_ENTRIES];
-static const int AppKeyArrayData = 200;
 static int s_num_records;
 static int s_step;
 static time_t s_start, s_end;

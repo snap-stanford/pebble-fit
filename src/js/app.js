@@ -12,8 +12,9 @@ var log = require('./logging');
 log.set_level(3);
 
 // URL at which to send data
-//var SERVER = 'http://192.168.1.2:3000';
-var SERVER = 'http://pebble-fit.herokuapp.com';
+//var SERVER = 'http://128.12.246.17:3000';
+var SERVER = 'http://10.30.202.74:3000';
+//var SERVER = 'http://pebble-fit.herokuapp.com';
 
 // Flag to switch off server communication
 var USE_OFFLINE = true;
@@ -32,19 +33,21 @@ function send_data_to_route (route) {
       callback(null, this.status, this.response, this.responseText)
     }
     xhr.onerror = function () {
-      callback('Network error.')
+      callback('Network error. Cannot send to ' + url)
     }
     xhr.open(type, url)
     xhr.send()
   }
 
   function send_received_message () {
+    log.info('Recevied ACK from the server.');
     Pebble.sendAppMessage({
       'AppKeyServerReceived': 1
     })
   }
 
   if (USE_OFFLINE) {
+    log.info(route);
     send_request(SERVER + route, 'GET', function (err, status) {
       if (err || status !== 200) {
         log.info(err || status)
@@ -73,22 +76,43 @@ function send_steps_data (data, date) {
   send_data_to_route(url)
 }
 
-function send_launch_data (reason, date) {
-  log.debug('Uploading launch data...')
-  var url = '/launch' +
-  '?date=' + date +
-  '&reason=' + reason +
-  '&watch=' + Pebble.getWatchToken()
+//function send_launch_data (reason, date) {
+//  log.debug('Uploading launch data...')
+//  var url = '/launch' +
+//  '?date=' + date +
+//  '&reason=' + reason +
+//  '&watch=' + Pebble.getWatchToken()
+//
+//  send_data_to_route(url)
+//}
+//
+//function send_exit_data (reason, date) {
+//  log.debug('Uploading exit data...')
+//  var url = '/exit' +
+//  '?date=' + date +
+//  '&reason=' + reason +
+//  '&watch=' + Pebble.getWatchToken()
+//
+//  send_data_to_route(url)
+//}
 
-  send_data_to_route(url)
-}
-
-function send_delaunch_data (reason, date) {
-  log.debug('Uploading delaunch data...')
-  var url = '/delaunch' +
-  '?date=' + date +
-  '&reason=' + reason +
-  '&watch=' + Pebble.getWatchToken()
+function send_launch_exit_data (launchTime, exitTime, launchReason, exitReason, date) {
+  log.debug('Uploading launch/exit data...')
+  if (exitReason === undefined) {
+    log.debug('Uploading launch data only...')
+    var url = '/launch' + '?date=' + date + '&reason=' + launchReason +
+      '&watch=' + Pebble.getWatchToken();
+  } else if (launchReason == undefined) {
+    log.debug('Uploading exit data only...')
+    var url = '/exit' + '?date=' + date + '&reason=' + exitReason +
+      '&watch=' + Pebble.getWatchToken();
+  } else {
+    log.debug('Uploading launch & exit data ...')
+    var url = '/launchexit' + '?date=' + date +
+      '&launchtime=' + launchTime + '&launchreason=' + launchReason +
+      '&exittime=' + exitTime + '&exitreason=' + exitReason +
+      '&watch=' + Pebble.getWatchToken();
+  }
 
   send_data_to_route(url)
 }
@@ -119,6 +143,15 @@ Pebble.addEventListener('appmessage', function (dict) {
     send_steps_data(data, date)
   }
 
+  if (dict.payload['AppKeyLaunchReason'] !== undefined || 
+      dict.payload['AppKeyExitReason'] !== undefined) {
+    var launchTime = dict.payload['AppKeyLaunchTime'];
+    var launchReason = dict.payload['AppKeyLaunchReason'];
+    var exitTime = dict.payload['AppKeyExitTime'];
+    var exitReason = dict.payload['AppKeyExitReason'];
+    send_launch_exit_data(launchTime, exitTime, launchReason, exitReason, date);
+  }
+        /*
   if (dict.payload['AppKeyLaunchReason'] !== undefined) {
     var reason = dict.payload['AppKeyLaunchReason']
     log.debug('Launched. Reason: ' + reason)
@@ -130,4 +163,5 @@ Pebble.addEventListener('appmessage', function (dict) {
     log.debug('Delaunched. Reason: ' + reason)
     send_delaunch_data(reason, date)
   }
-})
+        */
+});
