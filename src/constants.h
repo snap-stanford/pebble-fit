@@ -26,12 +26,12 @@
 #define TIMEOUT_EXIT            2
 
 
-#define SECONDS_PER_WEEK        (SECONDS_PER_DAY * 8)
+#define SECONDS_PER_WEEK        (SECONDS_PER_DAY * 7)
 
 /* Persistent Storage Keys. FIXME: supposed type is uint32_t. */
-static const int      AppKeyArrayData           = 200;
-static const uint32_t PERSIST_KEY_WAKEUP_ID     = 111;
-static const uint32_t PERSIST_KEY_UPDATE_TIME   = 200;
-static const uint32_t PERSIST_KEY_LAUNCH_COUNT  = 1000;
-static const uint32_t PERSIST_KEY_LAUNCH_START  = 1001;
-static const uint32_t PERSIST_KEY_LAUNCH_END    = 1128;
+static const int      AppKeyArrayData               = 200;
+static const uint32_t PERSIST_KEY_WAKEUP_ID         = 111;
+static const uint32_t PERSIST_KEY_UPDATE_TIME       = 200;
+static const uint32_t PERSIST_KEY_LAUNCHEXIT_COUNT  = 1000;
+static const uint32_t PERSIST_KEY_LAUNCH_START      = 1001;
+static const uint32_t PERSIST_KEY_LAUNCH_END        = 1128;

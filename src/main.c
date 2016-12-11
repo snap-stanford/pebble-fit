@@ -28,26 +28,54 @@ static void prv_wakeup_alert();
 static void prv_launch_handler(bool activate);
 
 
-/* Received message from the Pebble phone app. */
+/* Received message from the Pebble phone app. 
+ * Once connection is up (i.e. received the first message from the phone app), we start
+ * performing the following actions in order:
+ * 1. Send the launch info of the current wakeup.
+ * 2. Try to resend launch info in the history.
+ * 3. Try to resend steps data in the history.
+ * 4. Send the steps data of the current wakeup (since we only keep track of the timestamp of
+ *    the last uploaded steps data, we want to send the oldest steps data first).
+ *
+ * Will send the exit info of the current wakeup in deinit().
+ */
 static void prv_init_callback() {
-  static int init_stage = 1; // FIXME.
+  bool is_finished = false;
+  static int init_stage = 1; // FIXME: this skip init
   APP_LOG(APP_LOG_LEVEL_INFO, "Init stage %d", init_stage);
   switch (init_stage) {
     case 0:
+      // Connection between watch and phone is established.
       js_ready = true;
-      // Firstly, send the launch event.
       //comm_send_data(prv_launch_write, comm_sent_handler, comm_server_received_handler);
       launch_send_on_notification(s_launch_time);
       break;
     case 1:
-      // And then send the steps data.
+      // Connection between phone and server is established.
+      is_finished = store_resend_launchexit_event();
+      if (is_finished) {
+        init_stage++; 
+
+        // Since no data is sent and no packet expected to arrive, we nned to
+        // manually call this function again to move to the next stage.
+        prv_init_callback();
+      }
+      break;
+    case 2: 
+      is_finished = store_resend_steps();
+      if (is_finished) {
+        init_stage++;
+        prv_init_callback();
+      }
+      break;
+    case 3: 
       steps_send_latest();
+      init_stage++;
       break;
     default:
       // Now resend the stored data that we were not able to send previously.
-      store_send_launch_exit_event();
+      APP_LOG(APP_LOG_LEVEL_ERROR, "Should reach here only once!");
   }
-  init_stage++;
 }
 
 /* Received configuration update from the Pebble phone app. */
@@ -215,7 +243,9 @@ static void deinit(void) {
   //  // Store launch-exit record if the connection could not be established right now.
   //  store_write_launch_exit_event(s_launch_time, s_exit_time, e_launch_reason, e_exit_reason);
   //}
-  store_write_launch_exit_event(s_launch_time, s_exit_time, e_launch_reason, e_exit_reason);
+  
+  store_write_launchexit_event(s_launch_time, s_exit_time, e_launch_reason, e_exit_reason);
+  // FIXME: if app remains active, steps data keep sending to the server.
 
   // Deinit Enamel to unregister App Message handlers and save settings
   if (s_enamel_on) {
