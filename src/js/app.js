@@ -12,16 +12,18 @@ var log = require('./logging');
 log.set_level(3);
 
 // URL at which to send data
-//var SERVER = 'http://128.12.246.17:3000';
-var SERVER = 'http://10.30.202.74:3000';
-//var SERVER = 'http://pebble-fit.herokuapp.com';
+var SERVER = 'http://pebble-fit.herokuapp.com';
+
+// Local servers (ifconfig).
+//var SERVER = 'http://10.30.202.74:3000';
+//var SERVER = 'http://10.34.147.77:3000';
 
 // Flag to switch off server communication
 var USE_OFFLINE = true;
 
 // Start by sending message to watch that ready.
 Pebble.addEventListener('ready', function () {
-  log.info(packageinfo.pebble.displayName + " " + packageinfo.version + " ready !"    );
+  log.info(packageinfo.pebble.displayName + " " + packageinfo.version + " ready !");
 
   Pebble.sendAppMessage({ 'AppKeyJSReady': 1 });
 })

@@ -153,13 +153,14 @@ void steps_send_in_between(time_t start, time_t end, bool force) {
   comm_send_data(data_write, comm_sent_handler, comm_server_received_handler);
 }
 
-/* Send the latest steps data in the last hour. */
-void steps_send_latest() {
-  time_t now = time(NULL);
-  time_t start = now - (MAX_ENTRIES * SECONDS_PER_MINUTE);
-  steps_send_in_between(start, now, false);
+/* Send the latest steps data in the last hour.
+ * FIXME: this could be integrated into store_resend_steps(). 
+ */
+void steps_send_latest(time_t curr_time) {
+  time_t start = curr_time - (MAX_ENTRIES * SECONDS_PER_MINUTE);
+  steps_send_in_between(start, curr_time, false);
 
-  store_write_update_time(now);
+  store_write_update_time(curr_time);
 }
 
 

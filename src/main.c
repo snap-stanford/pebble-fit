@@ -40,8 +40,10 @@ static void prv_launch_handler(bool activate);
  * Will send the exit info of the current wakeup in deinit().
  */
 static void prv_init_callback() {
+  static int init_stage = 0; // FIXME: this skip init
+
   bool is_finished = false;
-  static int init_stage = 1; // FIXME: this skip init
+
   APP_LOG(APP_LOG_LEVEL_INFO, "Init stage %d", init_stage);
   switch (init_stage) {
     case 0:
@@ -49,6 +51,7 @@ static void prv_init_callback() {
       js_ready = true;
       //comm_send_data(prv_launch_write, comm_sent_handler, comm_server_received_handler);
       launch_send_on_notification(s_launch_time);
+      init_stage++;
       break;
     case 1:
       // Connection between phone and server is established.
@@ -146,7 +149,6 @@ static void prv_wakeup_alert() {
 
 /* Push a window depends on whether this App is activated or not. */ 
 static void prv_launch_handler(bool activate) {
-  s_launch_time = time(NULL); // FIXME: use end_time from steps?
   APP_LOG(APP_LOG_LEVEL_INFO, "pebble-fit launch_reason = %d", (int)launch_reason());
   if (activate) {
     WakeupId wakeup_id;
@@ -216,6 +218,8 @@ static void prv_launch_handler(bool activate) {
 }
 
 static void init(void) {
+  s_launch_time = time(NULL); // FIXME: rounded to minute?
+
   //health_subscribe();
   enamel_init();
   switch (launch_reason()) {
@@ -235,17 +239,17 @@ static void init(void) {
 }
 
 static void deinit(void) {
-  s_exit_time = time(NULL);
-  //if (js_ready) {
-  //  // Send the exit record (the launch record has already been uploaded).
-  //  launch_send_off_notification(s_exit_time);
-  //} else {
-  //  // Store launch-exit record if the connection could not be established right now.
-  //  store_write_launch_exit_event(s_launch_time, s_exit_time, e_launch_reason, e_exit_reason);
-  //}
-  
-  store_write_launchexit_event(s_launch_time, s_exit_time, e_launch_reason, e_exit_reason);
   // FIXME: if app remains active, steps data keep sending to the server.
+  s_exit_time = time(NULL);
+  if (js_ready) {
+    // Send the exit record (the launch record has already been uploaded).
+    launch_send_off_notification(s_exit_time);
+  } else {
+    // Store launch-exit record if the connection could not be established right now.
+    store_write_launchexit_event(s_launch_time, s_exit_time, e_launch_reason, e_exit_reason);
+  }
+  
+  //store_write_launchexit_event(s_launch_time, s_exit_time, e_launch_reason, e_exit_reason);
 
   // Deinit Enamel to unregister App Message handlers and save settings
   if (s_enamel_on) {

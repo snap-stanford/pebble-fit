@@ -101,10 +101,11 @@ void store_write_update_time(time_t time) {
 }
 
 /* Return whether we finish resending steps data (only when we do not send any data 
- * to the server. */
-bool store_resend_steps() {
+ * to the server. Later in steps_send_latest()  we might resend some data that we are 
+ * sending in here.
+ */
+bool store_resend_steps(time_t curr_time) {
   time_t last_update_time; 
-  time_t curr_time = time(NULL);
   time_t interval_seconds = MAX_ENTRIES * SECONDS_PER_MINUTE;
   //last_update_time = (last_update_time < time_start_of_today());
 
