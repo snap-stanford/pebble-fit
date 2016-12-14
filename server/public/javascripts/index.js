@@ -41,6 +41,18 @@ function load (url) {
       for (var i = 0; i < data.length; i++) {
         data[i].time = new Date(data[i].time)
       }
+    
+      // FIXME: this is a workaround for displaying a whole day range of onto browser,
+      // by adding a artificial data point at the current time and another at the 
+      // start of the day. Note that this might affect the real data if there is 
+      // actually some data collected at these 2 timestamp points.
+      var sod = new Date();
+      sod.setHours(6,0,0,0);
+      if (url === 'latest_day') {
+          data.push({time: sod, steps: 0});
+      }
+      data.push({time: new Date(), steps: 0});
+
       var markers = obj.events
       for (var j = 0; j < markers.length; j++) {
         markers[j].time = new Date(markers[j].time)

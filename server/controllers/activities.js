@@ -31,19 +31,5 @@ exports.get_between = function (watch_token, start_time, end_time, next) {
   Activity.find({watch: watch_token, time: {$gte: start_time, $lte: end_time}})
     .sort('time')
     .lean()
-    //.exec(next)
-    .exec(function (err, activities) {
-        // FIXME: this is a workaround for displaying a whole day range of onto browser,
-        // by adding a artificial data point at the current time and another at the 
-        // start of the day. Note that this might affect the real data if there is 
-        // actually some data collected at these 2 timestamp points.
-        var sod = new Date();
-        sod.setHours(6,0,0,0);
-        if (start_time < sod) {
-            activities.push({time: sod, steps: 0});
-        }
-        activities.push({time: new Date(), steps: 0});
-
-        next(null, activities);
-    })
+    .exec(next)
 }
