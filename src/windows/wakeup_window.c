@@ -1,7 +1,6 @@
 #include "wakeup_window.h"
 
 static time_t s_time;
-int delaunch_reason = OTHER_DELAUNCH;
 
 static Window *s_window;
 static TextLayer *s_main_text_layer, *s_top_text_layer, *s_bot_text_layer;
@@ -126,11 +125,6 @@ static void window_load(Window *window) {
   //layer_mark_dirty_all();
 }
 
-static void prv_delaunch_write(DictionaryIterator * out) {
-  dict_write_int(out, AppKeyDelaunchReason, &delaunch_reason, sizeof(int), true);
-  dict_write_int(out, AppKeyDate, &s_time, sizeof(int), true);
-}
-
 static void window_unload(Window *window) {
   if (s_main_text_layer) {
     text_layer_destroy(s_main_text_layer);
@@ -155,7 +149,7 @@ static void window_unload(Window *window) {
 
 /* Back button click handler. */
 static void back_click_handler(ClickRecognizerRef recognizer, void *context) {
-	delaunch_reason = USER_DELAUNCH;
+	e_exit_reason = USER_EXIT;
 	window_stack_pop_all(false);
 }
 

@@ -12,7 +12,7 @@
 /* Cancel a specific scheduled wakeup event. */
 //static void prv_cancel_event(){
 //  APP_LOG(APP_LOG_LEVEL_INFO, "in prv_cancel_event");
-//  uint32_t key = WAKEUP_ID_PERSIST_KEY;
+//  uint32_t key = PERSIST_KEY_WAKEUP_ID;
 //  if (persist_exists(key)) {
 //    WakeupId wakeup_id = persist_read_int(key);
 //    time_t wakeup_timestamp = 0;
@@ -25,7 +25,7 @@
 
 /* Get the timestamp of a specific wakeup event. */
 //static time_t prv_event_timestamp() {
-//  uint32_t key = WAKEUP_ID_PERSIST_KEY;
+//  uint32_t key = PERSIST_KEY_WAKEUP_ID;
 //  if (persist_exists(key)) {
 //    WakeupId wakeup_id = persist_read_int(key);
 //    time_t wakeup_timestamp = 0;
@@ -41,7 +41,7 @@ static WakeupId prv_read_wakeup_id_pm(uint8_t wakeup_i) {
   WakeupId wakeup_id = -1;
   if (wakeup_i < NUM_USED_WAKEUP) {
     WakeupId wakeup_array[NUM_USED_WAKEUP];
-    persist_read_data(WAKEUP_ID_PERSIST_KEY, wakeup_array, sizeof(wakeup_array));
+    persist_read_data(PERSIST_KEY_WAKEUP_ID, wakeup_array, sizeof(wakeup_array));
     wakeup_id = wakeup_array[wakeup_i];
   } else {
     APP_LOG(APP_LOG_LEVEL_ERROR, "The given wakeup_i %d is out of range", (int)wakeup_i);
@@ -53,9 +53,9 @@ static WakeupId prv_read_wakeup_id_pm(uint8_t wakeup_i) {
 void prv_write_wakeup_id_pm(uint8_t wakeup_i, WakeupId wakeup_id) {
   if (wakeup_i < NUM_USED_WAKEUP) {
     WakeupId wakeup_array[NUM_USED_WAKEUP];
-    persist_read_data(WAKEUP_ID_PERSIST_KEY, wakeup_array, sizeof(wakeup_array));
+    persist_read_data(PERSIST_KEY_WAKEUP_ID, wakeup_array, sizeof(wakeup_array));
     wakeup_array[wakeup_i] = wakeup_id;
-    persist_write_data(WAKEUP_ID_PERSIST_KEY, wakeup_array, sizeof(wakeup_array));
+    persist_write_data(PERSIST_KEY_WAKEUP_ID, wakeup_array, sizeof(wakeup_array));
   } else {
     APP_LOG(APP_LOG_LEVEL_ERROR, "The given wakeup_i %d is out of range", (int)wakeup_i);
   }
@@ -74,7 +74,7 @@ static WakeupId prv_reschedule_wakeup_event(uint8_t wakeup_i, time_t wakeup_time
     // Automatically retry for a fixed number of iterations (increment by minutes)
     do {
       wakeup_id = wakeup_schedule(wakeup_time_t + try * SECONDS_PER_MINUTE, 
-                                  (int32_t)wakeup_i, false);
+        (int32_t)wakeup_i, false);
       try++;
     } while (wakeup_id < 0 && try <= MAX_RETRY); 
 
@@ -126,7 +126,7 @@ void schedule_wakeup_events(int inactive_mins) {
 
   // Schedule the next wakeup event. If inactive for too long, will alert again
   // sooner. Minimum = 5 minutes.
-  //force = force || t_event < prv_event_timestamp(WAKEUP_ID_PERSIST_KEY); // FIXME: refine 
+  //force = force || t_event < prv_event_timestamp(PERSIST_KEY_WAKEUP_ID); // FIXME: refine 
   //prv_cancel_event();
   if (enamel_get_dynamic_wakeup() == true) {
     if (enamel_get_sleep_minutes() - inactive_mins <= MIN_SLEEP_MINUTES) {

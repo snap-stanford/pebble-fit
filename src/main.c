@@ -7,6 +7,7 @@
 #include "modules/comm.h"
 #include "modules/steps.h"
 #include "modules/launch.h"
+#include "modules/store.h"
 #include "services/health.h"
 #include "services/tick.h"
 #include "services/wakeup.h"
@@ -16,38 +17,68 @@
 
 static EventHandle s_enamel_handler;
 static Window *s_dialog_window, *s_wakeup_window;
-static int s_launch_reason = OTHER_LAUNCH;
 static time_t s_launch_time;
+static time_t s_exit_time;
 static bool s_enamel_on = false;
 
-static void prv_launch_write(DictionaryIterator * out);
+//static void prv_launch_write(DictionaryIterator * out);
 static void prv_update_config(void *context);
 static void prv_init_callback();
 static void prv_wakeup_alert();
 static void prv_launch_handler(bool activate);
 
-/* Add reason and date to out dict. */
-static void prv_launch_write(DictionaryIterator * out) {
-  dict_write_int(out, AppKeyDate, &s_launch_time, sizeof(int), true);
-  dict_write_int(out, AppKeyLaunchReason, &s_launch_reason, sizeof(int), true);
-}
 
-/* Received message from the Pebble phone app. */
+/* Received message from the Pebble phone app. 
+ * Once connection is up (i.e. received the first message from the phone app), we start
+ * performing the following actions in order:
+ * 1. Send the launch info of the current wakeup.
+ * 2. Try to resend launch info in the history.
+ * 3. Try to resend steps data in the history.
+ * 4. Send the steps data of the current wakeup (since we only keep track of the timestamp of
+ *    the last uploaded steps data, we want to send the oldest steps data first).
+ *
+ * Will send the exit info of the current wakeup in deinit().
+ */
 static void prv_init_callback() {
-  static int init_stage = 0;
+  static int init_stage = 0; // FIXME: this skip init
+
+  bool is_finished = false;
+
   APP_LOG(APP_LOG_LEVEL_INFO, "Init stage %d", init_stage);
   switch (init_stage) {
     case 0:
+      // Connection between watch and phone is established.
       js_ready = true;
-      // Upload launch and steps data to the server.
       //comm_send_data(prv_launch_write, comm_sent_handler, comm_server_received_handler);
-      launch_send_on_notification();
+      launch_send_on_notification(s_launch_time);
+      init_stage++;
       break;
     case 1:
-      steps_send_latest();
+      // Connection between phone and server is established.
+      is_finished = store_resend_launchexit_event();
+      if (is_finished) {
+        init_stage++; 
+
+        // Since no data is sent and no packet expected to arrive, we nned to
+        // manually call this function again to move to the next stage.
+        prv_init_callback();
+      }
       break;
+    case 2: 
+      is_finished = store_resend_steps();
+      if (is_finished) {
+        init_stage++;
+        prv_init_callback();
+      }
+      break;
+    case 3: 
+      steps_send_latest();
+      init_stage++;
+      break;
+    default:
+      // Now resend the stored data that we were not able to send previously.
+      APP_LOG(APP_LOG_LEVEL_ERROR, "Should reach here only once!");
   }
-  init_stage++;
 }
 
 /* Received configuration update from the Pebble phone app. */
@@ -118,7 +149,6 @@ static void prv_wakeup_alert() {
 
 /* Push a window depends on whether this App is activated or not. */ 
 static void prv_launch_handler(bool activate) {
-  s_launch_time = time(NULL); // FIXME: use end_time from steps?
   APP_LOG(APP_LOG_LEVEL_INFO, "pebble-fit launch_reason = %d", (int)launch_reason());
   if (activate) {
     WakeupId wakeup_id;
@@ -129,13 +159,13 @@ static void prv_launch_handler(bool activate) {
     steps_update(); // Essential for steps_whether_alert in prv_wakeup_alert.
     switch (launch_reason()) {
       case APP_LAUNCH_USER: // When launched via the launch menu on the watch.
-        s_launch_reason = USER_LAUNCH;
+        e_launch_reason = USER_LAUNCH;
         APP_LOG(APP_LOG_LEVEL_ERROR, "Cancelling all wakeup events! Must be rescheduled.");
         wakeup_cancel_all();
         s_wakeup_window = wakeup_window_push();
         break;
       case APP_LAUNCH_WAKEUP: // When launched due to wakeup event.
-        s_launch_reason = WAKEUP_LAUNCH;
+        e_launch_reason = WAKEUP_LAUNCH;
         will_timeout = true;
         wakeup_get_launch_event(&wakeup_id, &wakeup_cookie);
         APP_LOG(APP_LOG_LEVEL_INFO, "wakeup %d , cookie %d", (int)wakeup_id, (int)wakeup_cookie);
@@ -154,14 +184,14 @@ static void prv_launch_handler(bool activate) {
 
         break;
       case APP_LAUNCH_PHONE: // When open the App's settings page or after installation 
-        s_launch_reason = PHONE_LAUNCH;
+        e_launch_reason = PHONE_LAUNCH;
         //window_stack_remove(s_dialog_window, false);
         //steps_wakeup_window_update();
         prv_wakeup_alert();
         s_wakeup_window = wakeup_window_push();
         break;
       default: 
-        s_launch_reason = OTHER_LAUNCH;
+        e_launch_reason = OTHER_LAUNCH;
         APP_LOG(APP_LOG_LEVEL_ERROR, "Cancelling all wakeup events! Must be rescheduled.");
         wakeup_cancel_all();
         //window_stack_remove(s_dialog_window, false);
@@ -188,6 +218,8 @@ static void prv_launch_handler(bool activate) {
 }
 
 static void init(void) {
+  s_launch_time = time(NULL); // FIXME: rounded to minute?
+
   //health_subscribe();
   enamel_init();
   switch (launch_reason()) {
@@ -207,10 +239,17 @@ static void init(void) {
 }
 
 static void deinit(void) {
-  // Send the delaunch reason to the server.
+  // FIXME: if app remains active, steps data keep sending to the server.
+  s_exit_time = time(NULL);
   if (js_ready) {
-    launch_send_off_notification();
+    // Send the exit record (the launch record has already been uploaded).
+    launch_send_off_notification(s_exit_time);
+  } else {
+    // Store launch-exit record if the connection could not be established right now.
+    store_write_launchexit_event(s_launch_time, s_exit_time, e_launch_reason, e_exit_reason);
   }
+  
+  //store_write_launchexit_event(s_launch_time, s_exit_time, e_launch_reason, e_exit_reason);
 
   // Deinit Enamel to unregister App Message handlers and save settings
   if (s_enamel_on) {

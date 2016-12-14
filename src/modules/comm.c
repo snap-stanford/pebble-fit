@@ -50,8 +50,9 @@ void comm_send_data(
   DictionaryIterator *out;
 
   // init dict
-  if(app_message_outbox_begin(&out) != APP_MSG_OK) {
-    APP_LOG(APP_LOG_LEVEL_ERROR, "Error beginning message.");
+  int temp = app_message_outbox_begin(&out);
+  if(temp != APP_MSG_OK) {
+    APP_LOG(APP_LOG_LEVEL_ERROR, "Error beginning message. temp=%d", temp);
     return;
   }
 

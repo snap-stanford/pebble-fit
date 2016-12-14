@@ -4,8 +4,7 @@
 #include <pebble-events/pebble-events.h>
 #include "../enamel.h"
 #include "../modules/steps.h"
-
-extern int delaunch_reason; // Should be accessable by ticks
+#include "../modules/launch.h"
 
 /* Create the window and push to the window stack. */
 Window * wakeup_window_push();

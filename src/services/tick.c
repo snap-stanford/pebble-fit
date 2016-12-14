@@ -12,7 +12,7 @@ static void prv_tick_step_progress_handle(struct tm *tick_time, TimeUnits units_
   }
   if (s_will_timeout && s_count >= enamel_get_display_duration()) {
     // Exit after timeout via pop all windows of this App out
-    delaunch_reason = TIMEOUT_DELAUNCH;
+    e_exit_reason = TIMEOUT_EXIT;
     window_stack_pop_all(false);
   }
   s_count += 1;
