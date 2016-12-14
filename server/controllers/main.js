@@ -23,14 +23,16 @@ function (watch_token, start_time, end_time, next) {
 }
 
 exports.latest_hour = function (watch_token, next) {
-  activities.get_last_recorded_time(watch_token, function (err, end_time) {
+  //activities.get_last_recorded_time(watch_token, function (err, end_time) {
+  events.get_last_recorded_time(watch_token, function (err, end_time) {
     var start_time = moment(end_time).subtract(1, 'hours').toDate()
     get_activities_and_events_between(watch_token, start_time, end_time, next)
   })
 }
 
 var get_n_days_before_now = function (n, watch_token, next) {
-  activities.get_last_recorded_time(watch_token, function (err, latest_time) {
+  //activities.get_last_recorded_time(watch_token, function (err, latest_time) {
+  events.get_last_recorded_time(watch_token, function (err, latest_time) {
     if (err) return next(err)
     latest_time = moment(latest_time)
     var end_time = latest_time.subtract(n, 'days').toDate()
