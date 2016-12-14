@@ -34,7 +34,9 @@ void store_write_launchexit_event(time_t launch_time, time_t exit_time, uint8_t 
   }
 
   // Find the number of minutes since SoD (rounded to the nearest minute)
-  minutes = (launch_time - time_start_of_today() + SECONDS_PER_MINUTE/2) / SECONDS_PER_MINUTE;
+  // Always round down for consistency.
+  //minutes = (launch_time - time_start_of_today() + SECONDS_PER_MINUTE/2) / SECONDS_PER_MINUTE;
+  minutes = (launch_time - time_start_of_today()) / SECONDS_PER_MINUTE;
   seconds = exit_time - launch_time;
   s_launchexit_data = COMPACT(minutes, seconds, lr, er);
   s_launchexit_count++;

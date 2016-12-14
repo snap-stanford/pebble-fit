@@ -99,17 +99,16 @@ function send_steps_data (data, date) {
 //}
 
 function send_launch_exit_data (launchTime, exitTime, launchReason, exitReason, date) {
-  log.debug('Uploading launch/exit data...')
   if (exitReason === undefined) {
-    log.debug('Uploading launch data only...')
+    //log.debug('Uploading launch data only...')
     var url = '/launch' + '?date=' + date + '&reason=' + launchReason +
       '&watch=' + Pebble.getWatchToken();
   } else if (launchReason == undefined) {
-    log.debug('Uploading exit data only...')
+    //log.debug('Uploading exit data only...')
     var url = '/exit' + '?date=' + date + '&reason=' + exitReason +
       '&watch=' + Pebble.getWatchToken();
   } else {
-    log.debug('Uploading launch & exit data ...')
+    //log.debug('Uploading launch & exit data ...')
     var url = '/launchexit' + '?date=' + date +
       '&launchtime=' + launchTime + '&launchreason=' + launchReason +
       '&exittime=' + exitTime + '&exitreason=' + exitReason +
