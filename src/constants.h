@@ -1,5 +1,7 @@
 #pragma once
 
+/* Hard limit on how long (in seconds) this app will remain on the foreground. */
+#define MAX_DISPLAY_DURATION    (SECONDS_PER_MINUTE * 10)
 /* Number of data items of health history to be obtained in terms of minutes. */
 #define MAX_ENTRIES             60
 
@@ -24,7 +26,6 @@
 #define OTHER_EXIT              0
 #define USER_EXIT               1
 #define TIMEOUT_EXIT            2
-
 
 #define SECONDS_PER_WEEK        (SECONDS_PER_DAY * 7)
 

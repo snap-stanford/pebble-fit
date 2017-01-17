@@ -6,21 +6,20 @@ static bool s_will_timeout;
 /* Handle second tick events. */
 static void prv_tick_step_progress_handle(struct tm *tick_time, TimeUnits units_changed) {
   //APP_LOG(APP_LOG_LEVEL_INFO, "%d tick unit changed", units_changed);
-  if (s_count >= SECONDS_PER_MINUTE * enamel_get_sliding_window()) {
-    wakeup_window_breathe();
-    s_count = 0; // FIXME: careful, must make sure display_duration < 60
-  }
-  if (s_will_timeout && s_count >= enamel_get_display_duration()) {
-    // Exit after timeout via pop all windows of this App out
+  if ((s_will_timeout && s_count >= enamel_get_display_duration()) || 
+      s_count >= MAX_DISPLAY_DURATION) {
+    // Exit after timeout by popping out all the windows of this app 
     e_exit_reason = TIMEOUT_EXIT;
     window_stack_pop_all(false);
+  } else if (s_count % (SECONDS_PER_MINUTE * enamel_get_sliding_window()) == 0) {
+    wakeup_window_breathe();
   }
-  s_count += 1;
+  s_count++;
 }
 
 /* Subscribe to a tick timer service. */
 void tick_second_subscribe(bool will_timeout) {
-  s_count = 0;
+  s_count = 1;
   s_will_timeout = will_timeout;
   tick_timer_service_subscribe(SECOND_UNIT, prv_tick_step_progress_handle);
 }
