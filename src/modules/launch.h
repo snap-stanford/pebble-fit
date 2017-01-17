@@ -18,6 +18,9 @@ void launch_handler(bool activate);
 /* Send exited event to the phone app. */
 void launch_send_off_notification();
 
+/* Send testing message to the phone app. */
+void launch_send_test();
+
 /* TODO .*/
 //void launch_resend(time_t time, int reason, bool is_launch);
 void launch_resend(time_t launch_time, time_t exit_time, int launch_reason, int exit_reason);

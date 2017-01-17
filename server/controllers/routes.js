@@ -20,7 +20,10 @@ router.get('/steps',
       })
   })
 
-// Keep delaunch for backward compatibility for a while.
+// TODO: Keep delaunch for backward compatibility for a while.
+// TODO: Consider moving AB testing code to another module.
+var ab = 0;
+var message;
 router.get(
   ['/launch', '/delaunch', '/exit'],
   query.requireParam('query', ['watch', 'date']),
@@ -32,7 +35,19 @@ router.get(
       req.query.watch,
       function (err) {
         if (err) return next(err)
-        res.status(200).end()
+        if (req.path.substr(1) == 'launch') {
+          if (ab === 0) {
+            message = { watch_alert_text: 'Alert', watch_pass_text: 'Pass' };
+            ab = 1;
+          } else if (ab === 1) {
+            message = { watch_alert_text: 'Let\'s Move', watch_pass_text: 'Keep Up' };
+            ab = 0;
+          }
+          res.status(200).json(message).end()
+          console.log("ab="+ab+"; message="+JSON.stringify(message));
+        } else {
+          res.status(200).end()
+        }
       })
   })
 

@@ -4,19 +4,21 @@ int e_exit_reason;
 int e_launch_reason;
 
 static time_t s_launch_time, s_exit_time, s_curr_time;
+static int s_test;
 
-/* Add reason and date to out dict. */
+/* Add launch reason and date to out dict. */
 // FIXME: could combine both launch and exit packets, since they have very similar format.
 static void prv_launch_data_write(DictionaryIterator * out) {
   dict_write_int(out, AppKeyLaunchReason, &e_launch_reason, sizeof(int), true);
   dict_write_int(out, AppKeyDate, &s_launch_time, sizeof(int), true);
 }
-/* Add reason (placeholder) and date to out dict. */
+/* Add exit reason and date to out dict. */
 static void prv_exit_data_write(DictionaryIterator * out) {
   dict_write_int(out, AppKeyExitReason, &e_exit_reason, sizeof(int), true);
   dict_write_int(out, AppKeyDate, &s_exit_time, sizeof(int), true);
 }
 
+/* Add both launch and exit reasons and dates to out dict. */
 static void prv_launch_exit_data_write(DictionaryIterator * out) {
   s_curr_time = time(NULL);
   dict_write_int(out, AppKeyLaunchReason, &e_launch_reason, sizeof(int), true);
@@ -24,6 +26,16 @@ static void prv_launch_exit_data_write(DictionaryIterator * out) {
   dict_write_int(out, AppKeyExitReason, &e_exit_reason, sizeof(int), true);
   dict_write_int(out, AppKeyExitTime, &s_exit_time, sizeof(int), true);
   dict_write_int(out, AppKeyDate, &s_curr_time, sizeof(int), true);
+}
+
+/* Test function for debug purpose. */
+static void prv_test_data_write(DictionaryIterator * out) {
+  dict_write_int(out, AppKeyTest0, &s_test, sizeof(int), true);
+}
+
+void launch_send_test(int test) {
+  s_test = test; 
+  comm_send_data(prv_test_data_write, comm_sent_handler, comm_server_received_handler);
 }
 
 /* Send launch event to phone. */

@@ -1,9 +1,27 @@
 [
 {
   "type": "toggle",
+  "id": "server_config",
+  "messageKey": "server_config",
+  "defaultValue": false
+},
+{
+  "type": "toggle",
   "id": "is_consent",
   "messageKey": "is_consent",
   "defaultValue": false
+},
+{
+  "type": "input",
+  "id": "watch_alert_text",
+  "messageKey": "watch_alert_text",
+  "defaultValue": "Let's Move"
+},
+{
+  "type": "input",
+  "id": "watch_pass_text",
+  "messageKey": "watch_pass_text",
+  "defaultValue": "Keep Up"
 },
 {
   "type": "section",

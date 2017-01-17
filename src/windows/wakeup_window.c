@@ -9,6 +9,7 @@ static int s_step;
 static char s_start[12], s_end[12];
 static char s_top_text_buf[40];
 static char s_bot_text_buf[40];
+static char s_main_text_buf[40];
 static int s_inactive_mins;
   
 
@@ -34,17 +35,19 @@ static void top_text_layer_update_proc() {
 /* Procedure for how to update s_main_text_layer. */
 //static void main_text_layer_update_proc(Layer *layer, GContext *ctx) {
 static void main_text_layer_update_proc() {
+  const char *text;
   if (s_step > enamel_get_step_threshold()) {
-    if (connection_service_peek_pebble_app_connection()) 
-        text_layer_set_text(s_main_text_layer, "Keep up!");
-    else 
-        text_layer_set_text(s_main_text_layer, "Keep up.");
+    text = enamel_get_watch_pass_text();
   } else {
-    if (connection_service_peek_pebble_app_connection()) 
-        text_layer_set_text(s_main_text_layer, "Let's Move!");
-    else
-        text_layer_set_text(s_main_text_layer, "Let's Move.");
+    text = enamel_get_watch_alert_text();
   }
+  // FIXME: For debugging purpose, display indicator for bluetooth connection
+  if (connection_service_peek_pebble_app_connection()) {
+    snprintf(s_main_text_buf, sizeof(s_main_text_buf), "%s!", text);
+  } else {
+    snprintf(s_main_text_buf, sizeof(s_main_text_buf), "%s.", text);
+  }
+  text_layer_set_text(s_main_text_layer, s_main_text_buf);
 }
 
 /* Procedure for how to update s_bot_text_layer. */
@@ -153,9 +156,22 @@ static void back_click_handler(ClickRecognizerRef recognizer, void *context) {
 	window_stack_pop_all(false);
 }
 
+static void up_click_handler(ClickRecognizerRef recognizer, void *context) {
+  text_layer_set_text(s_main_text_layer, "test mode 0");
+  launch_send_test(0);
+}
+
+static void down_click_handler(ClickRecognizerRef recognizer, void *context) {
+  text_layer_set_text(s_main_text_layer, "test mode 1");
+  launch_send_test(1);
+}
+
+
 /* Set click event handlers. */
 static void click_config_provider(void *context) {
   window_single_click_subscribe(BUTTON_ID_BACK, back_click_handler);
+  window_single_click_subscribe(BUTTON_ID_UP, up_click_handler);
+  window_single_click_subscribe(BUTTON_ID_DOWN, down_click_handler);
 }
 
 /* Create a window and push to the window stack. */

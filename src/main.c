@@ -15,7 +15,7 @@
 #include "windows/wakeup_window.h"
 #include "windows/dialog_window.h"
 
-static EventHandle s_enamel_handler;
+static EventHandle s_normal_msg_handler, s_enamel_msg_handler;
 static Window *s_dialog_window, *s_wakeup_window;
 static time_t s_launch_time;
 static time_t s_exit_time;
@@ -81,19 +81,22 @@ static void prv_init_callback() {
   }
 }
 
-/* Received configuration update from the Pebble phone app. */
+/* Deprecated. merged into prv_init_callback().
+ * Received configuration update from the Pebble phone app. */
 static void prv_update_config(void *context) {
-  APP_LOG(APP_LOG_LEVEL_INFO, "in prv_update_config");
+  APP_LOG(APP_LOG_LEVEL_INFO, "in prv_update_config. %d", enamel_get_activate());
+  APP_LOG(APP_LOG_LEVEL_INFO, "%s, %d, %d", enamel_get_watch_alert_text(), enamel_get_is_consent(), enamel_get_sleep_minutes());
+  
   if (enamel_get_activate()) {
     schedule_wakeup_events(steps_get_inactive_minutes());
     //prv_launch_handler(true); // FIXME: this will cause infinite recursive calls.
 
     // FIXME: workaround for communication channel conflict between Enamel and data uploading
-    //enamel_settings_received_unsubscribe(s_enamel_handler);
+    //enamel_settings_received_unsubscribe(s_enamel_msg_handler);
     //enamel_deinit();
     //comm_init(prv_init_callback); 
   } else {
-    APP_LOG(APP_LOG_LEVEL_ERROR, "Cancelling all wakeup events!");
+    APP_LOG(APP_LOG_LEVEL_ERROR, "Got inactivated. Cancelling all wakeup events!");
     wakeup_cancel_all();
     prv_launch_handler(false);
   }
@@ -217,22 +220,45 @@ static void prv_launch_handler(bool activate) {
   }
 }
 
+static void prv_test(DictionaryIterator *iter, void *context) {
+  APP_LOG(APP_LOG_LEVEL_INFO, "in prv_test");
+  if(dict_find(iter, AppKeyJSReady)) {
+    js_ready = true;
+    APP_LOG(APP_LOG_LEVEL_INFO, "Connected to JS!");
+    ((CommCallback *) context)();
+  } else {
+    APP_LOG(APP_LOG_LEVEL_INFO, "other received");
+    ((CommCallback *) context)();
+	}
+}
+
 static void init(void) {
   s_launch_time = time(NULL); // FIXME: rounded to minute?
 
   //health_subscribe();
   enamel_init();
+  
+  //app_message_register_inbox_received(js_ready_handler);
+  //app_message_set_context(callback);
+  
+  events_app_message_request_outbox_size(APP_MESSAGE_OUTBOX_SIZE_MINIMUM);
+	s_normal_msg_handler = events_app_message_register_inbox_received(prv_test, prv_init_callback);
+  //s_enamel_msg_handler = enamel_settings_received_subscribe(prv_update_config, NULL);
+  events_app_message_open(); // Call pebble-events app_message_open function
+  /*
   switch (launch_reason()) {
     case APP_LAUNCH_PHONE: 
       // Initialize Enamel to register App Message handlers and restores settings
-      s_enamel_handler = enamel_settings_received_subscribe(prv_update_config, NULL);
+      s_enamel_msg_handler = enamel_settings_received_subscribe(prv_update_config, NULL);
       events_app_message_open(); // Call pebble-events app_message_open function
       s_enamel_on = true;
+      APP_LOG(APP_LOG_LEVEL_INFO, "Launch by phone");
       break;
     default: 
-      // Using normal communication channel.
+      // Use the normal communication channel.
       comm_init(prv_init_callback);
   }
+  */
 
   //prv_launch_handler(enamel_get_activate()); // FIXME: fatal error causing watch to restart
   prv_launch_handler(true);
@@ -253,7 +279,8 @@ static void deinit(void) {
 
   // Deinit Enamel to unregister App Message handlers and save settings
   if (s_enamel_on) {
-    enamel_settings_received_unsubscribe(s_enamel_handler);
+    enamel_settings_received_unsubscribe(s_normal_msg_handler);
+    enamel_settings_received_unsubscribe(s_enamel_msg_handler);
   }
   enamel_deinit();
 

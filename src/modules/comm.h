@@ -20,7 +20,8 @@ typedef enum {
   AppKeyStepsData,
   AppKeyStorageData,
   AppKeyArrayLength,
-  AppKeyArrayStart
+  AppKeyArrayStart,
+  AppKeyTest0
 } AppKey;
 
 /* Init communication. */

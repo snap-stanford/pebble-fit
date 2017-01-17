@@ -1,6 +1,7 @@
 var packageinfo = require('../../package.json');
 
 var Clay = require('pebble-clay');
+var messageKeys = require('message_keys');
 var clayConfig = require('./config.json');
 var customClay = require('./custom-clay');
 var clay = new Clay(clayConfig, customClay);
@@ -16,7 +17,7 @@ var SERVER = 'http://pebble-fit.herokuapp.com';
 
 // Local servers (ifconfig).
 //var SERVER = 'http://10.30.202.74:3000';
-//var SERVER = 'http://10.34.147.77:3000';
+var SERVER = 'http://10.34.164.91:3000';
 
 // Flag to switch off server communication
 var USE_OFFLINE = true;
@@ -41,20 +42,34 @@ function send_data_to_route (route) {
     xhr.send()
   }
 
-  function send_received_message () {
-    log.info('Recevied ACK from the server.');
-    Pebble.sendAppMessage({
-      'AppKeyServerReceived': 1
-    })
+  // Server might response with new configuration settings. If so, we would apply 
+  // them to both the phone app and the watch app.
+  function send_received_message (response) {
+    if (response === undefined) {
+      Pebble.sendAppMessage({ 'AppKeyServerReceived': 1 })
+    } else {
+      var settings = JSON.parse(response);
+      for (var s in settings) {
+        log.info(s + ":" + settings[s]);
+        clay.setSettings(s, settings[s]);
+      }
+      settings['server_config'] = 0;
+      Pebble.sendAppMessage(settings, function() {
+        console.log('Sent config data to Pebble: ' + JSON.stringify(settings));
+      }, function(error) {
+        console.log('Failed to send config data!');
+        console.log(JSON.stringify(error));
+      });
+    }
   }
 
   if (USE_OFFLINE) {
     log.info(route);
-    send_request(SERVER + route, 'GET', function (err, status) {
+    send_request(SERVER + route, 'GET', function (err, status, response, responseText) {
       if (err || status !== 200) {
         log.info(err || status)
       } else {
-        send_received_message()
+        send_received_message(response);
       }
     })
   } else {
@@ -63,8 +78,7 @@ function send_data_to_route (route) {
 }
 
 function send_steps_data (data, date) {
-  //log.debug('Uploading steps data...')
-  log.info('Uploading steps data...')
+  log.debug('Uploading steps data...')
   // Convert to string
   var str = '' + data[0]
   for (var i = 1; i < data.length; i++) {
@@ -152,16 +166,43 @@ Pebble.addEventListener('appmessage', function (dict) {
     var exitReason = dict.payload['AppKeyExitReason'];
     send_launch_exit_data(launchTime, exitTime, launchReason, exitReason, date);
   }
+
+  if (dict.payload['AppKeyTest0'] !== undefined) {
+    console.log("Received AppKeyTest0=" + dict.payload['AppKeyTest0']);
+    testmode = dict.payload['AppKeyTest0'];
+    if (testmode === 0) {
+      clay.setSettings('watch_alert_text', 'Alert');
+      clay.setSettings('watch_pass_text', 'Pass');
+      var temp = {'watch_alert_text': 'Alert', 'watch_pass_text': 'Pass'};
+    } else if (testmode === 1) {
+      clay.setSettings('watch_alert_text', 'Let\'s Move');
+      clay.setSettings('watch_pass_text', 'Keep Up');
+      var temp = {'watch_alert_text': 'Let\'s Move', 'watch_pass_text': 'Keep Up'};
+    }
+    // Send settings to Pebble watchapp
+    console.log("AAAAAAAAAAAAAAAAAAAAAAA");
+    settings = { 'enamel_key': 0 };
+    for (var s in temp) {
+      settings[messageKeys[s]] = temp[s];
+    }
+    console.log(JSON.stringify(settings));
+    Pebble.sendAppMessage(settings, function() {
+      console.log('Sent config data to Pebble');
+    }, function(error) {
+      console.log('Failed to send config data!');
+      console.log(JSON.stringify(error));
+    });
+  }
         /*
-  if (dict.payload['AppKeyLaunchReason'] !== undefined) {
-    var reason = dict.payload['AppKeyLaunchReason']
-    log.debug('Launched. Reason: ' + reason)
+  if (dict.payload['appkeylaunchreason'] !== undefined) {
+    var reason = dict.payload['appkeylaunchreason']
+    log.debug('launched. reason: ' + reason)
     send_launch_data(reason, date)
   }
 
-  if (dict.payload['AppKeyDelaunchReason'] !== undefined) {
-    var reason = dict.payload['AppKeyDelaunchReason']
-    log.debug('Delaunched. Reason: ' + reason)
+  if (dict.payload['appkeydelaunchreason'] !== undefined) {
+    var reason = dict.payload['appkeydelaunchreason']
+    log.debug('delaunched. reason: ' + reason)
     send_delaunch_data(reason, date)
   }
         */

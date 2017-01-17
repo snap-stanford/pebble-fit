@@ -57,8 +57,8 @@ void comm_send_data(
   }
 
   // register handlers
-  app_message_register_outbox_sent(sent_handler);
-  app_message_register_inbox_received(received_handler);
+  //app_message_register_outbox_sent(sent_handler);
+  //app_message_register_inbox_received(received_handler);
 
   if (data_write_callback != NULL) data_write_callback(out);
 
