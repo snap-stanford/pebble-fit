@@ -53,7 +53,7 @@ function send_data_to_route (route) {
         log.info(s + ":" + settings[s]);
         clay.setSettings(s, settings[s]);
       }
-      settings['server_config'] = 0;
+      settings['server_config'] = 0; // The first setting in config.json is dummy.
       Pebble.sendAppMessage(settings, function() {
         console.log('Sent config data to Pebble: ' + JSON.stringify(settings));
       }, function(error) {
