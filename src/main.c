@@ -23,7 +23,8 @@ static bool s_enamel_on = false;
 
 //static void prv_launch_write(DictionaryIterator * out);
 static void prv_update_config(void *context);
-static void prv_init_callback();
+//static void prv_init_callback();
+static void prv_init_callback(DictionaryIterator *iter, void *context);
 static void prv_wakeup_alert();
 static void prv_launch_handler(bool activate);
 
@@ -39,8 +40,9 @@ static void prv_launch_handler(bool activate);
  *
  * Will send the exit info of the current wakeup in deinit().
  */
-static void prv_init_callback() {
-  static int init_stage = 0; // FIXME: this skip init
+static void prv_init_callback(DictionaryIterator *iter, void *context) {
+//static void prv_init_callback() {
+  static int init_stage = 0;
 
   bool is_finished = false;
 
@@ -48,7 +50,12 @@ static void prv_init_callback() {
   switch (init_stage) {
     case 0:
       // Connection between watch and phone is established.
-      js_ready = true;
+      if(dict_find(iter, AppKeyJSReady)) {
+        APP_LOG(APP_LOG_LEVEL_INFO, "Connected to JS!");
+        js_ready = true;
+      } else {
+        APP_LOG(APP_LOG_LEVEL_ERROR, "The first message received should contain AppKeyJSReady!");
+      }
       //comm_send_data(prv_launch_write, comm_sent_handler, comm_server_received_handler);
       launch_send_on_notification(s_launch_time);
       init_stage++;
@@ -61,14 +68,16 @@ static void prv_init_callback() {
 
         // Since no data is sent and no packet expected to arrive, we nned to
         // manually call this function again to move to the next stage.
-        prv_init_callback();
+        //prv_init_callback();
+        prv_init_callback(iter, context);
       }
       break;
     case 2: 
       is_finished = store_resend_steps();
       if (is_finished) {
         init_stage++;
-        prv_init_callback();
+        //prv_init_callback();
+        prv_init_callback(iter, context);
       }
       break;
     case 3: 
@@ -90,11 +99,6 @@ static void prv_update_config(void *context) {
   if (enamel_get_activate()) {
     schedule_wakeup_events(steps_get_inactive_minutes());
     //prv_launch_handler(true); // FIXME: this will cause infinite recursive calls.
-
-    // FIXME: workaround for communication channel conflict between Enamel and data uploading
-    //enamel_settings_received_unsubscribe(s_enamel_msg_handler);
-    //enamel_deinit();
-    //comm_init(prv_init_callback); 
   } else {
     APP_LOG(APP_LOG_LEVEL_ERROR, "Got inactivated. Cancelling all wakeup events!");
     wakeup_cancel_all();
@@ -103,6 +107,10 @@ static void prv_update_config(void *context) {
   tick_second_subscribe(true); // Will timeout
 }
 
+/* This function is called at scheduled wakeup event.
+ * If the activity goal is met or the current activity is Sleep/RestfulSleep, it does nothing.
+ * Otherwise, it will alert users by vibration and popping up alert window on the watch.
+ */
 static void prv_wakeup_alert() {
   HealthActivityMask activity = health_service_peek_current_activities();
   switch(activity) {
@@ -220,6 +228,7 @@ static void prv_launch_handler(bool activate) {
   }
 }
 
+/*
 static void prv_test(DictionaryIterator *iter, void *context) {
   APP_LOG(APP_LOG_LEVEL_INFO, "in prv_test");
   if(dict_find(iter, AppKeyJSReady)) {
@@ -231,6 +240,7 @@ static void prv_test(DictionaryIterator *iter, void *context) {
     ((CommCallback *) context)();
 	}
 }
+*/
 
 static void init(void) {
   s_launch_time = time(NULL); // FIXME: rounded to minute?
@@ -242,7 +252,8 @@ static void init(void) {
   //app_message_set_context(callback);
   
   events_app_message_request_outbox_size(APP_MESSAGE_OUTBOX_SIZE_MINIMUM);
-	s_normal_msg_handler = events_app_message_register_inbox_received(prv_test, prv_init_callback);
+	//s_normal_msg_handler = events_app_message_register_inbox_received(prv_test, prv_init_callback);
+	s_normal_msg_handler = events_app_message_register_inbox_received(prv_init_callback, NULL);
   //s_enamel_msg_handler = enamel_settings_received_subscribe(prv_update_config, NULL);
   events_app_message_open(); // Call pebble-events app_message_open function
   /*
@@ -260,8 +271,8 @@ static void init(void) {
   }
   */
 
-  //prv_launch_handler(enamel_get_activate()); // FIXME: fatal error causing watch to restart
-  prv_launch_handler(true);
+  prv_launch_handler(enamel_get_activate()); // FIXME: fatal error causing watch to restart
+  //prv_launch_handler(true);
 }
 
 static void deinit(void) {

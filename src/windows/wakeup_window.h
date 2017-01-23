@@ -5,6 +5,7 @@
 #include "../enamel.h"
 #include "../modules/steps.h"
 #include "../modules/launch.h"
+#include "../modules/store.h" // TODO: for debugging purpose only
 
 /* Create the window and push to the window stack. */
 Window * wakeup_window_push();

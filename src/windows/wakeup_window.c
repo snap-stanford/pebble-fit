@@ -161,6 +161,12 @@ static void up_click_handler(ClickRecognizerRef recognizer, void *context) {
   launch_send_test(0);
 }
 
+static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
+  text_layer_set_text(s_main_text_layer, "reset timestamp");
+  // Reset last update timestamp to 2 hour ago
+  store_write_update_time(time(NULL) - 2 * SECONDS_PER_HOUR);
+}
+
 static void down_click_handler(ClickRecognizerRef recognizer, void *context) {
   text_layer_set_text(s_main_text_layer, "test mode 1");
   launch_send_test(1);
@@ -171,6 +177,7 @@ static void down_click_handler(ClickRecognizerRef recognizer, void *context) {
 static void click_config_provider(void *context) {
   window_single_click_subscribe(BUTTON_ID_BACK, back_click_handler);
   window_single_click_subscribe(BUTTON_ID_UP, up_click_handler);
+  window_single_click_subscribe(BUTTON_ID_SELECT, select_click_handler);
   window_single_click_subscribe(BUTTON_ID_DOWN, down_click_handler);
 }
 

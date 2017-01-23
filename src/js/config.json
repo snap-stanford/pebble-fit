@@ -12,18 +12,6 @@
   "defaultValue": false
 },
 {
-  "type": "input",
-  "id": "watch_alert_text",
-  "messageKey": "watch_alert_text",
-  "defaultValue": "Let's Move"
-},
-{
-  "type": "input",
-  "id": "watch_pass_text",
-  "messageKey": "watch_pass_text",
-  "defaultValue": "Keep Up"
-},
-{
   "type": "section",
   "id": "eligible_section",
   "items": [
@@ -584,5 +572,17 @@
   "type": "text",
   "id": "watchtoken",
   "defaultValue": "" 
+},
+{
+  "type": "input",
+  "id": "watch_alert_text",
+  "messageKey": "watch_alert_text",
+  "defaultValue": "Let's Move"
+},
+{
+  "type": "input",
+  "id": "watch_pass_text",
+  "messageKey": "watch_pass_text",
+  "defaultValue": "Keep Up"
 }
 ]
