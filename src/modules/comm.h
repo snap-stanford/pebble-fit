@@ -21,6 +21,7 @@ typedef enum {
   AppKeyStorageData,
   AppKeyArrayLength,
   AppKeyArrayStart,
+  AppKeyConfigRequest,
   AppKeyTest0
 } AppKey;
 

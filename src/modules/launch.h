@@ -10,13 +10,10 @@ extern int e_exit_reason;
 extern int e_launch_reason;
 
 /* Send launch events to the phone app. */
-void launch_send_on_notification();
-
-/* Main launch handler. */
-void launch_handler(bool activate);
+void launch_send_launch_notification();
 
 /* Send exited event to the phone app. */
-void launch_send_off_notification();
+void launch_send_exit_notification();
 
 /* Send testing message to the phone app. */
 void launch_send_test();

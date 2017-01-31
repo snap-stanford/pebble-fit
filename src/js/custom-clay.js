@@ -6,14 +6,7 @@ module.exports = function(minified) {
 
   var isEligible = false;
   var isConsent = false;
-
-  // Testing function
-  function foo() {
-    console.log("This is in foo..............................");
-  }
-  var tester = "absz";
-
-
+  
   // List IDs of components in each section.
   var eligible_section = ['eligible_heading', 'eligible_text', 'eligible_button',
     'eligible_1', 'eligible_2', 'eligible_3', 'eligible_7', 'eligible_8'];
@@ -39,7 +32,7 @@ module.exports = function(minified) {
     'step_threshold', 'daily_start_time', 'daily_end_time', 'display_duration', 'activate_text'];
   // Components that should always be hidden.
   var hidden_components = [
-    'is_consent', 'server_config',
+    'is_consent', 'config_update', 'server_update_interval',
     'eligible_4', 'eligible_5', 'eligible_6']; // TODO: hiding some eligible components for now
 
   // Text to be displayed on each of the content pages. The idea is to use the same 

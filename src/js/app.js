@@ -15,7 +15,7 @@ log.set_level(3);
 // URL at which to send data
 var SERVER = 'http://pebble-fit.herokuapp.com';
 
-// Local servers (ifconfig).
+// Local servers (use ifconfig to find out).
 var SERVER = 'http://10.30.202.74:3000';
 //var SERVER = 'http://10.34.164.91:3000';
 
@@ -44,7 +44,7 @@ function send_data_to_route (route) {
 
   // Server might response with new configuration settings. If so, we would apply 
   // them to both the phone app and the watch app.
-  function send_received_message (response) {
+  function send_received_message(response) {
     if (response === undefined) {
       Pebble.sendAppMessage({ 'AppKeyServerReceived': 1 })
     } else {
@@ -53,7 +53,7 @@ function send_data_to_route (route) {
         log.info(s + ":" + settings[s]);
         clay.setSettings(s, settings[s]);
       }
-      settings['server_config'] = 0; // The first setting in config.json is dummy.
+      settings['config_update'] = 0; // The first setting in config.json is dummy.
       Pebble.sendAppMessage(settings, function() {
         console.log('Sent config data to Pebble: ' + JSON.stringify(settings));
       }, function(error) {
@@ -65,7 +65,7 @@ function send_data_to_route (route) {
 
   if (USE_OFFLINE) {
     log.info(route);
-    send_request(SERVER + route, 'GET', function (err, status, response, responseText) {
+    send_request(SERVER + route, 'GET', function(err, status, response, responseText) {
       if (err || status !== 200) {
         log.info(err || status)
       } else {
@@ -77,7 +77,7 @@ function send_data_to_route (route) {
   }
 }
 
-function send_steps_data (data, date) {
+function send_steps_data(data, date) {
   log.debug('Uploading steps data...')
   // Convert to string
   var str = '' + data[0]
@@ -92,32 +92,13 @@ function send_steps_data (data, date) {
   send_data_to_route(url)
 }
 
-//function send_launch_data (reason, date) {
-//  log.debug('Uploading launch data...')
-//  var url = '/launch' +
-//  '?date=' + date +
-//  '&reason=' + reason +
-//  '&watch=' + Pebble.getWatchToken()
-//
-//  send_data_to_route(url)
-//}
-//
-//function send_exit_data (reason, date) {
-//  log.debug('Uploading exit data...')
-//  var url = '/exit' +
-//  '?date=' + date +
-//  '&reason=' + reason +
-//  '&watch=' + Pebble.getWatchToken()
-//
-//  send_data_to_route(url)
-//}
-
-function send_launch_exit_data (launchTime, exitTime, launchReason, exitReason, date) {
+function send_launch_exit_data(configRequest, launchTime, exitTime, launchReason, exitReason, date) {
   if (exitReason === undefined) {
     //log.debug('Uploading launch data only...')
     var url = '/launch' + '?date=' + date + '&reason=' + launchReason +
+			'&configrequest=' + configRequest + 
       '&watch=' + Pebble.getWatchToken();
-  } else if (launchReason == undefined) {
+  } else if (launchReason === undefined) {
     //log.debug('Uploading exit data only...')
     var url = '/exit' + '?date=' + date + '&reason=' + exitReason +
       '&watch=' + Pebble.getWatchToken();
@@ -129,44 +110,48 @@ function send_launch_exit_data (launchTime, exitTime, launchReason, exitReason, 
       '&watch=' + Pebble.getWatchToken();
   }
 
-  send_data_to_route(url)
+  send_data_to_route(url);
 }
 
 Pebble.addEventListener('appmessage', function (dict) {
+  log.debug('Got appmessage: ' + JSON.stringify(dict.payload));
+  var date;
+
   function load_data_array () {
-    var length = dict.payload['AppKeyArrayLength']
-    var start = dict.payload['AppKeyArrayStart']
-    var data = []
+    var length = dict.payload['AppKeyArrayLength'];
+    var start = dict.payload['AppKeyArrayStart'];
+    var data = [];
     for (var i = start; i < start + length; i++) {
-      data.push(dict.payload[String(i)])
+      data.push(dict.payload[String(i)]);
     }
-    return data
+    return data;
   }
 
-  log.debug('Got appmessage: ' + JSON.stringify(dict.payload))
-
-  var date
-
+  // Data related to date/timestamp.
   if (dict.payload['AppKeyDate'] !== undefined) {
     date = dict.payload['AppKeyDate']
-    log.debug('Date: ' + date)
+    log.debug('Date: ' + date);
   }
 
+  // Data related to step count.
   if (dict.payload['AppKeyStepsData'] !== undefined) {
     var data = load_data_array()
-    log.debug('Data: ' + data)
-    send_steps_data(data, date)
+    log.debug('Data: ' + data);
+    send_steps_data(data, date);
   }
 
+  // Data related to launch and/or exit events.
   if (dict.payload['AppKeyLaunchReason'] !== undefined || 
       dict.payload['AppKeyExitReason'] !== undefined) {
+		var configRequest = dict.payload['AppKeyConfigRequest'];
     var launchTime = dict.payload['AppKeyLaunchTime'];
     var launchReason = dict.payload['AppKeyLaunchReason'];
     var exitTime = dict.payload['AppKeyExitTime'];
     var exitReason = dict.payload['AppKeyExitReason'];
-    send_launch_exit_data(launchTime, exitTime, launchReason, exitReason, date);
+    send_launch_exit_data(configRequest, launchTime, exitTime, launchReason, exitReason, date);
   }
 
+  /*
   if (dict.payload['AppKeyTest0'] !== undefined) {
     console.log("Received AppKeyTest0=" + dict.payload['AppKeyTest0']);
     testmode = dict.payload['AppKeyTest0'];
@@ -193,17 +178,5 @@ Pebble.addEventListener('appmessage', function (dict) {
       console.log(JSON.stringify(error));
     });
   }
-        /*
-  if (dict.payload['appkeylaunchreason'] !== undefined) {
-    var reason = dict.payload['appkeylaunchreason']
-    log.debug('launched. reason: ' + reason)
-    send_launch_data(reason, date)
-  }
-
-  if (dict.payload['appkeydelaunchreason'] !== undefined) {
-    var reason = dict.payload['appkeydelaunchreason']
-    log.debug('delaunched. reason: ' + reason)
-    send_delaunch_data(reason, date)
-  }
-        */
+  */
 });

@@ -16,32 +16,33 @@
 #include "windows/dialog_window.h"
 
 static EventHandle s_normal_msg_handler, s_enamel_msg_handler;
-static Window *s_dialog_window, *s_wakeup_window;
 static time_t s_launch_time;
 static time_t s_exit_time;
+static Window *s_dialog_window = NULL; 
+static Window *s_wakeup_window = NULL;
 static bool s_enamel_on = false;
 
 //static void prv_launch_write(DictionaryIterator * out);
 static void prv_update_config(void *context);
-//static void prv_init_callback();
 static void prv_init_callback(DictionaryIterator *iter, void *context);
 static void prv_wakeup_alert();
 static void prv_launch_handler(bool activate);
 
 
-/* Received message from the Pebble phone app. 
+/* Received message from the Pebble phone app (i.e. PebbleKit JS). 
  * Once connection is up (i.e. received the first message from the phone app), we start
  * performing the following actions in order:
- * 1. Send the launch info of the current wakeup.
+ * 1. Send the launch info of the current launch.
  * 2. Try to resend launch info in the history.
  * 3. Try to resend steps data in the history.
- * 4. Send the steps data of the current wakeup (since we only keep track of the timestamp of
+ * 4. Send the steps data of the current launch (since we only keep track of the timestamp of
  *    the last uploaded steps data, we want to send the oldest steps data first).
  *
- * Will send the exit info of the current wakeup in deinit().
+ * Will send the exit info of the current launch in deinit().
  */
 static void prv_init_callback(DictionaryIterator *iter, void *context) {
-//static void prv_init_callback() {
+  if (!enamel_get_activate()) return; // Will not response to PebbleKit JS if inactivated.
+
   static int init_stage = 0;
 
   bool is_finished = false;
@@ -49,15 +50,9 @@ static void prv_init_callback(DictionaryIterator *iter, void *context) {
   APP_LOG(APP_LOG_LEVEL_INFO, "Init stage %d", init_stage);
   switch (init_stage) {
     case 0:
-      // Connection between watch and phone is established.
-      if(dict_find(iter, AppKeyJSReady)) {
-        APP_LOG(APP_LOG_LEVEL_INFO, "Connected to JS!");
-        js_ready = true;
-      } else {
-        APP_LOG(APP_LOG_LEVEL_ERROR, "The first message received should contain AppKeyJSReady!");
-      }
-      //comm_send_data(prv_launch_write, comm_sent_handler, comm_server_received_handler);
-      launch_send_on_notification(s_launch_time);
+      // Connection between watch and phone is established (may or may not contain AppKeyJSReady).
+      js_ready = true;
+      launch_send_launch_notification(s_launch_time);
       init_stage++;
       break;
     case 1:
@@ -65,10 +60,8 @@ static void prv_init_callback(DictionaryIterator *iter, void *context) {
       is_finished = store_resend_launchexit_event();
       if (is_finished) {
         init_stage++; 
-
-        // Since no data is sent and no packet expected to arrive, we nned to
-        // manually call this function again to move to the next stage.
-        //prv_init_callback();
+        // Since no data is sent and no packet expected to arrive, we call this function 
+        // again to move to the next stage.
         prv_init_callback(iter, context);
       }
       break;
@@ -76,8 +69,7 @@ static void prv_init_callback(DictionaryIterator *iter, void *context) {
       is_finished = store_resend_steps();
       if (is_finished) {
         init_stage++;
-        //prv_init_callback();
-        prv_init_callback(iter, context);
+        prv_init_callback(iter, context); // Same reason as in init_stage 1.
       }
       break;
     case 3: 
@@ -90,20 +82,33 @@ static void prv_init_callback(DictionaryIterator *iter, void *context) {
   }
 }
 
-/* Deprecated. merged into prv_init_callback().
- * Received configuration update from the Pebble phone app. */
+/**
+ * Received configuration update from PebbleKit JS. 
+ * Enamel will automatically persist the new configuration. 
+ * Here we only update the GUI window on the watch to reflect the new settings right away,
+ * and store the current timestamp to the persistent storage.
+ */
 static void prv_update_config(void *context) {
   APP_LOG(APP_LOG_LEVEL_INFO, "in prv_update_config. %d", enamel_get_activate());
   APP_LOG(APP_LOG_LEVEL_INFO, "%s, %d, %d", enamel_get_watch_alert_text(), enamel_get_is_consent(), enamel_get_sleep_minutes());
   
   if (enamel_get_activate()) {
     schedule_wakeup_events(steps_get_inactive_minutes());
-    //prv_launch_handler(true); // FIXME: this will cause infinite recursive calls.
+    if (s_wakeup_window == NULL) {
+      prv_launch_handler(true); // FIXME: this will cause infinite recursive calls.  // Change from dialog_window to wakeup_window.
+    } else {
+      wakeup_window_breathe(); // Update the current content of wakeup_window.
+    }
   } else {
     APP_LOG(APP_LOG_LEVEL_ERROR, "Got inactivated. Cancelling all wakeup events!");
     wakeup_cancel_all();
-    prv_launch_handler(false);
+    if (s_wakeup_window != NULL) {
+      prv_launch_handler(false); // Change from wakeup_window to dialog_window.
+    }
   }
+
+  store_write_config_time(time(NULL));
+
   tick_second_subscribe(true); // Will timeout
 }
 
@@ -113,24 +118,7 @@ static void prv_update_config(void *context) {
  */
 static void prv_wakeup_alert() {
   HealthActivityMask activity = health_service_peek_current_activities();
-  switch(activity) {
-    case HealthActivityNone:
-      APP_LOG(APP_LOG_LEVEL_INFO, "No activity.");
-      break;
-    case HealthActivitySleep: 
-    case HealthActivityRestfulSleep: 
-      APP_LOG(APP_LOG_LEVEL_INFO, "Sleeping activity.");
-      break;
-    case HealthActivityWalk:
-      APP_LOG(APP_LOG_LEVEL_INFO, "Walking activity.");
-      break;
-    case HealthActivityRun:
-      APP_LOG(APP_LOG_LEVEL_INFO, "Running activity.");
-      break;
-    default:
-      APP_LOG(APP_LOG_LEVEL_INFO, "Unknown activity.");
-      break;
-  }
+
   if (activity != HealthActivitySleep && activity != HealthActivityRestfulSleep &&
       steps_whether_alert()) {
     APP_LOG(APP_LOG_LEVEL_INFO, "enamel_get_vibrate()=%d", enamel_get_vibrate());
@@ -161,6 +149,22 @@ static void prv_wakeup_alert() {
 /* Push a window depends on whether this App is activated or not. */ 
 static void prv_launch_handler(bool activate) {
   APP_LOG(APP_LOG_LEVEL_INFO, "pebble-fit launch_reason = %d", (int)launch_reason());
+  // Testing-begin
+  HealthActivityMask activity = health_service_peek_current_activities();
+  switch(activity) {
+    case HealthActivityNone:
+      APP_LOG(APP_LOG_LEVEL_ERROR, "No activity."); break;
+    case HealthActivitySleep: 
+    case HealthActivityRestfulSleep: 
+      APP_LOG(APP_LOG_LEVEL_ERROR, "Sleeping activity."); break;
+    case HealthActivityWalk:
+      APP_LOG(APP_LOG_LEVEL_ERROR, "Walking activity."); break;
+    case HealthActivityRun:
+      APP_LOG(APP_LOG_LEVEL_ERROR, "Running activity."); break;
+    default:
+      APP_LOG(APP_LOG_LEVEL_ERROR, "Unknown activity."); break;
+  }
+  // Testing-end
   if (activate) {
     WakeupId wakeup_id;
     int32_t wakeup_cookie;
@@ -181,23 +185,13 @@ static void prv_launch_handler(bool activate) {
         wakeup_get_launch_event(&wakeup_id, &wakeup_cookie);
         APP_LOG(APP_LOG_LEVEL_INFO, "wakeup %d , cookie %d", (int)wakeup_id, (int)wakeup_cookie);
         if (wakeup_cookie == 0) {
-          //steps_wakeup_window_update();
-          prv_wakeup_alert();
+          prv_wakeup_alert(); // This will call wakeup_window_push().
         } else {
           APP_LOG(APP_LOG_LEVEL_ERROR, "Fallback wakeup! cookie=%d", (int)wakeup_cookie);
         }
-
-        // Initialize communication to the phone for uploading data to the server.
-        // FIXME: if not initialize our own, could use the communication set up by Enamel, but
-        // seems that outbox size is not large enough. Since this conflicts with channels used
-        // by Enamel, the current workaround will upload data only at wakeup event.
-        //comm_init(prv_init_callback); 
-
         break;
       case APP_LAUNCH_PHONE: // When open the App's settings page or after installation 
         e_launch_reason = PHONE_LAUNCH;
-        //window_stack_remove(s_dialog_window, false);
-        //steps_wakeup_window_update();
         prv_wakeup_alert();
         s_wakeup_window = wakeup_window_push();
         break;
@@ -205,14 +199,8 @@ static void prv_launch_handler(bool activate) {
         e_launch_reason = OTHER_LAUNCH;
         APP_LOG(APP_LOG_LEVEL_ERROR, "Cancelling all wakeup events! Must be rescheduled.");
         wakeup_cancel_all();
-        //window_stack_remove(s_dialog_window, false);
-        //steps_wakeup_window_update();
         s_wakeup_window = wakeup_window_push();
-        //main_window_push();
     }
-    // Send the launch reason to the server.
-    //launch_send_on_notification();
-
     // Prevent seeing other windows when presseing the "back" button.
     window_stack_remove(s_dialog_window, false);
 
@@ -228,20 +216,6 @@ static void prv_launch_handler(bool activate) {
   }
 }
 
-/*
-static void prv_test(DictionaryIterator *iter, void *context) {
-  APP_LOG(APP_LOG_LEVEL_INFO, "in prv_test");
-  if(dict_find(iter, AppKeyJSReady)) {
-    js_ready = true;
-    APP_LOG(APP_LOG_LEVEL_INFO, "Connected to JS!");
-    ((CommCallback *) context)();
-  } else {
-    APP_LOG(APP_LOG_LEVEL_INFO, "other received");
-    ((CommCallback *) context)();
-	}
-}
-*/
-
 static void init(void) {
   s_launch_time = time(NULL); // FIXME: rounded to minute?
 
@@ -254,25 +228,11 @@ static void init(void) {
   events_app_message_request_outbox_size(APP_MESSAGE_OUTBOX_SIZE_MINIMUM);
 	//s_normal_msg_handler = events_app_message_register_inbox_received(prv_test, prv_init_callback);
 	s_normal_msg_handler = events_app_message_register_inbox_received(prv_init_callback, NULL);
-  //s_enamel_msg_handler = enamel_settings_received_subscribe(prv_update_config, NULL);
+  s_enamel_msg_handler = enamel_settings_received_subscribe(prv_update_config, NULL);
   events_app_message_open(); // Call pebble-events app_message_open function
-  /*
-  switch (launch_reason()) {
-    case APP_LAUNCH_PHONE: 
-      // Initialize Enamel to register App Message handlers and restores settings
-      s_enamel_msg_handler = enamel_settings_received_subscribe(prv_update_config, NULL);
-      events_app_message_open(); // Call pebble-events app_message_open function
-      s_enamel_on = true;
-      APP_LOG(APP_LOG_LEVEL_INFO, "Launch by phone");
-      break;
-    default: 
-      // Use the normal communication channel.
-      comm_init(prv_init_callback);
-  }
-  */
 
-  prv_launch_handler(enamel_get_activate()); // FIXME: fatal error causing watch to restart
-  //prv_launch_handler(true);
+  // TODO: Modify the default value of activate in config.json
+  prv_launch_handler(enamel_get_activate());
 }
 
 static void deinit(void) {
@@ -280,7 +240,7 @@ static void deinit(void) {
   s_exit_time = time(NULL);
   if (js_ready) {
     // Send the exit record (the launch record has already been uploaded).
-    launch_send_off_notification(s_exit_time);
+    launch_send_exit_notification(s_exit_time);
   } else {
     // Store launch-exit record if the connection could not be established right now.
     store_write_launchexit_event(s_launch_time, s_exit_time, e_launch_reason, e_exit_reason);

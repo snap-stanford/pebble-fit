@@ -4,6 +4,7 @@ int e_exit_reason;
 int e_launch_reason;
 
 static time_t s_launch_time, s_exit_time, s_curr_time;
+static int s_config_request;
 static int s_test;
 
 /* Add launch reason and date to out dict. */
@@ -11,6 +12,7 @@ static int s_test;
 static void prv_launch_data_write(DictionaryIterator * out) {
   dict_write_int(out, AppKeyLaunchReason, &e_launch_reason, sizeof(int), true);
   dict_write_int(out, AppKeyDate, &s_launch_time, sizeof(int), true);
+  dict_write_int(out, AppKeyConfigRequest, &s_config_request, sizeof(int), true);
 }
 /* Add exit reason and date to out dict. */
 static void prv_exit_data_write(DictionaryIterator * out) {
@@ -39,8 +41,9 @@ void launch_send_test(int test) {
 }
 
 /* Send launch event to phone. */
-void launch_send_on_notification(time_t time) {
+void launch_send_launch_notification(time_t time) {
   s_launch_time = time;
+  s_config_request = store_resend_config_request(time)? 1 : 0;
   /*
   switch (launch_reason()) {
     case APP_LAUNCH_USER:
@@ -62,7 +65,7 @@ void launch_send_on_notification(time_t time) {
 }
 
 /* Send exited event to phone. */
-void launch_send_off_notification(time_t time) {
+void launch_send_exit_notification(time_t time) {
   s_exit_time = time;
   comm_send_data(prv_exit_data_write, comm_sent_handler, NULL);
 }

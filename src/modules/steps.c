@@ -32,21 +32,18 @@ static void prv_load_data(time_t *start, time_t *end) {
     // the watch firmware and force the reboot of the watch.
   	HealthMinuteData minute_data[MAX_ENTRIES];
   	s_num_records = health_service_get_minute_history(&minute_data[0], MAX_ENTRIES, start, end);
-  	s_start = *start;
-  	s_end = *end;
 
   	for (int i = 0; i < s_num_records; i++) {
   	  if (minute_data[i].is_invalid) {
-  	    // No valid data recorded; steps = -1. Treat it as 0 step count.
+  	    // No valid data recorded, so minute_date[i] = -1. Treat it as 0 step count.
   	    s_step_records[i] = 0;
   	    //APP_LOG(APP_LOG_LEVEL_INFO, "Invalid data %d = %d", (int)i, (int)minute_data[i].steps);
   	  } else {
   	    s_step_records[i] = minute_data[i].steps;
-				if (s_step_records[i] > 0) {
-  	  		APP_LOG(APP_LOG_LEVEL_INFO, "s_step_records %d = %d", (int)i, (int)s_step_records[i]);
-        }
+				//if (s_step_records[i] > 0) {
+  	  	//	APP_LOG(APP_LOG_LEVEL_INFO, "s_step_records %d = %d", (int)i, (int)s_step_records[i]);
+        //}
   	  }
-  	  //APP_LOG(APP_LOG_LEVEL_INFO, "s_step_records %d = %d", (int)i, (int)s_step_records[i]);
   	}
 		s_is_loaded = true;
 	}
@@ -97,7 +94,8 @@ void steps_update() {
   //}
 }
 
-/* Send updated info to wakeup_window for displaying on the watch. 
+/**
+ * Send updated info to wakeup_window for displaying on the watch. 
  * This assume steps_update() was called recently.
  */
 void steps_wakeup_window_update() { 
@@ -153,7 +151,8 @@ void steps_send_in_between(time_t start, time_t end, bool force) {
   comm_send_data(data_write, comm_sent_handler, comm_server_received_handler);
 }
 
-/* Send the latest steps data in the last hour.
+/**
+ * Send the latest steps data in the last hour.
  * FIXME: this could be integrated into store_resend_steps(). 
  */
 void steps_send_latest(time_t curr_time) {
@@ -163,4 +162,26 @@ void steps_send_latest(time_t curr_time) {
   store_write_update_time(curr_time);
 }
 
-
+/**
+ * Fetch the priolr week data.
+ * TODO: use this function at the time of installation.
+ */
+void steps_get_prior_week() {
+  int step;
+  time_t end, s, e;
+  char buf[12];
+  end = time(NULL);
+  s = end - 7 * SECONDS_PER_DAY;
+  while (s < end) {
+    s_is_loaded = false;
+    step = 0;
+    e = s + SECONDS_PER_HOUR;
+    prv_load_data(&s, &e);
+    for (int i = 0; i < MAX_ENTRIES; i++) {
+      step += s_step_records[i]; 
+    }
+    strftime(buf, sizeof(buf), "%d:%H:%M", localtime(&s));
+    APP_LOG(APP_LOG_LEVEL_INFO, "Hisotrical hourly = %s, steps = %d", buf, step);
+    s += SECONDS_PER_HOUR;
+  }
+}

@@ -164,7 +164,8 @@ static void up_click_handler(ClickRecognizerRef recognizer, void *context) {
 static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
   text_layer_set_text(s_main_text_layer, "reset timestamp");
   // Reset last update timestamp to 2 hour ago
-  store_write_update_time(time(NULL) - 2 * SECONDS_PER_HOUR);
+  store_write_config_time(time(NULL) - 2 * SECONDS_PER_DAY);
+  //steps_get_prior_week();
 }
 
 static void down_click_handler(ClickRecognizerRef recognizer, void *context) {

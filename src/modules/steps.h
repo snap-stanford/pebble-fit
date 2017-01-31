@@ -25,3 +25,6 @@ void steps_update();
 
 /* Return the inactive minutes. */
 int steps_get_inactive_minutes();
+
+/* Fetch the priolr week data. */
+void steps_get_prior_week();

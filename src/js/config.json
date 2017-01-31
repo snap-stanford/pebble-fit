@@ -1,10 +1,21 @@
 [
 {
   "type": "toggle",
-  "id": "server_config",
-  "messageKey": "server_config",
+  "id": "config_update",
+  "messageKey": "config_update",
   "defaultValue": false
 },
+{
+  "type": "input",
+  "id": "config_update_interval",
+  "messageKey": "config_update_interval",
+  "description": "The number of days between two configuration updates (the app will send request to check for new configuration update)",
+  "defaultValue": 1,
+	"attributes": {
+    "type": "number"
+  }
+},
+
 {
   "type": "toggle",
   "id": "is_consent",
@@ -435,7 +446,7 @@
       "id": "activate",
       "messageKey": "activate",
       "label": "Activate pebble-fit App",
-      "defaultValue": false
+      "defaultValue": true
     },
     {
       "type": "select",

@@ -21,6 +21,25 @@ static uint32_t s_launchexit_data;
 #define GET_LAUNCH_REASON(x)    ((x>>2)  & 0x0003)
 #define GET_EXIT_REASON(x)      (x       & 0x0003)
 
+/**
+ * Write into the persistent storage the latest timestamp at which we update configuration.
+ */
+void store_write_config_time(time_t time) {
+  APP_LOG(APP_LOG_LEVEL_ERROR, "Store configuration time = %d", (int) time);
+  persist_write_data(PERSIST_KEY_CONFIG_TIME, &time, sizeof(time_t));
+}
+
+/**
+ * Write into the persistent storage the latest timestamp at which we upload steps data.
+ */
+void store_write_update_time(time_t time) {
+  APP_LOG(APP_LOG_LEVEL_INFO, "Store update time = %d", (int) time);
+  persist_write_data(PERSIST_KEY_UPDATE_TIME, &time, sizeof(time_t));
+}
+
+/**
+ * Write launch and exit events into the persistent storage 
+ */
 void store_write_launchexit_event(time_t launch_time, time_t exit_time, uint8_t lr, uint8_t er) {
   time_t minutes, seconds;
 
@@ -52,8 +71,26 @@ void store_write_launchexit_event(time_t launch_time, time_t exit_time, uint8_t 
   persist_write_data(PERSIST_KEY_LAUNCHEXIT_COUNT, &s_launchexit_count, LAUNCHEXIT_COUNT_SIZE);
 }
 
-/* Return whether we finish resending launch/exit event (only when we do not send any data 
- * to the server. */
+/**
+ * Return true if we need to send new configuration request to the server, otherwise false.
+ */
+bool store_resend_config_request(time_t curr_time) {
+  time_t last_config_time;
+  if (!persist_exists(PERSIST_KEY_CONFIG_TIME)) {
+    return 1;
+  }
+  persist_read_data(PERSIST_KEY_CONFIG_TIME, &last_config_time, sizeof(time_t));
+  if (curr_time-last_config_time > atoi(enamel_get_config_update_interval())*SECONDS_PER_DAY) {
+    return 1;
+  } else {
+    return 0;
+  }
+}
+
+/**
+ * Return whether we finish resending launch/exit event (only when we do not send any data 
+ * to the server. 
+ */
 bool store_resend_launchexit_event() {
   // FIXME: consider using a single key and sequential storage location
   uint32_t key;
@@ -97,12 +134,8 @@ bool store_resend_launchexit_event() {
   }
 }
 
-void store_write_update_time(time_t time) {
-  APP_LOG(APP_LOG_LEVEL_INFO, "Store update time = %d", (int) time);
-  persist_write_data(PERSIST_KEY_UPDATE_TIME, &time, sizeof(time_t));
-}
-
-/* Return whether we finish resending steps data (only when we do not send any data 
+/**
+ * Return whether we finish resending steps data (only when we do not send any data 
  * to the server. Later in steps_send_latest()  we might resend some data that we are 
  * sending in here.
  */
