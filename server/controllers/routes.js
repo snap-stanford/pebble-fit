@@ -1,11 +1,68 @@
 var express = require('express')
 var router = express.Router()
 
-// controllers
+// Configurations
+var messages = require('../config/messages');
+
+// Controllers
 var query = require('./query')
 var main = require('./main')
+var users = require('./users')
+var groups = require('./groups')
 var activities = require('./activities')
 var events = require('./events')
+
+var configDir = "../config/";
+
+// Insert a new entry to Events and send a response back.
+function saveEvent(req, res, config, next) {
+  events.save(
+    req.path.substr(1),
+    req.query.reason,
+    req.query.date,
+    req.query.watch,
+    function (err) {
+      if (err) return next(err);
+      if (config) res.status(200).json(config).end();
+      res.status(200).end();
+    });
+}
+
+router.get(['/launch'],
+  query.requireParam('query', ['watch', 'date', 'configrequest']),
+  function (req, res, next) {
+    if (req.query.configrequest === '1') {
+      console.log("DEBUG: user is requesting for new update.");
+      users.getConfigFile(
+        req.query.watch,
+        function (err, file) {
+          if (err) return next(err);
+          if (file) { // New update available.
+            console.log("file: "+file);
+            var config = require(configDir + file);
+            console.log(config);
+            console.log(messages);
+            for (var m in config.messages) {
+              config.messages[m] = messages[config.messages[m]];
+            } 
+            console.log(config);
+            saveEvent(req, res, config, next);
+          } else { // No update available.
+            saveEvent(req, res, null, next);
+          }
+        });
+    } else { // If user not requesting new update.
+      console.log("DEBUG: user is NOT requesting for new update.");
+      saveEvent(req, res, null, next);
+    }
+  });
+
+// TODO: Keep delaunch for backward compatibility for a while.
+router.get(['/delaunch', '/exit'],
+  query.requireParam('query', ['watch', 'date']),
+  function (req, res, next) {
+    saveEvent(req, res, null, next);
+  });
 
 router.get('/steps',
   query.requireParam('query', ['data', 'watch', 'date']),
@@ -20,39 +77,7 @@ router.get('/steps',
       })
   })
 
-// TODO: Keep delaunch for backward compatibility for a while.
-// TODO: Consider moving AB testing code to another module.
-var ab = 0;
-var message;
-router.get(
-  ['/launch', '/delaunch', '/exit'],
-  query.requireParam('query', ['watch', 'date']),
-  function (req, res, next) {
-    events.save(
-      req.path.substr(1),
-      req.query.reason,
-      req.query.date,
-      req.query.watch,
-      function (err) {
-        if (err) return next(err)
-        if (req.path.substr(1) == 'launch') {
-          if (ab === 0) {
-            message = { watch_alert_text: 'Alert', watch_pass_text: 'Pass' };
-            ab = 1;
-          } else if (ab === 1) {
-            message = { watch_alert_text: 'Let\'s Move', watch_pass_text: 'Keep Up' };
-            ab = 0;
-          }
-          res.status(200).json(message).end()
-          console.log("ab="+ab+"; message="+JSON.stringify(message));
-        } else {
-          res.status(200).end()
-        }
-      })
-  })
-
-router.get(
-  ['/launchexit'],
+router.get(['/launchexit'],
   query.requireParam('query', ['launchtime', 'exittime', 'launchreason', 'exitreason']),
   function (req, res, next) {
     events.save('launch', req.query.launchreason, 
@@ -99,7 +124,6 @@ router.get('/analytics',
 
 router.get('/',
   function (req, res, next) {
-    //res.redirect('/analytics?watch=6147d09748dd323ff6d0a3cb50b593db')
     res.redirect('/analytics?watch=6b33a170f75a2fae307b0cbd139429fc')
   })
 
