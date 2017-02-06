@@ -1,0 +1,8 @@
+{
+  "name": "passive_tracking",
+  "break_length": "5", 
+  "break_freq": "60",
+  "messages": {
+    "default": "daily_summary"
+  }
+}

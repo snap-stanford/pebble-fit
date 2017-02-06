@@ -1,0 +1,7 @@
+{
+  "test": "This is a test message.",
+  "daily_summary": "You have accomplished\n%d of %d\npossible walking breaks today.",
+  "purple": "Kepp up.",
+  "default_pass": "Break accomplished. Nice work!",
+  "default_fail": "Opps! Break missed."
+}
