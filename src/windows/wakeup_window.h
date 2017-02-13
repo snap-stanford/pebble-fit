@@ -6,6 +6,8 @@
 #include "../modules/steps.h"
 #include "../modules/launch.h"
 #include "../modules/store.h" // TODO: for debugging purpose only
+#include "../modules/strtok.h"
+
 
 /* Create the window and push to the window stack. */
 Window * wakeup_window_push(bool is_wakeup_launch);

@@ -32,26 +32,36 @@ static void top_text_layer_update_proc() {
   HealthActivityMask activity = health_service_peek_current_activities();
   switch(activity) {
     case HealthActivityNone:
-      text = "No activity."; break;
+      text = "None"; break;
     case HealthActivitySleep: 
     case HealthActivityRestfulSleep: 
-      text = "Sleeping activity."; break;
+      text = "Sleeping"; break;
     case HealthActivityWalk:
-      text =  "Walking activity."; break;
+      text = "Walking"; break;
     case HealthActivityRun:
-      text = "Running activity."; break;
+      text = "Running"; break;
     default:
-      text = "Unknown activity."; break;
+      text = "Unknown"; break;
   }
+  char absz[20];
+  char random_message[30];
+  const char delim[2] = ":";
+  const char *temp = store_get_random_message();
+  APP_LOG(APP_LOG_LEVEL_INFO, "ABSZ:%s", temp);
+  snprintf(random_message, sizeof(random_message), "%s", temp);
+  APP_LOG(APP_LOG_LEVEL_INFO, "ABSZ:%s", random_message);
+  strtok_2(random_message, delim);
+  APP_LOG(APP_LOG_LEVEL_INFO, "ABSZ:%s", random_message);
+  char *rm = strtok_2(NULL, ":");
 
   // FIXME: For debugging purpose, display indicator for bluetooth connection
   if (connection_service_peek_pebble_app_connection()) {
-    snprintf(s_top_text_buf, sizeof(s_top_text_buf), "%s!", text);
+    snprintf(s_top_text_buf, sizeof(s_top_text_buf), "%s.%s!", rm, text);
   } else {
-    snprintf(s_top_text_buf, sizeof(s_top_text_buf), "%s.", text);
+    snprintf(s_top_text_buf, sizeof(s_top_text_buf), "%s.%s.", rm, text);
   }
 
-  snprintf(s_top_text_buf, sizeof(s_top_text_buf), text);
+  //snprintf(s_top_text_buf, sizeof(s_top_text_buf), text);
   text_layer_set_text(s_top_text_layer, s_top_text_buf);
 // Testing-end
   //if (!steps_get_pass()) {
@@ -74,7 +84,7 @@ static void main_text_layer_update_proc() {
     text = "Insert the random message here.";
     snprintf(s_main_text_buf, sizeof(s_main_text_buf), text);
 	} else {
-		text = enamel_get_daily_summary_message();
+		text = enamel_get_message_daily_summary();
     snprintf(s_main_text_buf, sizeof(s_main_text_buf), text, 
         store_get_break_count(), atoi(enamel_get_total_hour()));
 	}

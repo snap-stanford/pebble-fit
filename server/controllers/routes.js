@@ -11,8 +11,9 @@ var users = require('./users')
 var groups = require('./groups')
 var activities = require('./activities')
 var events = require('./events')
+var messages = require('./messages')
 
-var configDir = "../config/";
+var configDir = '../config/';
 
 // Insert a new entry to Events and send a response back.
 function saveEvent(req, res, config, next) {
@@ -39,12 +40,20 @@ router.get(['/launch'],
           if (err) return next(err);
           if (file) { // New update available.
             console.log("file: "+file);
+
+            // Read the corresponding configuration file.
+            delete require.cache[configDir + file]
             var config = require(configDir + file);
             console.log(config);
-            console.log(messages);
+
+            // Read the messages.
             for (var m in config.messages) {
               config.messages[m] = messages[config.messages[m]];
             } 
+            if (config.hasOwnProperty('random_messages')) {
+              var messagesCount = config['random_messages'];
+              config['random_messages'] = messages.getRandomMessages(messagesCount);
+            }
             console.log(config);
             saveEvent(req, res, config, next);
           } else { // No update available.

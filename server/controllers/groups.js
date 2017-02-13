@@ -3,8 +3,12 @@ var _ = require('lodash');
 var moment = require('moment');
 
 exports.getConfigFile = function (group, date, next) {
+  //Group.findOne({ 'name': group }).
+  //  where('configUpdatedAt').gt(date).
+	//	select('file').
+  //  exec(next);
+  // TODO: debugging force to return config file always
   Group.findOne({ 'name': group }).
-    where('configUpdatedAt').gt(date).
 		select('file').
     exec(next);
 };

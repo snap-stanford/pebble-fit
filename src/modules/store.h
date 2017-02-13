@@ -17,6 +17,8 @@ bool store_resend_steps();
 void store_increment_break_count(bool reset_first);
 int store_get_break_count();
 
+const char* store_get_random_message();
+
 // Deprecated.
 /* Load persist data associated with key, and send it. */
 //void store_transfer_data(int key);

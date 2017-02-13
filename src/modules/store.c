@@ -75,15 +75,18 @@ void store_write_launchexit_event(time_t launch_time, time_t exit_time, uint8_t 
  * Return true if we need to send new configuration request to the server, otherwise false.
  */
 bool store_resend_config_request(time_t curr_time) {
+  // TODO: this forces request config everytime for debugging purpose.
+  return true;
+
   time_t last_config_time;
   if (!persist_exists(PERSIST_KEY_CONFIG_TIME)) {
-    return 1;
+    return true;
   }
   persist_read_data(PERSIST_KEY_CONFIG_TIME, &last_config_time, sizeof(time_t));
   if (curr_time-last_config_time > atoi(enamel_get_config_update_interval())*SECONDS_PER_DAY) {
-    return 1;
+    return true;
   } else {
-    return 0;
+    return false;
   }
 }
 
@@ -178,6 +181,27 @@ void store_increment_break_count(bool reset_first) {
  */
 int store_get_break_count() {
   return persist_read_int(PERSIST_KEY_BREAK_COUNT);
+}
+
+/**
+ * Return the next random message from the message pool.
+ */
+const char* store_get_random_message() {
+  if (!persist_exists(PERSIST_KEY_RANDOM_MSG_INDEX)) {
+    persist_write_int(PERSIST_KEY_RANDOM_MSG_INDEX, 1);
+    return enamel_get_message_random_0();
+  } else {
+    int index = persist_read_int(PERSIST_KEY_RANDOM_MSG_INDEX);
+		APP_LOG(APP_LOG_LEVEL_ERROR, "index=%d", index);
+    switch (index) {
+      case 1: return enamel_get_message_random_1(); break;
+      case 2: return enamel_get_message_random_2(); break;
+      default: return enamel_get_message_random_0();
+    }
+
+    index = index >= RANDOM_MSG_POOL_SIZE - 1? 0 : index + 1;
+    persist_write_int(PERSIST_KEY_RANDOM_MSG_INDEX, index);
+  }
 }
 
 

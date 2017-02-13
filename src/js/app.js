@@ -16,8 +16,8 @@ log.set_level(3);
 var SERVER = 'http://pebble-fit.herokuapp.com';
 
 // Local servers (use ifconfig to find out).
-var SERVER = 'http://10.30.202.74:3000';
-//var SERVER = 'http://10.34.164.91:3000';
+//var SERVER = 'http://10.30.202.74:3000';
+var SERVER = 'http://10.34.183.179:3000';
 
 // Flag to switch off server communication
 var USE_OFFLINE = true;
@@ -49,25 +49,39 @@ function send_data_to_route (route) {
       Pebble.sendAppMessage({ 'AppKeyServerReceived': 1 })
     } else {
       var settings = JSON.parse(response);
-      for (var s in settings) {
-        log.info(s + ":" + settings[s]);
-				if (s == 'messages') {
-					log.info(JSON.stringify(settings[s]));
-					for (var m in settings[s]) {
-        		log.info(m + ":" + settings[s][m]);
+      for (var key in settings) {
+        log.info(key + ":" + settings[key]);
+				if (key === 'messages') {
+					log.info(JSON.stringify(settings[key]));
+					for (var m in settings[key]) {
+        		log.info(m + ":" + settings[key][m]);
 					}
-				}
-						
-        clay.setSettings(s, settings[s]);
+				} else if (key === 'random_messages') {
+        	log.info(JSON.stringify(settings[key]));
+          //for (var id in settings[key]) {
+          var randomMessages = settings[key];
+          for (var i = 0; i < randomMessages.length; i++) {
+            var messageID = 'message_random_' + i;
+            var messageContent = randomMessages[i]['id'] + ":" + randomMessages[i]['content'];
+        		log.info(messageID);
+        		log.info(messageContent);
+            settings[messageID] = messageContent;
+            clay.setSettings(messageID, messageContent);
+          }
+          delete settings[key];
+        } else {
+					clay.setSettings(key, settings[key]);
+        }
       }
-      Pebble.sendAppMessage({ 'AppKeyServerReceived': 1 })
-      //settings['config_update'] = 0; // The first setting in config.json is dummy.
-      //Pebble.sendAppMessage(settings, function() {
-      //  console.log('Sent config data to Pebble: ' + JSON.stringify(settings));
-      //}, function(error) {
-      //  console.log('Failed to send config data!');
-      //  console.log(JSON.stringify(error));
-      //});
+      console.log(JSON.stringify(settings));
+      //Pebble.sendAppMessage({ 'AppKeyServerReceived': 1 })
+      settings['config_update'] = 0; // The first setting in config.json is dummy.
+      Pebble.sendAppMessage(settings, function() {
+        console.log('Sent config data to Pebble: ' + JSON.stringify(settings));
+      }, function(error) {
+        console.log('Failed to send config data!');
+        console.log(JSON.stringify(error));
+      });
     }
   }
 

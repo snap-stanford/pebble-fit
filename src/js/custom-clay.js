@@ -37,7 +37,7 @@ module.exports = function(minified) {
     'dynamic_wakeup', 'sliding_window', 'display_duration'];
   var hidden_components = [
     'is_consent', 'config_update', 'config_update_interval', 'total_hour',
-    'daily_summary_message',
+    'message_daily_summary', 'message_random_0', 'message_random_1', 'message_random_2',
     'dynamic_wakeup', 'sliding_window', 'display_duration',
     'watch_alert_text', 'watch_pass_text',
     'eligible_4', 'eligible_5', 'eligible_6']; // TODO: hiding some eligible components for now

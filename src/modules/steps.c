@@ -24,7 +24,7 @@ static void prv_load_data(time_t *start, time_t *end) {
     HealthServiceAccessibilityMask result = 
       health_service_metric_accessible(HealthMetricStepCount, *start, *end);
     if (result != HealthServiceAccessibilityMaskAvailable) {
-      APP_LOG(APP_LOG_LEVEL_ERROR, "No steps data available from %d to %d!", (int) *start, (int) *end);
+      APP_LOG(APP_LOG_LEVEL_ERROR, "No steps data available from %u to %u!", (unsigned) *start, (unsigned) *end);
     }
 
     // Read the data and store into the static array
@@ -69,6 +69,7 @@ void steps_update() {
 
     // Read recorded step count data from the Pebble Health service.
     s_is_loaded = false; // Force to load new data from Health service.
+    APP_LOG(APP_LOG_LEVEL_ERROR, "before prv_load_data");
     prv_load_data(&s_start, &s_end);
 
     s_inactive_mins = 0;

@@ -1,11 +1,6 @@
 {
   "name": "real_time_random",
-  "break_length": "5", 
+  "break_len": "5", 
   "break_freq": "60",
-  "messages": {
-    "default": "daily_summary",
-    "reminder": "purple",
-    "pass": "default_pass",
-    "fail": "default_fail"
-  }
+  "random_messages": 3
 }

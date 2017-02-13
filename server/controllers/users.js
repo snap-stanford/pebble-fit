@@ -7,9 +7,12 @@ var save = function (watchToken, data, next) {
   console.log("Creating new user: " + watchToken);
   var obj = {watch: watchToken};
   groups.random_pick(function (err, group) {
-    console.log("random_pick callback: err=" + err +"; group="+group);
-    console.log(group[0].name);
+    console.log("random_pick callback: err=" + err +"; group="+group[0].name);
     obj.group = group[0].name;
+
+    //TODO: debugging force to be real_time_random.
+    obj.group = "real_time_random";
+
     if (data) obj.data = data;
     var user = new User(obj);
     user.save(next);

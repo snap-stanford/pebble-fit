@@ -581,9 +581,27 @@
 },
 {
   "type": "input",
-  "id": "daily_summary_message",
-  "messageKey": "daily_summary_message",
+  "id": "message_daily_summary",
+  "messageKey": "message_daily_summary",
   "defaultValue": "You have accomplished %d of %d possible walking breaks today."
+},
+{
+  "type": "input",
+  "id": "message_random_0",
+  "messageKey": "message_random_0",
+  "defaultValue": ""
+},
+{
+  "type": "input",
+  "id": "message_random_1",
+  "messageKey": "message_random_1",
+  "defaultValue": ""
+},
+{
+  "type": "input",
+  "id": "message_random_2",
+  "messageKey": "message_random_2",
+  "defaultValue": ""
 },
 
 
