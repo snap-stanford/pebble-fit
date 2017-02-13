@@ -36,7 +36,8 @@ module.exports = function(minified) {
   var disabled_components = ['step_threshold', 
     'dynamic_wakeup', 'sliding_window', 'display_duration'];
   var hidden_components = [
-    'is_consent', 'config_update', 'config_update_interval', 'daily_summary_message',
+    'is_consent', 'config_update', 'config_update_interval', 'total_hour',
+    'daily_summary_message',
     'dynamic_wakeup', 'sliding_window', 'display_duration',
     'watch_alert_text', 'watch_pass_text',
     'eligible_4', 'eligible_5', 'eligible_6']; // TODO: hiding some eligible components for now
@@ -216,11 +217,13 @@ module.exports = function(minified) {
   function updateConfigSummary () {
     var start = parseInt(clayConfig.getItemById('daily_start_time').get());
     var end = parseInt(clayConfig.getItemById('daily_end_time').get());
+    var totalHour = end - start;
     var breakLen = clayConfig.getItemById('break_len').get();
 
-    var message = "Great, that means there will be " + (end - start) + 
+    var message = "Great, that means there will be " + totalHour + 
       " hours in a day. Let's see if you can take a " + breakLen + 
       " minute walking break during each of them...";
+    clayConfig.getItemById('total_hour').set(totalHour);
     clayConfig.getItemById('config_summary').set(message);
   }
 
@@ -239,7 +242,8 @@ module.exports = function(minified) {
     clayConfig.getItemById('consent_button_disagree').on('click',consentButtonDisagreeClick);
     clayConfig.getItemById('view_consent_button').on('click',viewConsentButtonClick);
 
-    clayConfig.getItemById('break_freq').on('change', updateConfigSummary);
+    clayConfig.getItemById('daily_start_time').on('change', updateConfigSummary);
+    clayConfig.getItemById('daily_end_time').on('change', updateConfigSummary);
     clayConfig.getItemById('break_len').on('change', updateConfigSummary);
 
     // By default, every component is visible. We only want to display either the

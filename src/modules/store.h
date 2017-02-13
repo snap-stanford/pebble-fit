@@ -14,6 +14,8 @@ bool store_resend_config_request(time_t curr_time);
 bool store_resend_launchexit_event();
 bool store_resend_steps();
 
+void store_increment_break_count(bool reset_first);
+int store_get_break_count();
 
 // Deprecated.
 /* Load persist data associated with key, and send it. */

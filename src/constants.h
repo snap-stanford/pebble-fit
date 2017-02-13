@@ -34,7 +34,8 @@ static const int      AppKeyArrayData               = 200; // FIXME: change to 4
 static const uint32_t PERSIST_KEY_WAKEUP_ID         = 111;
 static const uint32_t PERSIST_KEY_UPDATE_TIME       = 200;
 static const uint32_t PERSIST_KEY_CONFIG_TIME       = 201;
+static const uint32_t PERSIST_KEY_BREAK_COUNT       = 202;
 static const uint32_t PERSIST_KEY_LAUNCHEXIT_COUNT  = 1000;
 static const uint32_t PERSIST_KEY_LAUNCH_START      = 1001;
-static const uint32_t PERSIST_KEY_LAUNCH_END        = 1128;
+static const uint32_t PERSIST_KEY_LAUNCH_END        = 1128; // Keys 1001-1128 are used.
 

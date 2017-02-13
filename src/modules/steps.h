@@ -17,8 +17,7 @@ void steps_wakeup_window_update();
 /* Send the steps from before 15 minutes back to the phone. */
 void steps_send_latest();
 
-/* Whether we should alert the user or not. */
-bool steps_whether_alert();
+bool steps_get_pass();
 
 /* Update steps count. */
 void steps_update();

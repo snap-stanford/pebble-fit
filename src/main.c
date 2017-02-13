@@ -120,7 +120,7 @@ static void prv_wakeup_vibrate() {
   HealthActivityMask activity = health_service_peek_current_activities();
 
   if (activity != HealthActivitySleep && activity != HealthActivityRestfulSleep &&
-      steps_whether_alert()) {
+      !steps_get_pass()) {
     switch (enamel_get_vibrate()) {
       case 1: vibes_short_pulse();      break;
       case 2: vibes_long_pulse();       break;
@@ -168,17 +168,20 @@ static void prv_launch_handler(bool activate) {
     bool will_timeout = false;
     // FIXME: subscribe to wakeup event to update steps even App is in the foreground.
 
-    steps_update(); // Essential for steps_whether_alert in prv_wakeup_vibrate.
     switch (launch_reason()) {
       case APP_LAUNCH_USER: // When launched via the launch menu on the watch.
         e_launch_reason = USER_LAUNCH;
         APP_LOG(APP_LOG_LEVEL_ERROR, "Cancelling all wakeup events! Must be rescheduled.");
         wakeup_cancel_all();
+
         s_wakeup_window = wakeup_window_push(false);
         break;
       case APP_LAUNCH_WAKEUP: // When launched due to wakeup event.
         e_launch_reason = WAKEUP_LAUNCH;
         will_timeout = true;
+
+        steps_update(); // Calculate steps only at the scheduled wakeup event.
+
         wakeup_get_launch_event(&wakeup_id, &wakeup_cookie);
         APP_LOG(APP_LOG_LEVEL_INFO, "wakeup %d , cookie %d", (int)wakeup_id, (int)wakeup_cookie);
         if (wakeup_cookie == 0) {
@@ -186,11 +189,12 @@ static void prv_launch_handler(bool activate) {
         } else {
           APP_LOG(APP_LOG_LEVEL_ERROR, "Fallback wakeup! cookie=%d", (int)wakeup_cookie);
         }
+
         s_wakeup_window =  wakeup_window_push(true);
         break;
       case APP_LAUNCH_PHONE: // When open the App's settings page or after installation 
-        APP_LOG(APP_LOG_LEVEL_ERROR, "Launching by phone!!!!!!");
         e_launch_reason = PHONE_LAUNCH;
+
         s_wakeup_window = wakeup_window_push(false);
         break;
       default: 

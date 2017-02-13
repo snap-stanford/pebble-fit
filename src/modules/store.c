@@ -161,6 +161,26 @@ bool store_resend_steps(time_t curr_time) {
     return true;
   }
 }
+
+/**
+ * Increment the break count by 1. If it not exists or require reset_first, set it to 1.
+ */
+void store_increment_break_count(bool reset_first) {
+  if (!persist_exists(PERSIST_KEY_BREAK_COUNT) || reset_first) {
+    persist_write_int(PERSIST_KEY_BREAK_COUNT, 1); 
+  } else {
+    persist_write_int(PERSIST_KEY_BREAK_COUNT, persist_read_int(PERSIST_KEY_BREAK_COUNT)+1); 
+  }
+}
+
+/**
+ * Return the value stored with the key PERSIST_KEY_BREAK_COUNT.
+ */
+int store_get_break_count() {
+  return persist_read_int(PERSIST_KEY_BREAK_COUNT);
+}
+
+
 //int store_read_update_time(time_t timestamp) {
 //  if (persist_exists(PERSIST_KEY_UPDATE_TIME)) {
 //    return persist_read_data(PERSIST_KEY_UPDATE_TIME, &s_update_time, sizeof(time_t));

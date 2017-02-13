@@ -2,7 +2,7 @@
 
 static uint8_t s_step_records[MAX_ENTRIES];
 static int s_num_records;
-static int s_step;
+static int s_steps;
 static time_t s_start, s_end;
 static int s_inactive_mins;
 static char s_start_buf[12];
@@ -41,6 +41,7 @@ static void prv_load_data(time_t *start, time_t *end) {
         //APP_LOG(APP_LOG_LEVEL_INFO, "Invalid data %d = %d", (int)i, (int)minute_data[i].steps);
       } else {
         s_step_records[i] = minute_data[i].steps;
+        s_steps += s_step_records[i];
         //if (s_step_records[i] > 0) {
         //  APP_LOG(APP_LOG_LEVEL_INFO, "s_step_records %d = %d", (int)i, (int)s_step_records[i]);
         //}
@@ -52,10 +53,8 @@ static void prv_load_data(time_t *start, time_t *end) {
 
 /* TODO: debugging function to report the nonsed periods. */
 void prv_report_steps(int i) {
-  s_step = 0;
   for (int j = i-enamel_get_break_len()-enamel_get_sliding_window()+1; j<=i; j++) {
-    s_step += s_step_records[j];
-    APP_LOG(APP_LOG_LEVEL_INFO, "prv_report_steps: i = %d, steps = %d", j, s_step_records[j]);
+    APP_LOG(APP_LOG_LEVEL_INFO, "prv_report_steps: j = %d, steps = %d", j, s_step_records[j]);
   }
 }
 /* 
@@ -65,7 +64,6 @@ void steps_update() {
   int i, break_freq, break_len, sliding_window;
   int nonsed_period = 0;
   //if (!s_is_update) { // FIXME: wanted to avoid multiple updates in the same session (i.e. within 1 minute so that step count will not change at all)
-    s_step = 0;
     s_end = time(NULL);
     s_start = s_end - SECONDS_PER_MINUTE * MAX_ENTRIES; 
 
@@ -87,11 +85,10 @@ void steps_update() {
       }
     }
     if (nonsed_period >= break_len) {
-      prv_report_steps(i);
       s_pass = true;
     } else {
       int prv_i = 0;
-      for ( ; i < MAX_ENTRIES; i++) {
+      for ( ; i < MAX_ENTRIES; i++, prv_i++) {
         if (s_step_records[i] >= enamel_get_step_threshold()) {
           nonsed_period += 1;
         }
@@ -101,7 +98,6 @@ void steps_update() {
           }
         }
         if (nonsed_period >= break_len) {
-          prv_report_steps(i);
           s_pass = true;
           break;
         }
@@ -110,12 +106,26 @@ void steps_update() {
 
     // Convert to human readable time for the display purpose.
     //APP_LOG(APP_LOG_LEVEL_ERROR, "enamel_get_sleep_minutes=%d", enamel_get_sleep_minutes());
-    s_end = s_start + i;
-    s_start = s_end - break_len - sliding_window + 1;
-    //s_start = s_end - ((int)enamel_get_sleep_minutes() * SECONDS_PER_MINUTE);
-    strftime(s_start_buf, sizeof(s_start_buf), "%H:%M", localtime(&s_start));
-    strftime(s_end_buf, sizeof(s_end_buf), "%H:%M", localtime(&s_end));
-    APP_LOG(APP_LOG_LEVEL_INFO, "%d steps from %s to %s", s_step, s_start_buf, s_end_buf);
+    if (s_pass) {
+      bool reset_first = false;
+      time_t start_time = time_start_of_today() + enamel_get_daily_start_time();
+      prv_report_steps(i);
+      if (time(NULL) < start_time + SECONDS_PER_HOUR + 5 * SECONDS_PER_MINUTE) { 
+        // TODO: need a more precise way to define the first wakeup event in the day?
+        reset_first = true;
+      }
+      store_increment_break_count(reset_first);
+
+      s_end = s_start + i;
+      s_start = s_end - break_len - sliding_window + 1;
+      strftime(s_start_buf, sizeof(s_start_buf), "%H:%M", localtime(&s_start));
+      strftime(s_end_buf, sizeof(s_end_buf), "%H:%M", localtime(&s_end));
+      APP_LOG(APP_LOG_LEVEL_INFO, "Non-sedentary period from %s to %s", s_start_buf, s_end_buf);
+    } else {
+      strftime(s_start_buf, sizeof(s_start_buf), "%H:%M", localtime(&s_start));
+      strftime(s_end_buf, sizeof(s_end_buf), "%H:%M", localtime(&s_end));
+      APP_LOG(APP_LOG_LEVEL_INFO, "%d steps from %s to %s", s_steps, s_start_buf, s_end_buf);
+    }
 }
 
 /**
@@ -123,14 +133,14 @@ void steps_update() {
  * This assume steps_update() was called recently.
  */
 void steps_wakeup_window_update() { 
-  wakeup_window_update(s_step, s_start_buf, s_end_buf, s_inactive_mins);
+  wakeup_window_update(s_steps, s_start_buf, s_end_buf, s_inactive_mins);
 }
 
-/* Whether we should alert the user or not. 
- * Yes if the user was not active in any sliding window during last sleeping interval.
+/** 
+ * Return true if the user pass the condition check (i.e. non-sedentary in the period).
  */
-bool steps_whether_alert() {
-  return !s_pass;
+bool steps_get_pass() {
+  return s_pass;
 }
 
 /* Return the inactive minutes. */

@@ -6,7 +6,7 @@ static time_t s_time;
 static Window *s_window;
 static TextLayer *s_main_text_layer, *s_top_text_layer, *s_bot_text_layer;
 
-static int s_step;
+static int s_steps;
 static char s_start[12], s_end[12];
 static char s_top_text_buf[40];
 static char s_bot_text_buf[40];
@@ -27,34 +27,58 @@ static TextLayer* make_text_layer(GRect bounds, GFont font, GTextAlignment align
 /* Procedure for how to update s_top_text_layer. */
 //static void top_text_layer_update_proc(Layer *layer, GContext *ctx) {
 static void top_text_layer_update_proc() {
-  APP_LOG(APP_LOG_LEVEL_INFO, "Steps: %d", s_step);
-  snprintf(s_top_text_buf, sizeof(s_top_text_buf), 
-           "%d steps during \n%s-%s", s_step, s_start, s_end);
+// Testing-begin
+  const char *text;
+  HealthActivityMask activity = health_service_peek_current_activities();
+  switch(activity) {
+    case HealthActivityNone:
+      text = "No activity."; break;
+    case HealthActivitySleep: 
+    case HealthActivityRestfulSleep: 
+      text = "Sleeping activity."; break;
+    case HealthActivityWalk:
+      text =  "Walking activity."; break;
+    case HealthActivityRun:
+      text = "Running activity."; break;
+    default:
+      text = "Unknown activity."; break;
+  }
+
+  // FIXME: For debugging purpose, display indicator for bluetooth connection
+  if (connection_service_peek_pebble_app_connection()) {
+    snprintf(s_top_text_buf, sizeof(s_top_text_buf), "%s!", text);
+  } else {
+    snprintf(s_top_text_buf, sizeof(s_top_text_buf), "%s.", text);
+  }
+
+  snprintf(s_top_text_buf, sizeof(s_top_text_buf), text);
   text_layer_set_text(s_top_text_layer, s_top_text_buf);
+// Testing-end
+  //if (!steps_get_pass()) {
+  //  snprintf(s_top_text_buf, sizeof(s_top_text_buf), 
+  //           "%d steps during \n%s-%s", s_steps, s_start, s_end);
+  //  text_layer_set_text(s_top_text_layer, s_top_text_buf);
+  //} else {
+  //  snprintf(s_top_text_buf, sizeof(s_top_text_buf), 
+  //           "non-sedentary during \n%s-%s", s_start, s_end);
+  //  text_layer_set_text(s_top_text_layer, s_top_text_buf);
+  //}
 }
 
 /* Procedure for how to update s_main_text_layer. */
 //static void main_text_layer_update_proc(Layer *layer, GContext *ctx) {
 static void main_text_layer_update_proc() {
   const char *text;
+
 	if (s_wakeup_launch) {
-  	if (s_step > enamel_get_step_threshold()) {
-  	  text = enamel_get_watch_pass_text();
-  	} else {
-  	  text = enamel_get_watch_alert_text();
-  	}
+    text = "Insert the random message here.";
+    snprintf(s_main_text_buf, sizeof(s_main_text_buf), text);
 	} else {
 		text = enamel_get_daily_summary_message();
+    snprintf(s_main_text_buf, sizeof(s_main_text_buf), text, 
+        store_get_break_count(), atoi(enamel_get_total_hour()));
 	}
-  int a = 1, b = 2;
-  APP_LOG(APP_LOG_LEVEL_ERROR, text, a, b);
   	
-  // FIXME: For debugging purpose, display indicator for bluetooth connection
-  if (connection_service_peek_pebble_app_connection()) {
-    snprintf(s_main_text_buf, sizeof(s_main_text_buf), "%s!", text);
-  } else {
-    snprintf(s_main_text_buf, sizeof(s_main_text_buf), "%s.", text);
-  }
   text_layer_set_text(s_main_text_layer, s_main_text_buf);
 }
 
@@ -218,7 +242,7 @@ void wakeup_window_remove() {
 
 /* Called by the steps module to update the information related to step count. */
 void wakeup_window_update(int steps, char *start, char *end, int inactive_mins) {
-  s_step = steps;
+  s_steps = steps;
   strncpy(s_start, start, sizeof(s_start));
   strncpy(s_end, end, sizeof(s_end));
   s_inactive_mins = inactive_mins;

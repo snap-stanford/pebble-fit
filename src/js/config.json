@@ -563,6 +563,15 @@
       ]
     },
     {
+      "type": "input",
+      "id": "total_hour",
+      "messageKey": "total_hour",
+      "defaultValue": 0,
+      "attributes": {
+        "type": "number"
+      }
+    },
+    {
       "type": "text",
       "id": "config_summary",
       "messageKey": "config_summary",

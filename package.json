@@ -64,8 +64,9 @@
       "break_len": 3007,
       "display_duration": 3008,
       "dynamic_wakeup": 3009,
-      "daily_summary_message": 3010,
-      "config_summary": 3011
+      "total_hour": 3011,
+      "config_summary": 3012,
+      "daily_summary_message": 4001
     },
     "resources": {
       "media": []
