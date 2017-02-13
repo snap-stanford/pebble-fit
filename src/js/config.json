@@ -16,6 +16,8 @@
   }
 },
 
+
+
 {
   "type": "toggle",
   "id": "is_consent",
@@ -445,14 +447,14 @@
       "type": "toggle",
       "id": "activate",
       "messageKey": "activate",
-      "label": "Activate pebble-fit App",
+      "label": "Activate Pebble Fit",
       "defaultValue": true
     },
     {
       "type": "select",
       "id": "vibrate",
       "messageKey": "vibrate",
-      "label": "Alert vibration type",
+      "label": "Notify with Vibration",
       "defaultValue": 1,
       "options": [
         { "label": "Single short pulse",  "value": 1 },
@@ -466,7 +468,7 @@
       "type": "input",
       "id": "daily_start_time",
       "messageKey": "daily_start_time",
-      "defaultValue": "09:00",
+      "defaultValue": "08:00",
       "label": "Start time",
       "attributes": {
         "type": "time",
@@ -487,15 +489,24 @@
     },
     {
       "type": "select",
-      "id": "sleep_minutes",
-      "messageKey": "sleep_minutes",
+      "id": "break_freq",
+      "messageKey": "break_freq",
       "defaultValue": 60,
-      "label": "Sleep interval:",
-      "description": "The maximum time interval between alerts. Regardless of this number, the App will always check the step data in the last 60 minutes.",
+      "label": "Break Frequency:",
+      "description": "How frequently do you want to take walking breaks?",
       "options": [
-        { "label": "1 hour",        "value": 60 },
-        { "label": "30 minutes",    "value": 30 },
-        { "label": "15 minutes",    "value": 15 }
+        { "label": "Every hour",        "value": 60 }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "break_len",
+      "messageKey": "break_len",
+      "defaultValue": 5,
+      "label": "Break Length:",
+      "description": "How many minutes of walking do you want to define as a break?",
+      "options": [
+        { "label": "5 minute",        "value": 5 }
       ]
     },
     {
@@ -510,14 +521,11 @@
       "type": "select",
       "id": "sliding_window",
       "messageKey": "sliding_window",
-      "defaultValue": 3,
+      "defaultValue": 2,
       "label": "Sliding window:",
       "description": "Smaller intervals within the range of the last 60 minutes. Might not be adjustable by the user in the final version.",
       "options": [
-        { "label": "3 minutes",     "value": 3 },
-        { "label": "5 minutes",     "value": 5 },
-        { "label": "10 minutes",    "value": 10 },
-        { "label": "15 minutes",    "value": 15 }
+        { "label": "2 minutes",     "value": 2 }
       ]
     },
     {
@@ -553,9 +561,22 @@
         { "label": "50",    "value": 50 },
         { "label": "60",    "value": 60 }
       ]
+    },
+    {
+      "type": "text",
+      "id": "config_summary",
+      "messageKey": "config_summary",
+      "defaultValue": ""
     }
   ]
 },
+{
+  "type": "input",
+  "id": "daily_summary_message",
+  "messageKey": "daily_summary_message",
+  "defaultValue": "You have accomplished %d of %d possible walking breaks today."
+},
+
 
 
 

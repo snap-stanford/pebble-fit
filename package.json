@@ -60,9 +60,12 @@
       "step_threshold": 3003,
       "daily_start_time": 3004,
       "daily_end_time": 3005,
-      "sleep_minutes": 3006,
-      "display_duration": 3007,
-      "dynamic_wakeup": 3008
+      "break_freq": 3006,
+      "break_len": 3007,
+      "display_duration": 3008,
+      "dynamic_wakeup": 3009,
+      "daily_summary_message": 3010,
+      "config_summary": 3011
     },
     "resources": {
       "media": []

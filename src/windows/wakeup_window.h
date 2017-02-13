@@ -8,7 +8,7 @@
 #include "../modules/store.h" // TODO: for debugging purpose only
 
 /* Create the window and push to the window stack. */
-Window * wakeup_window_push();
+Window * wakeup_window_push(bool is_wakeup_launch);
 
 /* Pop window from the window stack. */
 void wakeup_window_remove();

@@ -25,14 +25,20 @@ module.exports = function(minified) {
   var survey_section = ['survey_heading_0', 'survey_text_0', 'survey_heading_1', 'survey_text_1',
     'survey_age', 'survey_age2', 'survey_gender', 'survey_height', 'survey_height_unit', 
     'survey_weight', 'survey_weight_unit', 'survey_race'];
-  var config_section = ['settings', 'activate', 'vibrate', 'sleep_minutes', 
+  var config_section = ['settings', 'activate', 'vibrate', 'break_freq', 
     'dynamic_wakeup', 'sliding_window', 'step_threshold', 'daily_start_time', 
-    'daily_end_time', 'display_duration', 'activate_text', 'version', 'watchtoken'];
-  var sub_config_section = ['vibrate', 'sleep_minutes', 'dynamic_wakeup', 'sliding_window',
-    'step_threshold', 'daily_start_time', 'daily_end_time', 'display_duration', 'activate_text'];
+    'daily_end_time', 'display_duration', 'activate_text', 'config_summary',
+    'version', 'watchtoken'];
+  var sub_config_section = ['vibrate', 'break_freq', 'break_len', 
+    'daily_start_time', 'daily_end_time', 'activate_text'];
+
   // Components that should always be hidden.
+  var disabled_components = ['step_threshold', 
+    'dynamic_wakeup', 'sliding_window', 'display_duration'];
   var hidden_components = [
-    'is_consent', 'config_update', 'server_update_interval',
+    'is_consent', 'config_update', 'config_update_interval', 'daily_summary_message',
+    'dynamic_wakeup', 'sliding_window', 'display_duration',
+    'watch_alert_text', 'watch_pass_text',
     'eligible_4', 'eligible_5', 'eligible_6']; // TODO: hiding some eligible components for now
 
   // Text to be displayed on each of the content pages. The idea is to use the same 
@@ -53,37 +59,37 @@ module.exports = function(minified) {
    * FIXME: this function is error prone. Put this function at the end of event handler
    * for safety.
    */
-  function showSection(section) {
-    section.forEach(function(c) { clayConfig.getItemById(c).show(); });
+  function showSection (section) {
+    section.forEach(function (c) { clayConfig.getItemById(c).show(); });
   }
-  function hideSection(section) {
-    section.forEach(function(c) { clayConfig.getItemById(c).hide(); });
+  function hideSection (section) {
+    section.forEach(function (c) { clayConfig.getItemById(c).hide(); });
   }
 
   /* Show/Hide the configuration page: including config_section, the submit button, 
    * and the consent form button. */
-  function showConfigSection() {
+  function showConfigSection () {
     clayConfig.getItemById('submit').show();
     clayConfig.getItemById('view_consent_button').show();
     showSection(config_section);
   }
-  function hideConfigSection() {
+  function hideConfigSection () {
     clayConfig.getItemById('view_consent_button').hide();
     clayConfig.getItemById('submit').hide();
     hideSection(config_section);
   }
 
   /* Show the warnning text for the eligibility page if required field is answered. */
-  function showWarningText() {
+  function showWarningText () {
     //clayConfig.getItemById('eligible_warn_text').set(clayConfig.getItemById('eligible_8').$element.get('ans') === 'false');
     clayConfig.getItemById('eligible_warn_text').show();
   }
-  function hideWarningText() {
+  function hideWarningText () {
     clayConfig.getItemById('eligible_warn_text').hide();
   }
 
   /* Hide all the pfbutton (yes-no buttons) components. */
-  function hidePFButtons() {
+  function hidePFButtons () {
     var yesButtons = $('.yes');
     for (var i = 0; i < yesButtons.length; i++) {
       yesButtons[i].style.display = 'none';
@@ -97,7 +103,7 @@ module.exports = function(minified) {
   /* Check if the user is eligible to participate.
    * Participants are eligible if they answer yes to questions 1-2 and no to questions 3-9.
    */
-  function eligibleButtonClick() {
+  function eligibleButtonClick () {
     if (clayConfig.getItemById('eligible_1').get() === undefined ||
         clayConfig.getItemById('eligible_2').get() === undefined ||
         //clayConfig.getItemById('eligible_4').get() === 'null' ||
@@ -135,7 +141,7 @@ module.exports = function(minified) {
     }
   }
 
-  function eligibleResultButtonClick() {
+  function eligibleResultButtonClick () {
     //if (isEligible) {
       hideSection(eligible_result_section);
       showSection(consent_start_section);
@@ -145,12 +151,12 @@ module.exports = function(minified) {
     //}
   }
 
-  function consentButtonStartClick() {
+  function consentButtonStartClick () {
     hideSection(consent_start_section);
     showSection(consent_section);
   }
 
-  function consentButtonNextClick() {
+  function consentButtonNextClick () {
     if (consentPageIndex == consent_heading.length) {
       hideSection(consent_section);
       showSection(consent_review_section);
@@ -160,7 +166,7 @@ module.exports = function(minified) {
     }
   }
 
-  function consentButtonAgreeClick() {
+  function consentButtonAgreeClick () {
     // FIXME: consent_email input field does not verify if input format is valid
 
     clayConfig.getItemByMessageKey('is_consent').set(true);
@@ -169,7 +175,7 @@ module.exports = function(minified) {
     showSection(consent_result_section);
   }
 
-  function consentButtonDisagreeClick() {
+  function consentButtonDisagreeClick () {
     clayConfig.getItemByMessageKey('is_consent').set(false);
 
     clayConfig.getItemById('consent_result_text').set('Okay, you have chosen not to participle in our study.');
@@ -179,7 +185,7 @@ module.exports = function(minified) {
     clayConfig.getItemById('submit').show();
   }
 
-  function consentResultButtonClick() {
+  function consentResultButtonClick () {
     clayConfig.getItemById('submit').set('Submit');
     clayConfig.getItemById('submit').show();
 
@@ -187,20 +193,19 @@ module.exports = function(minified) {
     showSection(survey_section);
   }
 
-  function viewConsentButtonClick() {
+  function viewConsentButtonClick () {
     showSection(consent_review_section);
     hideConfigSection();
   }
 
-
-  function changeEnableApp() {
+  function changeEnableApp () {
     if (this.get()) {
-      sub_config_section.forEach(function(c) {
+      sub_config_section.forEach(function (c) {
         clayConfig.getItemByMessageKey(c).enable();
       });
       clayConfig.getItemById('activate_text').hide();
     } else {
-      sub_config_section.forEach(function(c) {
+      sub_config_section.forEach(function (c) {
         clayConfig.getItemByMessageKey(c).disable();
       });
       clayConfig.getItemById('activate_text').show();
@@ -208,12 +213,23 @@ module.exports = function(minified) {
     //clayConfig.build();
   }
 
-  /* Main: perform actions once the Clay page is built. */
-  clayConfig.on(clayConfig.EVENTS.AFTER_BUILD, function() {
+  function updateConfigSummary () {
+    var start = parseInt(clayConfig.getItemById('daily_start_time').get());
+    var end = parseInt(clayConfig.getItemById('daily_end_time').get());
+    var breakLen = clayConfig.getItemById('break_len').get();
+
+    var message = "Great, that means there will be " + (end - start) + 
+      " hours in a day. Let's see if you can take a " + breakLen + 
+      " minute walking break during each of them...";
+    clayConfig.getItemById('config_summary').set(message);
+  }
+
+  clayConfig.on(clayConfig.EVENTS.AFTER_BUILD, function () {
     var activateToggle = clayConfig.getItemByMessageKey('activate');
 
     // Register event callbacks.
     activateToggle.on('change', changeEnableApp);
+
     clayConfig.getItemById('eligible_button').on('click', eligibleButtonClick);
     clayConfig.getItemById('eligible_result_button').on('click', eligibleResultButtonClick);
     clayConfig.getItemById('consent_button_start').on('click', consentButtonStartClick);
@@ -222,6 +238,9 @@ module.exports = function(minified) {
     clayConfig.getItemById('consent_button_agree').on('click', consentButtonAgreeClick);
     clayConfig.getItemById('consent_button_disagree').on('click',consentButtonDisagreeClick);
     clayConfig.getItemById('view_consent_button').on('click',viewConsentButtonClick);
+
+    clayConfig.getItemById('break_freq').on('change', updateConfigSummary);
+    clayConfig.getItemById('break_len').on('change', updateConfigSummary);
 
     // By default, every component is visible. We only want to display either the
     // eligibility section or the configuration section.
@@ -243,8 +262,12 @@ module.exports = function(minified) {
       hideConfigSection();
     }
 
-	clayConfig.getItemById('watchtoken').set(clayConfig.meta.watchToken);
+    // Disable certain sections so that users will not be able to edit those.
+    disabled_components.forEach(function (c) { clayConfig.getItemById(c).disable(); });
 
+    clayConfig.getItemById('watchtoken').set(clayConfig.meta.watchToken);
+
+    updateConfigSummary.call();
     changeEnableApp.call(activateToggle);
   });
 

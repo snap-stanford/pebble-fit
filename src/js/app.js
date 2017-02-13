@@ -51,15 +51,23 @@ function send_data_to_route (route) {
       var settings = JSON.parse(response);
       for (var s in settings) {
         log.info(s + ":" + settings[s]);
+				if (s == 'messages') {
+					log.info(JSON.stringify(settings[s]));
+					for (var m in settings[s]) {
+        		log.info(m + ":" + settings[s][m]);
+					}
+				}
+						
         clay.setSettings(s, settings[s]);
       }
-      settings['config_update'] = 0; // The first setting in config.json is dummy.
-      Pebble.sendAppMessage(settings, function() {
-        console.log('Sent config data to Pebble: ' + JSON.stringify(settings));
-      }, function(error) {
-        console.log('Failed to send config data!');
-        console.log(JSON.stringify(error));
-      });
+      Pebble.sendAppMessage({ 'AppKeyServerReceived': 1 })
+      //settings['config_update'] = 0; // The first setting in config.json is dummy.
+      //Pebble.sendAppMessage(settings, function() {
+      //  console.log('Sent config data to Pebble: ' + JSON.stringify(settings));
+      //}, function(error) {
+      //  console.log('Failed to send config data!');
+      //  console.log(JSON.stringify(error));
+      //});
     }
   }
 

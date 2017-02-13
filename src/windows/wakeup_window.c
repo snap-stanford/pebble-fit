@@ -1,5 +1,6 @@
 #include "wakeup_window.h"
 
+static bool s_wakeup_launch;
 static time_t s_time;
 
 static Window *s_window;
@@ -9,7 +10,7 @@ static int s_step;
 static char s_start[12], s_end[12];
 static char s_top_text_buf[40];
 static char s_bot_text_buf[40];
-static char s_main_text_buf[40];
+static char s_main_text_buf[128];
 static int s_inactive_mins;
   
 
@@ -36,11 +37,18 @@ static void top_text_layer_update_proc() {
 //static void main_text_layer_update_proc(Layer *layer, GContext *ctx) {
 static void main_text_layer_update_proc() {
   const char *text;
-  if (s_step > enamel_get_step_threshold()) {
-    text = enamel_get_watch_pass_text();
-  } else {
-    text = enamel_get_watch_alert_text();
-  }
+	if (s_wakeup_launch) {
+  	if (s_step > enamel_get_step_threshold()) {
+  	  text = enamel_get_watch_pass_text();
+  	} else {
+  	  text = enamel_get_watch_alert_text();
+  	}
+	} else {
+		text = enamel_get_daily_summary_message();
+	}
+  int a = 1, b = 2;
+  APP_LOG(APP_LOG_LEVEL_ERROR, text, a, b);
+  	
   // FIXME: For debugging purpose, display indicator for bluetooth connection
   if (connection_service_peek_pebble_app_connection()) {
     snprintf(s_main_text_buf, sizeof(s_main_text_buf), "%s!", text);
@@ -52,23 +60,23 @@ static void main_text_layer_update_proc() {
 
 /* Procedure for how to update s_bot_text_layer. */
 //static void bot_text_layer_update_proc(Layer *layer, GContext *ctx) {
-static void bot_text_layer_update_proc() {
-  snprintf(s_bot_text_buf, sizeof(s_bot_text_buf), 
-           "been inactive for the last %dmins", s_inactive_mins);
-  text_layer_set_text(s_bot_text_layer, s_bot_text_buf);
-}
+//static void bot_text_layer_update_proc() {
+//  snprintf(s_bot_text_buf, sizeof(s_bot_text_buf), 
+//           "been inactive for the last %dmins", s_inactive_mins);
+//  text_layer_set_text(s_bot_text_layer, s_bot_text_buf);
+//}
 
 /* Mark all text layers to be dirty so that they can be re-rendered. */
 static void layer_mark_dirty_all() {
   layer_mark_dirty((Layer *)s_top_text_layer);
   layer_mark_dirty((Layer *)s_main_text_layer);
-  layer_mark_dirty((Layer *)s_bot_text_layer);
+  //layer_mark_dirty((Layer *)s_bot_text_layer);
 }
 
 static void prv_update_text() {
 	top_text_layer_update_proc();
 	main_text_layer_update_proc();
-	bot_text_layer_update_proc();
+	//bot_text_layer_update_proc();
 }
 
 /* Get the latest step count and update texts on the watch accordingly. */
@@ -88,7 +96,7 @@ static void window_load(Window *window) {
   float center = bounds.size.h / 2;
   int top_text_height = 40;
   //int main_text_height = PBL_IF_ROUND_ELSE(60, 70);
-  int main_text_height = 40;
+  int main_text_height = 80;
   int bot_text_height = 40;
 
   // The text layer that is above the main text layer
@@ -105,10 +113,10 @@ static void window_load(Window *window) {
     fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD), GTextAlignmentCenter);
 
   // The text layer that is below the main text layer
-  GEdgeInsets bot_text_insets = {.top = center+main_text_height/2, .right = 10, .left = 10};
-  s_bot_text_layer = make_text_layer(
-    grect_inset(bounds, bot_text_insets),
-    fonts_get_system_font(FONT_KEY_GOTHIC_24), GTextAlignmentCenter);
+  //GEdgeInsets bot_text_insets = {.top = center+main_text_height/2, .right = 10, .left = 10};
+  //s_bot_text_layer = make_text_layer(
+  //  grect_inset(bounds, bot_text_insets),
+  //  fonts_get_system_font(FONT_KEY_GOTHIC_24), GTextAlignmentCenter);
 
   // Set the update procedure
   //layer_set_update_proc((Layer *)s_top_text_layer, top_text_layer_update_proc);
@@ -122,7 +130,7 @@ static void window_load(Window *window) {
   // Add text layers to the window
   layer_add_child(root_layer, text_layer_get_layer(s_top_text_layer));
   layer_add_child(root_layer, text_layer_get_layer(s_main_text_layer));
-  layer_add_child(root_layer, text_layer_get_layer(s_bot_text_layer));
+  //layer_add_child(root_layer, text_layer_get_layer(s_bot_text_layer));
 
   // Mark them as dirty so that they can be rendered by update procedure immediately
   //layer_mark_dirty_all();
@@ -183,7 +191,9 @@ static void click_config_provider(void *context) {
 }
 
 /* Create a window and push to the window stack. */
-Window * wakeup_window_push() {
+Window * wakeup_window_push(bool is_wakeup_launch) {
+  APP_LOG(APP_LOG_LEVEL_ERROR, "is_wakeup_launch = %d", (int)is_wakeup_launch);
+	s_wakeup_launch = is_wakeup_launch;
   steps_wakeup_window_update();
   if (!s_window) {
     s_window = window_create();

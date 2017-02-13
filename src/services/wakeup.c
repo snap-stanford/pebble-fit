@@ -128,14 +128,14 @@ void schedule_wakeup_events(int inactive_mins) {
   // sooner. Minimum = 5 minutes.
   //force = force || t_event < prv_event_timestamp(PERSIST_KEY_WAKEUP_ID); // FIXME: refine 
   //prv_cancel_event();
-  if (enamel_get_dynamic_wakeup() == true) {
-    if (enamel_get_sleep_minutes() - inactive_mins <= MIN_SLEEP_MINUTES) {
+  if (enamel_get_dynamic_wakeup() == true) { // TODO: dynamic wakeup is deprecated.
+    if (enamel_get_break_freq() - inactive_mins <= MIN_SLEEP_MINUTES) {
       t_event = t_curr + MIN_SLEEP_MINUTES * SECONDS_PER_MINUTE;
     } else {
-      t_event = t_curr + (enamel_get_sleep_minutes() - inactive_mins) * SECONDS_PER_MINUTE;
+      t_event = t_curr + (enamel_get_break_freq() - inactive_mins) * SECONDS_PER_MINUTE;
     }
   } else {
-    t_event = t_curr + enamel_get_sleep_minutes() * SECONDS_PER_MINUTE;
+    t_event = t_curr + enamel_get_break_freq() * SECONDS_PER_MINUTE;
   }
   if (t_end <= t_start) { t_end += SECONDS_PER_DAY; }
   if (t_event < t_start) {

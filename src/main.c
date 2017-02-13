@@ -25,7 +25,7 @@ static bool s_enamel_on = false;
 //static void prv_launch_write(DictionaryIterator * out);
 static void prv_update_config(void *context);
 static void prv_init_callback(DictionaryIterator *iter, void *context);
-static void prv_wakeup_alert();
+static void prv_wakeup_vibrate();
 static void prv_launch_handler(bool activate);
 
 
@@ -90,7 +90,7 @@ static void prv_init_callback(DictionaryIterator *iter, void *context) {
  */
 static void prv_update_config(void *context) {
   APP_LOG(APP_LOG_LEVEL_INFO, "in prv_update_config. %d", enamel_get_activate());
-  APP_LOG(APP_LOG_LEVEL_INFO, "%s, %d, %d", enamel_get_watch_alert_text(), enamel_get_is_consent(), enamel_get_sleep_minutes());
+  APP_LOG(APP_LOG_LEVEL_INFO, "%s, %d, %d", enamel_get_watch_alert_text(), enamel_get_is_consent(), enamel_get_break_freq());
   
   if (enamel_get_activate()) {
     schedule_wakeup_events(steps_get_inactive_minutes());
@@ -116,12 +116,11 @@ static void prv_update_config(void *context) {
  * If the activity goal is met or the current activity is Sleep/RestfulSleep, it does nothing.
  * Otherwise, it will alert users by vibration and popping up alert window on the watch.
  */
-static void prv_wakeup_alert() {
+static void prv_wakeup_vibrate() {
   HealthActivityMask activity = health_service_peek_current_activities();
 
   if (activity != HealthActivitySleep && activity != HealthActivityRestfulSleep &&
       steps_whether_alert()) {
-    APP_LOG(APP_LOG_LEVEL_INFO, "enamel_get_vibrate()=%d", enamel_get_vibrate());
     switch (enamel_get_vibrate()) {
       case 1: vibes_short_pulse();      break;
       case 2: vibes_long_pulse();       break;
@@ -139,8 +138,6 @@ static void prv_wakeup_alert() {
       }
       default: break;
     }
-    //window_stack_remove(s_dialog_window, false);
-    s_wakeup_window =  wakeup_window_push();
   } else {
     APP_LOG(APP_LOG_LEVEL_INFO, "Step goal is met. Silent wakeup.");
   }
@@ -171,13 +168,13 @@ static void prv_launch_handler(bool activate) {
     bool will_timeout = false;
     // FIXME: subscribe to wakeup event to update steps even App is in the foreground.
 
-    steps_update(); // Essential for steps_whether_alert in prv_wakeup_alert.
+    steps_update(); // Essential for steps_whether_alert in prv_wakeup_vibrate.
     switch (launch_reason()) {
       case APP_LAUNCH_USER: // When launched via the launch menu on the watch.
         e_launch_reason = USER_LAUNCH;
         APP_LOG(APP_LOG_LEVEL_ERROR, "Cancelling all wakeup events! Must be rescheduled.");
         wakeup_cancel_all();
-        s_wakeup_window = wakeup_window_push();
+        s_wakeup_window = wakeup_window_push(false);
         break;
       case APP_LAUNCH_WAKEUP: // When launched due to wakeup event.
         e_launch_reason = WAKEUP_LAUNCH;
@@ -185,21 +182,22 @@ static void prv_launch_handler(bool activate) {
         wakeup_get_launch_event(&wakeup_id, &wakeup_cookie);
         APP_LOG(APP_LOG_LEVEL_INFO, "wakeup %d , cookie %d", (int)wakeup_id, (int)wakeup_cookie);
         if (wakeup_cookie == 0) {
-          prv_wakeup_alert(); // This will call wakeup_window_push().
+          prv_wakeup_vibrate();
         } else {
           APP_LOG(APP_LOG_LEVEL_ERROR, "Fallback wakeup! cookie=%d", (int)wakeup_cookie);
         }
+        s_wakeup_window =  wakeup_window_push(true);
         break;
       case APP_LAUNCH_PHONE: // When open the App's settings page or after installation 
+        APP_LOG(APP_LOG_LEVEL_ERROR, "Launching by phone!!!!!!");
         e_launch_reason = PHONE_LAUNCH;
-        prv_wakeup_alert();
-        s_wakeup_window = wakeup_window_push();
+        s_wakeup_window = wakeup_window_push(false);
         break;
       default: 
         e_launch_reason = OTHER_LAUNCH;
         APP_LOG(APP_LOG_LEVEL_ERROR, "Cancelling all wakeup events! Must be rescheduled.");
         wakeup_cancel_all();
-        s_wakeup_window = wakeup_window_push();
+        s_wakeup_window = wakeup_window_push(false);
     }
     // Prevent seeing other windows when presseing the "back" button.
     window_stack_remove(s_dialog_window, false);
