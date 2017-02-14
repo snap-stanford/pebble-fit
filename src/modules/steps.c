@@ -108,14 +108,8 @@ void steps_update() {
     // Convert to human readable time for the display purpose.
     //APP_LOG(APP_LOG_LEVEL_ERROR, "enamel_get_sleep_minutes=%d", enamel_get_sleep_minutes());
     if (s_pass) {
-      bool reset_first = false;
-      time_t start_time = time_start_of_today() + enamel_get_daily_start_time();
       prv_report_steps(i);
-      if (time(NULL) < start_time + SECONDS_PER_HOUR + 5 * SECONDS_PER_MINUTE) { 
-        // TODO: need a more precise way to define the first wakeup event in the day?
-        reset_first = true;
-      }
-      store_increment_break_count(reset_first);
+      store_increment_break_count();
 
       s_end = s_start + i;
       s_start = s_end - break_len - sliding_window + 1;

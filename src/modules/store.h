@@ -14,7 +14,8 @@ bool store_resend_config_request(time_t curr_time);
 bool store_resend_launchexit_event();
 bool store_resend_steps();
 
-void store_increment_break_count(bool reset_first);
+void store_reset_break_count();
+void store_increment_break_count();
 int store_get_break_count();
 
 const char* store_get_random_message();

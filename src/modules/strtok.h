@@ -3,5 +3,5 @@
 #include <stddef.h>
 #include <string.h>
 
-char *strtok_2(char *s, const char *delim);
+char *strtok(char *s, const char *delim);
 

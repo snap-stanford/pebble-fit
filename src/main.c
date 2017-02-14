@@ -168,6 +168,13 @@ static void prv_launch_handler(bool activate) {
     bool will_timeout = false;
     // FIXME: subscribe to wakeup event to update steps even App is in the foreground.
 
+    // Reset break count to 0 if it is the first launch in the day (since we will re-calculate
+    // the steps upon the first wakeup event, it is safe to reset multiple times)
+    time_t start_time = time_start_of_today() + enamel_get_daily_start_time();
+    if (s_launch_time < start_time + SECONDS_PER_HOUR + 5 * SECONDS_PER_MINUTE) { 
+      store_reset_break_count();
+    }
+
     switch (launch_reason()) {
       case APP_LAUNCH_USER: // When launched via the launch menu on the watch.
         e_launch_reason = USER_LAUNCH;
@@ -180,7 +187,9 @@ static void prv_launch_handler(bool activate) {
         e_launch_reason = WAKEUP_LAUNCH;
         will_timeout = true;
 
-        steps_update(); // Calculate steps only at the scheduled wakeup event.
+	// TODO: Calculate steps only at the scheduled wakeup event? What if user accomplish goal and manually check it before the scheduled wakeup?
+        steps_update(); 
+
 
         wakeup_get_launch_event(&wakeup_id, &wakeup_cookie);
         APP_LOG(APP_LOG_LEVEL_INFO, "wakeup %d , cookie %d", (int)wakeup_id, (int)wakeup_cookie);

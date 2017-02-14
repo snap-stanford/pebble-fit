@@ -27,7 +27,14 @@ static TextLayer* make_text_layer(GRect bounds, GFont font, GTextAlignment align
 /* Procedure for how to update s_top_text_layer. */
 //static void top_text_layer_update_proc(Layer *layer, GContext *ctx) {
 static void top_text_layer_update_proc() {
-// Testing-begin
+  char random_message[40];
+  const char delim[2] = ":";
+  snprintf(random_message, sizeof(random_message), store_get_random_message());
+  // TODO: use custom version of strtok
+  const char *message_id = strtok(random_message, delim);
+  const char *message_content = strtok(NULL, ":");
+
+  // FIXME: For debugging purpose, display indicator for bluetooth connection
   const char *text;
   HealthActivityMask activity = health_service_peek_current_activities();
   switch(activity) {
@@ -43,27 +50,14 @@ static void top_text_layer_update_proc() {
     default:
       text = "Unknown"; break;
   }
-  char absz[20];
-  char random_message[30];
-  const char delim[2] = ":";
-  const char *temp = store_get_random_message();
-  APP_LOG(APP_LOG_LEVEL_INFO, "ABSZ:%s", temp);
-  snprintf(random_message, sizeof(random_message), "%s", temp);
-  APP_LOG(APP_LOG_LEVEL_INFO, "ABSZ:%s", random_message);
-  strtok_2(random_message, delim);
-  APP_LOG(APP_LOG_LEVEL_INFO, "ABSZ:%s", random_message);
-  char *rm = strtok_2(NULL, ":");
-
-  // FIXME: For debugging purpose, display indicator for bluetooth connection
   if (connection_service_peek_pebble_app_connection()) {
-    snprintf(s_top_text_buf, sizeof(s_top_text_buf), "%s.%s!", rm, text);
+    snprintf(s_top_text_buf, sizeof(s_top_text_buf), "%s!%s!", message_content, text);
   } else {
-    snprintf(s_top_text_buf, sizeof(s_top_text_buf), "%s.%s.", rm, text);
+    snprintf(s_top_text_buf, sizeof(s_top_text_buf), "%s.%s.", message_content, text);
   }
 
-  //snprintf(s_top_text_buf, sizeof(s_top_text_buf), text);
   text_layer_set_text(s_top_text_layer, s_top_text_buf);
-// Testing-end
+
   //if (!steps_get_pass()) {
   //  snprintf(s_top_text_buf, sizeof(s_top_text_buf), 
   //           "%d steps during \n%s-%s", s_steps, s_start, s_end);

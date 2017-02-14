@@ -166,10 +166,18 @@ bool store_resend_steps(time_t curr_time) {
 }
 
 /**
+ * Reset the break count to 0. This should be performed in the first wakeup daily.
+ */
+void store_reset_break_count() {
+      	    APP_LOG(APP_LOG_LEVEL_ERROR, "RESET break count");
+  persist_write_int(PERSIST_KEY_BREAK_COUNT, 0); 
+}
+
+/**
  * Increment the break count by 1. If it not exists or require reset_first, set it to 1.
  */
-void store_increment_break_count(bool reset_first) {
-  if (!persist_exists(PERSIST_KEY_BREAK_COUNT) || reset_first) {
+void store_increment_break_count() {
+  if (!persist_exists(PERSIST_KEY_BREAK_COUNT)) {
     persist_write_int(PERSIST_KEY_BREAK_COUNT, 1); 
   } else {
     persist_write_int(PERSIST_KEY_BREAK_COUNT, persist_read_int(PERSIST_KEY_BREAK_COUNT)+1); 

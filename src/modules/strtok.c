@@ -55,7 +55,7 @@
 #include "strtok.h"
 
 char *
-strtok_2(s, delim)
+strtok(s, delim)
 	register char *s;
 	register const char *delim;
 {
