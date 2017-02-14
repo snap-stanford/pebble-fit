@@ -192,15 +192,15 @@ const char* store_get_random_message() {
     return enamel_get_message_random_0();
   } else {
     int index = persist_read_int(PERSIST_KEY_RANDOM_MSG_INDEX);
+    index = index >= RANDOM_MSG_POOL_SIZE - 1? 0 : index + 1;
+    persist_write_int(PERSIST_KEY_RANDOM_MSG_INDEX, index);
 		APP_LOG(APP_LOG_LEVEL_ERROR, "index=%d", index);
+
     switch (index) {
       case 1: return enamel_get_message_random_1(); break;
       case 2: return enamel_get_message_random_2(); break;
       default: return enamel_get_message_random_0();
     }
-
-    index = index >= RANDOM_MSG_POOL_SIZE - 1? 0 : index + 1;
-    persist_write_int(PERSIST_KEY_RANDOM_MSG_INDEX, index);
   }
 }
 
