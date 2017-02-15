@@ -1,5 +1,5 @@
 {
-  "name": "daily_message",
+  "group": "daily_message",
   "break_len": "5", 
   "break_freq": "60",
   "messages": {

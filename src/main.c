@@ -148,23 +148,6 @@ static void prv_wakeup_vibrate() {
 
 /* Push a window depends on whether this App is activated or not. */ 
 static void prv_launch_handler(bool activate) {
-  APP_LOG(APP_LOG_LEVEL_INFO, "pebble-fit launch_reason = %d", (int)launch_reason());
-  // Testing-begin
-  HealthActivityMask activity = health_service_peek_current_activities();
-  switch(activity) {
-    case HealthActivityNone:
-      APP_LOG(APP_LOG_LEVEL_ERROR, "No activity."); break;
-    case HealthActivitySleep: 
-    case HealthActivityRestfulSleep: 
-      APP_LOG(APP_LOG_LEVEL_ERROR, "Sleeping activity."); break;
-    case HealthActivityWalk:
-      APP_LOG(APP_LOG_LEVEL_ERROR, "Walking activity."); break;
-    case HealthActivityRun:
-      APP_LOG(APP_LOG_LEVEL_ERROR, "Running activity."); break;
-    default:
-      APP_LOG(APP_LOG_LEVEL_ERROR, "Unknown activity."); break;
-  }
-  // Testing-end
   if (activate) {
     WakeupId wakeup_id;
     int32_t wakeup_cookie;
@@ -178,42 +161,44 @@ static void prv_launch_handler(bool activate) {
       store_reset_break_count();
     }
 
+    // TODO: Calculate steps only at the scheduled wakeup event? What if user accomplish goal and manually check it before the scheduled wakeup?
+    steps_update(); 
+
     switch (launch_reason()) {
       case APP_LAUNCH_USER: // When launched via the launch menu on the watch.
-        e_launch_reason = USER_LAUNCH;
+        e_launch_reason = LAUNCH_USER;
         APP_LOG(APP_LOG_LEVEL_ERROR, "Cancelling all wakeup events! Must be rescheduled.");
         wakeup_cancel_all();
 
-        s_wakeup_window = wakeup_window_push(false);
+        s_wakeup_window = wakeup_window_push();
         break;
       case APP_LAUNCH_WAKEUP: // When launched due to wakeup event.
-        e_launch_reason = WAKEUP_LAUNCH;
         will_timeout = true;
-
-	// TODO: Calculate steps only at the scheduled wakeup event? What if user accomplish goal and manually check it before the scheduled wakeup?
-        steps_update(); 
-
 
         wakeup_get_launch_event(&wakeup_id, &wakeup_cookie);
         APP_LOG(APP_LOG_LEVEL_INFO, "wakeup %d , cookie %d", (int)wakeup_id, (int)wakeup_cookie);
-        if (wakeup_cookie == 0) {
+
+        // wakeup_cookie is the index associated to the wakeup event.
+        e_launch_reason = wakeup_cookie;
+        if (wakeup_cookie <= LAUNCH_WAKEUP_DAILY) {
           prv_wakeup_vibrate();
         } else {
           APP_LOG(APP_LOG_LEVEL_ERROR, "Fallback wakeup! cookie=%d", (int)wakeup_cookie);
         }
 
-        s_wakeup_window =  wakeup_window_push(true);
+        // TODO: if this is a notification wakeup and goal is met, should we still push window?
+        s_wakeup_window =  wakeup_window_push();
         break;
       case APP_LAUNCH_PHONE: // When open the App's settings page or after installation 
-        e_launch_reason = PHONE_LAUNCH;
+        e_launch_reason = LAUNCH_PHONE;
 
-        s_wakeup_window = wakeup_window_push(false);
+        s_wakeup_window = wakeup_window_push();
         break;
       default: 
-        e_launch_reason = OTHER_LAUNCH;
+        e_launch_reason = LAUNCH_OTHER;
         APP_LOG(APP_LOG_LEVEL_ERROR, "Cancelling all wakeup events! Must be rescheduled.");
         wakeup_cancel_all();
-        s_wakeup_window = wakeup_window_push(false);
+        s_wakeup_window = wakeup_window_push();
     }
     // Prevent seeing other windows when presseing the "back" button.
     window_stack_remove(s_dialog_window, false);
@@ -228,6 +213,8 @@ static void prv_launch_handler(bool activate) {
     window_stack_remove(s_wakeup_window, false);
     s_dialog_window = dialog_window_push();
   }
+
+  APP_LOG(APP_LOG_LEVEL_INFO, "pebble-fit launch_reason = %d", e_launch_reason);
 }
 
 static void init(void) {
@@ -240,8 +227,8 @@ static void init(void) {
   //app_message_set_context(callback);
   
   events_app_message_request_outbox_size(APP_MESSAGE_OUTBOX_SIZE_MINIMUM);
-	//s_normal_msg_handler = events_app_message_register_inbox_received(prv_test, prv_init_callback);
-	s_normal_msg_handler = events_app_message_register_inbox_received(prv_init_callback, NULL);
+        //s_normal_msg_handler = events_app_message_register_inbox_received(prv_test, prv_init_callback);
+        s_normal_msg_handler = events_app_message_register_inbox_received(prv_init_callback, NULL);
   s_enamel_msg_handler = enamel_settings_received_subscribe(prv_update_config, NULL);
   events_app_message_open(); // Call pebble-events app_message_open function
 

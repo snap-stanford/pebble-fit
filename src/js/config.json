@@ -11,7 +11,7 @@
   "messageKey": "config_update_interval",
   "description": "The number of days between two configuration updates (the app will send request to check for new configuration update)",
   "defaultValue": 1,
-	"attributes": {
+  "attributes": {
     "type": "number"
   }
 },
@@ -572,37 +572,53 @@
       }
     },
     {
+      "type": "select",
+      "id": "group",
+      "messageKey": "group",
+      "defaultValue": 0,
+      "options": [
+        { "label": "passive_tracking",  "value": 0 },
+        { "label": "daily_message",     "value": 1 },
+        { "label": "realtime_random",   "value": 2 },
+        { "label": "realtime_action",   "value": 3 },
+        { "label": "realtime_outcome",  "value": 4 },
+        { "label": "realtime_health",   "value": 5 },
+        { "label": "realtime_adaptive", "value": 6 }
+      ]
+    },
+    {
       "type": "text",
       "id": "config_summary",
       "messageKey": "config_summary",
       "defaultValue": ""
+    },
+    {
+      "type": "input",
+      "id": "message_daily_summary",
+      "messageKey": "message_daily_summary",
+      "defaultValue": "You have accomplished %d of %d possible walking breaks today."
+    },
+    {
+      "type": "input",
+      "id": "message_random_0",
+      "messageKey": "message_random_0",
+      "defaultValue": ""
+    },
+    {
+      "type": "input",
+      "id": "message_random_1",
+      "messageKey": "message_random_1",
+      "defaultValue": ""
+    },
+    {
+      "type": "input",
+      "id": "message_random_2",
+      "messageKey": "message_random_2",
+      "defaultValue": ""
     }
   ]
 },
-{
-  "type": "input",
-  "id": "message_daily_summary",
-  "messageKey": "message_daily_summary",
-  "defaultValue": "You have accomplished %d of %d possible walking breaks today."
-},
-{
-  "type": "input",
-  "id": "message_random_0",
-  "messageKey": "message_random_0",
-  "defaultValue": ""
-},
-{
-  "type": "input",
-  "id": "message_random_1",
-  "messageKey": "message_random_1",
-  "defaultValue": ""
-},
-{
-  "type": "input",
-  "id": "message_random_2",
-  "messageKey": "message_random_2",
-  "defaultValue": ""
-},
+
 
 
 
@@ -625,7 +641,7 @@
   "type": "text",
   "id": "version",
   "messageKey": "version",
-  "defaultValue": "v1.0.0" 
+  "defaultValue": "v1.1.0" 
 },
 {
   "type": "text",

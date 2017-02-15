@@ -34,7 +34,7 @@ void store_write_config_time(time_t time) {
  */
 void store_write_update_time(time_t time) {
   APP_LOG(APP_LOG_LEVEL_INFO, "Store update time = %d", (int) time);
-  persist_write_data(PERSIST_KEY_UPDATE_TIME, &time, sizeof(time_t));
+  persist_write_data(PERSIST_KEY_UPLOAD_TIME, &time, sizeof(time_t));
 }
 
 /**
@@ -143,22 +143,25 @@ bool store_resend_launchexit_event() {
  * sending in here.
  */
 bool store_resend_steps(time_t curr_time) {
-  time_t last_update_time; 
-  time_t interval_seconds = MAX_ENTRIES * SECONDS_PER_MINUTE;
-  //last_update_time = (last_update_time < time_start_of_today());
+  time_t last_upload_time; 
+  time_t interval_seconds = enamel_get_break_freq() * SECONDS_PER_MINUTE;
+  //last_upload_time = (last_upload_time < time_start_of_today());
 
-  if (persist_exists(PERSIST_KEY_UPDATE_TIME)) {
-    persist_read_data(PERSIST_KEY_UPDATE_TIME, &last_update_time, sizeof(time_t));
-    if (last_update_time >= curr_time - interval_seconds) {
+  if (persist_exists(PERSIST_KEY_UPLOAD_TIME)) {
+    persist_read_data(PERSIST_KEY_UPLOAD_TIME, &last_upload_time, sizeof(time_t));
+		if (last_upload_time  < time_start_of_today() - 2 * SECONDS_PER_DAY) {
+			// If last upload time is ealier than 2 days ago, only upload starting at 2 days ago
+			last_upload_time = time_start_of_today() - 2 * SECONDS_PER_DAY;
+    } else if (last_upload_time >= curr_time - interval_seconds) {
       // Data in the lastest 60 minutes will be sent by the normal data upload routine.
       return true;
     }
 
-    steps_send_in_between(last_update_time, last_update_time + interval_seconds, true);
+    steps_send_in_between(last_upload_time, last_upload_time + interval_seconds, true);
 
-    last_update_time += interval_seconds;
-    persist_write_data(PERSIST_KEY_UPDATE_TIME, &last_update_time, sizeof(time_t));
-    //return last_update_time < curr_time - interval_seconds;
+    last_upload_time += interval_seconds;
+    persist_write_data(PERSIST_KEY_UPLOAD_TIME, &last_upload_time, sizeof(time_t));
+    //return last_upload_time < curr_time - interval_seconds;
     return false;
   } else {
     return true;
@@ -214,8 +217,8 @@ const char* store_get_random_message() {
 
 
 //int store_read_update_time(time_t timestamp) {
-//  if (persist_exists(PERSIST_KEY_UPDATE_TIME)) {
-//    return persist_read_data(PERSIST_KEY_UPDATE_TIME, &s_update_time, sizeof(time_t));
+//  if (persist_exists(PERSIST_KEY_UPLOAD_TIME)) {
+//    return persist_read_data(PERSIST_KEY_UPLOAD_TIME, &s_update_time, sizeof(time_t));
 //  } else {
 //    return -1; // 0xffffffff
 //  }

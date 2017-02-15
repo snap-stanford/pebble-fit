@@ -1,6 +1,5 @@
 #include "wakeup_window.h"
 
-static bool s_wakeup_launch;
 static time_t s_time;
 
 static Window *s_window;
@@ -27,62 +26,71 @@ static TextLayer* make_text_layer(GRect bounds, GFont font, GTextAlignment align
 /* Procedure for how to update s_top_text_layer. */
 //static void top_text_layer_update_proc(Layer *layer, GContext *ctx) {
 static void top_text_layer_update_proc() {
-  char random_message[40];
-  const char delim[2] = ":";
-  snprintf(random_message, sizeof(random_message), store_get_random_message());
-  // TODO: use custom version of strtok
-  const char *message_id = strtok(random_message, delim);
-  const char *message_content = strtok(NULL, ":");
-
-  // FIXME: For debugging purpose, display indicator for bluetooth connection
-  const char *text;
-  HealthActivityMask activity = health_service_peek_current_activities();
-  switch(activity) {
-    case HealthActivityNone:
-      text = "None"; break;
-    case HealthActivitySleep: 
-    case HealthActivityRestfulSleep: 
-      text = "Sleeping"; break;
-    case HealthActivityWalk:
-      text = "Walking"; break;
-    case HealthActivityRun:
-      text = "Running"; break;
-    default:
-      text = "Unknown";
-  }
-  if (connection_service_peek_pebble_app_connection()) {
-    snprintf(s_top_text_buf, sizeof(s_top_text_buf), "%s!%s!", message_content, text);
+  char *text;
+  if (e_launch_reason == LAUNCH_WAKEUP_PERIOD) {
+    if (steps_get_pass()) {
+      text = "Break accomplished. Nice work!";
+    } else {
+      text = "Opps! Break missed.";
+    }
+    snprintf(s_top_text_buf, sizeof(s_top_text_buf), "%s", text);
+    text_layer_set_text(s_top_text_layer, s_top_text_buf);
   } else {
-    snprintf(s_top_text_buf, sizeof(s_top_text_buf), "%s.%s.", message_content, text);
+    //text = "";
+    // DEBUG BEGIN
+    if (!steps_get_pass()) {
+      snprintf(s_top_text_buf, sizeof(s_top_text_buf), 
+               "%d steps during \n%s-%s", s_steps, s_start, s_end);
+      text_layer_set_text(s_top_text_layer, s_top_text_buf);
+    } else {
+      snprintf(s_top_text_buf, sizeof(s_top_text_buf), 
+               "non-sedentary during \n%s-%s", s_start, s_end);
+      text_layer_set_text(s_top_text_layer, s_top_text_buf);
+    }
+    // DEBUG END
   }
 
-  text_layer_set_text(s_top_text_layer, s_top_text_buf);
-
-  //if (!steps_get_pass()) {
-  //  snprintf(s_top_text_buf, sizeof(s_top_text_buf), 
-  //           "%d steps during \n%s-%s", s_steps, s_start, s_end);
-  //  text_layer_set_text(s_top_text_layer, s_top_text_buf);
-  //} else {
-  //  snprintf(s_top_text_buf, sizeof(s_top_text_buf), 
-  //           "non-sedentary during \n%s-%s", s_start, s_end);
-  //  text_layer_set_text(s_top_text_layer, s_top_text_buf);
-  //}
+  //text_layer_set_text(s_top_text_layer, s_top_text_buf);
 }
 
 /* Procedure for how to update s_main_text_layer. */
 //static void main_text_layer_update_proc(Layer *layer, GContext *ctx) {
 static void main_text_layer_update_proc() {
-  const char *text;
+  if (e_launch_reason == LAUNCH_WAKEUP_NOTIFY) {
+    char random_message[40];
+    const char delim[2] = ":";
+    snprintf(random_message, sizeof(random_message), store_get_random_message());
+    // TODO: use custom version of strtok
+    const char *message_id = strtok(random_message, delim);
+    const char *message_content = strtok(NULL, ":");
 
-	if (s_wakeup_launch) {
-    text = "Insert the random message here.";
-    snprintf(s_main_text_buf, sizeof(s_main_text_buf), text);
-	} else {
-		text = enamel_get_message_daily_summary();
-    snprintf(s_main_text_buf, sizeof(s_main_text_buf), text, 
-        store_get_break_count(), atoi(enamel_get_total_hour()));
-	}
-  	
+    // FIXME: For debugging purpose, display indicator for bluetooth connection
+    const char *text;
+    HealthActivityMask activity = health_service_peek_current_activities();
+    switch(activity) {
+      case HealthActivityNone:
+        text = "None"; break;
+      case HealthActivitySleep: 
+      case HealthActivityRestfulSleep: 
+        text = "Sleeping"; break;
+      case HealthActivityWalk:
+        text = "Walking"; break;
+      case HealthActivityRun:
+        text = "Running"; break;
+      default:
+        text = "Unknown";
+    }
+    if (connection_service_peek_pebble_app_connection()) {
+      snprintf(s_main_text_buf, sizeof(s_main_text_buf), "%s!%s!", message_content, text);
+    } else {
+      snprintf(s_main_text_buf, sizeof(s_main_text_buf), "%s.%s.", message_content, text);
+    }
+  } else {
+    const char *daily_summary = enamel_get_message_daily_summary();
+    snprintf(s_main_text_buf, sizeof(s_main_text_buf), daily_summary, 
+      store_get_break_count(), atoi(enamel_get_total_hour()));
+  }
+    
   text_layer_set_text(s_main_text_layer, s_main_text_buf);
 }
 
@@ -102,16 +110,16 @@ static void layer_mark_dirty_all() {
 }
 
 static void prv_update_text() {
-	top_text_layer_update_proc();
-	main_text_layer_update_proc();
-	//bot_text_layer_update_proc();
+  top_text_layer_update_proc();
+  main_text_layer_update_proc();
+  //bot_text_layer_update_proc();
 }
 
 /* Get the latest step count and update texts on the watch accordingly. */
 void wakeup_window_breathe() {
   steps_update();
   steps_wakeup_window_update();
-	prv_update_text();
+  prv_update_text();
   //layer_mark_dirty_all();
 }
 
@@ -150,9 +158,9 @@ static void window_load(Window *window) {
   //layer_set_update_proc((Layer *)s_top_text_layer, top_text_layer_update_proc);
   //layer_set_update_proc((Layer *)s_main_text_layer, main_text_layer_update_proc);
   //layer_set_update_proc((Layer *)s_bot_text_layer, bot_text_layer_update_proc);
-	//top_text_layer_update_proc();
-	//main_text_layer_update_proc();
-	//bot_text_layer_update_proc();
+  //top_text_layer_update_proc();
+  //main_text_layer_update_proc();
+  //bot_text_layer_update_proc();
   prv_update_text();
 
   // Add text layers to the window
@@ -188,8 +196,8 @@ static void window_unload(Window *window) {
 
 /* Back button click handler. */
 static void back_click_handler(ClickRecognizerRef recognizer, void *context) {
-	e_exit_reason = USER_EXIT;
-	window_stack_pop_all(false);
+  e_exit_reason = USER_EXIT;
+  window_stack_pop_all(false);
 }
 
 static void up_click_handler(ClickRecognizerRef recognizer, void *context) {
@@ -218,16 +226,21 @@ static void click_config_provider(void *context) {
   window_single_click_subscribe(BUTTON_ID_DOWN, down_click_handler);
 }
 
-/* Create a window and push to the window stack. */
-Window * wakeup_window_push(bool is_wakeup_launch) {
-  APP_LOG(APP_LOG_LEVEL_ERROR, "is_wakeup_launch = %d", (int)is_wakeup_launch);
-	s_wakeup_launch = is_wakeup_launch;
+/**
+ *  Create a wakeup window and push to the window stack. 
+ *  wakeup_window_type specifies what kind of messages to be displayed.
+ *    WAKEUP_WINDOW_MANUAL: manually launch message.
+ *    WAKEUP_WINDOW_DAILY: daily message.
+ *    WAKEUP_WINDOW_NOTIFY: notification message.
+ *    WAKEUP_WINDOW_PERIOD: normal periodic wakeup message.
+ */
+Window * wakeup_window_push() {
   steps_wakeup_window_update();
   if (!s_window) {
     s_window = window_create();
 
-		// Set click handlers for windows.
-  	window_set_click_config_provider(s_window, click_config_provider);
+    // Set click handlers for windows.
+    window_set_click_config_provider(s_window, click_config_provider);
 
 
     window_set_window_handlers(s_window, (WindowHandlers) {

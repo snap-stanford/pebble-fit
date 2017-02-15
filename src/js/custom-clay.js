@@ -218,7 +218,8 @@ module.exports = function(minified) {
   function updateConfigSummary () {
     var start = parseInt(clayConfig.getItemById('daily_start_time').get());
     var end = parseInt(clayConfig.getItemById('daily_end_time').get());
-    var totalHour = Math.abs(end - start);
+		if (end < start) end += 24;
+    var totalHour = end - start;
     var breakLen = clayConfig.getItemById('break_len').get();
 
     var message = "Great, that means there will be " + totalHour + 
