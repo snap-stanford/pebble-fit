@@ -48,7 +48,7 @@ static void top_text_layer_update_proc() {
     case HealthActivityRun:
       text = "Running"; break;
     default:
-      text = "Unknown"; break;
+      text = "Unknown";
   }
   if (connection_service_peek_pebble_app_connection()) {
     snprintf(s_top_text_buf, sizeof(s_top_text_buf), "%s!%s!", message_content, text);

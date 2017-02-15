@@ -4,5 +4,4 @@
 #include "../enamel.h"
 #include "../constants.h"
 
-/* Schedule wakeup event */
-void schedule_wakeup_events(int inactive_mins);
+void schedule_wakeup_events(int inactive_mins, time_t t_curr);

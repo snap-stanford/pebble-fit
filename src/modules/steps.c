@@ -63,6 +63,7 @@ void prv_report_steps(int i) {
 void steps_update() {
   int i, break_freq, break_len, sliding_window;
   int nonsed_period = 0;
+  s_pass = false;
   //if (!s_is_update) { // FIXME: wanted to avoid multiple updates in the same session (i.e. within 1 minute so that step count will not change at all)
     s_end = time(NULL);
     s_start = s_end - SECONDS_PER_MINUTE * MAX_ENTRIES; 

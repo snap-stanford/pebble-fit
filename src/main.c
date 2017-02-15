@@ -93,7 +93,8 @@ static void prv_update_config(void *context) {
   APP_LOG(APP_LOG_LEVEL_INFO, "%s, %d, %d", enamel_get_watch_alert_text(), enamel_get_is_consent(), enamel_get_break_freq());
   
   if (enamel_get_activate()) {
-    schedule_wakeup_events(steps_get_inactive_minutes());
+    //TODO: double check whether this is redundant?
+    schedule_wakeup_events(steps_get_inactive_minutes(), s_launch_time);
     if (s_wakeup_window == NULL) {
       prv_launch_handler(true); // FIXME: this will cause infinite recursive calls.  // Change from dialog_window to wakeup_window.
     } else {
@@ -108,6 +109,8 @@ static void prv_update_config(void *context) {
   }
 
   store_write_config_time(time(NULL));
+
+  store_reset_break_count();
 
   tick_second_subscribe(true); // Will timeout
 }
@@ -219,7 +222,7 @@ static void prv_launch_handler(bool activate) {
     tick_second_subscribe(will_timeout);
 
     // Always re-schedule wakeup events (do not put return in the above code)
-    schedule_wakeup_events(steps_get_inactive_minutes());
+    schedule_wakeup_events(steps_get_inactive_minutes(), s_launch_time);
   } else {
     // Prevent seeing other windows when presseing the "back" button.
     window_stack_remove(s_wakeup_window, false);

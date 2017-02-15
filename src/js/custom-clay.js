@@ -37,8 +37,8 @@ module.exports = function(minified) {
     'dynamic_wakeup', 'sliding_window', 'display_duration'];
   var hidden_components = [
     'is_consent', 'config_update', 'config_update_interval',
-    'message_daily_summary', 
- 		//'total_hour', 'message_random_0', 'message_random_1', 'message_random_2',
+    'message_daily_summary', 'total_hour', 
+		//'message_random_0', 'message_random_1', 'message_random_2',
     'dynamic_wakeup', 'sliding_window', 'display_duration',
     'watch_alert_text', 'watch_pass_text',
     'eligible_4', 'eligible_5', 'eligible_6']; // TODO: hiding some eligible components for now
@@ -218,7 +218,7 @@ module.exports = function(minified) {
   function updateConfigSummary () {
     var start = parseInt(clayConfig.getItemById('daily_start_time').get());
     var end = parseInt(clayConfig.getItemById('daily_end_time').get());
-    var totalHour = end - start;
+    var totalHour = Math.abs(end - start);
     var breakLen = clayConfig.getItemById('break_len').get();
 
     var message = "Great, that means there will be " + totalHour + 
