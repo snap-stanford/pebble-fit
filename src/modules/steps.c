@@ -13,6 +13,7 @@ static bool s_pass = false;
 
 /* Load health service data for the last hour into a static array. */
 static void prv_load_data(time_t *start, time_t *end) {
+	s_steps = 0;
   if (!s_is_loaded) {
     // Set the static array to zeros
     s_num_records = 0;

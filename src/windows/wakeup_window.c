@@ -3,19 +3,21 @@
 static time_t s_time;
 
 static Window *s_window;
-static TextLayer *s_main_text_layer, *s_top_text_layer, *s_bot_text_layer;
+static ScrollLayer *s_scroll_layer;
+static TextLayer *s_main_text_layer, *s_top_text_layer;
+static GFont s_main_text_font, s_top_text_font;
 
 static int s_steps;
 static char s_start[12], s_end[12];
 static char s_top_text_buf[40];
-static char s_bot_text_buf[40];
-static char s_main_text_buf[128];
+static char s_main_text_buf[1024];
 static int s_inactive_mins;
   
 
 /* Set standard attributes on new text layer in this window. */
 static TextLayer* make_text_layer(GRect bounds, GFont font, GTextAlignment align) {
   TextLayer *this = text_layer_create(bounds);
+  text_layer_set_overflow_mode(this, GTextOverflowModeWordWrap);
   text_layer_set_background_color(this, GColorClear);
   text_layer_set_text_color(this, GColorBlack);
   text_layer_set_text_alignment(this, align);
@@ -87,32 +89,28 @@ static void main_text_layer_update_proc() {
     }
   } else {
     const char *daily_summary = enamel_get_message_daily_summary();
+     
     snprintf(s_main_text_buf, sizeof(s_main_text_buf), daily_summary, 
       store_get_break_count(), atoi(enamel_get_total_hour()));
   }
     
   text_layer_set_text(s_main_text_layer, s_main_text_buf);
+
+  // Set up ScrollLayer according to the text size (assuming top_text_layer_update_proc done).
+  strcat(s_main_text_buf, "\n\n\n");
+  GSize text_size = text_layer_get_content_size(s_main_text_layer);
+  GSize text_size2 = text_layer_get_content_size(s_top_text_layer);
+  text_size.w += text_size2.w;
+  text_size.h += text_size2.h;
+  scroll_layer_set_content_size(s_scroll_layer, text_size);
 }
 
-/* Procedure for how to update s_bot_text_layer. */
-//static void bot_text_layer_update_proc(Layer *layer, GContext *ctx) {
-//static void bot_text_layer_update_proc() {
-//  snprintf(s_bot_text_buf, sizeof(s_bot_text_buf), 
-//           "been inactive for the last %dmins", s_inactive_mins);
-//  text_layer_set_text(s_bot_text_layer, s_bot_text_buf);
-//}
-
-/* Mark all text layers to be dirty so that they can be re-rendered. */
-static void layer_mark_dirty_all() {
-  layer_mark_dirty((Layer *)s_top_text_layer);
-  layer_mark_dirty((Layer *)s_main_text_layer);
-  //layer_mark_dirty((Layer *)s_bot_text_layer);
-}
-
+/**
+ * Make sure to update the top text TextLayer before the main TextLayer. 
+ */
 static void prv_update_text() {
   top_text_layer_update_proc();
   main_text_layer_update_proc();
-  //bot_text_layer_update_proc();
 }
 
 /* Get the latest step count and update texts on the watch accordingly. */
@@ -120,7 +118,25 @@ void wakeup_window_breathe() {
   steps_update();
   steps_wakeup_window_update();
   prv_update_text();
-  //layer_mark_dirty_all();
+}
+
+/* Back button click handler. Set the exit reason and then exit. */
+static void back_click_handler(ClickRecognizerRef recognizer, void *context) {
+  e_exit_reason = EXIT_USER;
+  window_stack_pop_all(false);
+}
+
+static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
+  text_layer_set_text(s_main_text_layer, "reset timestamp");
+  // Reset last update timestamp to 2 hour ago
+  store_write_config_time(time(NULL) - 2 * SECONDS_PER_DAY);
+  //steps_get_prior_week();
+}
+
+/* Deprecated. Set click event handlers. */
+static void click_config_provider(void *context) {
+  window_single_click_subscribe(BUTTON_ID_BACK, back_click_handler);
+  window_single_click_subscribe(BUTTON_ID_SELECT, select_click_handler);
 }
 
 static void window_load(Window *window) {
@@ -132,47 +148,47 @@ static void window_load(Window *window) {
   float center = bounds.size.h / 2;
   int top_text_height = 40;
   //int main_text_height = PBL_IF_ROUND_ELSE(60, 70);
-  int main_text_height = 80;
-  int bot_text_height = 40;
+  int main_text_height = 2000;
 
   // The text layer that is above the main text layer
-  GEdgeInsets top_text_insets = {.top = 20, .right = 10, .left = 10};
+  GEdgeInsets top_text_insets = {.top = 10, .right = 10, .left = 10};
+  s_top_text_font = fonts_get_system_font(FONT_KEY_GOTHIC_24); 
   s_top_text_layer = make_text_layer(
-    grect_inset(bounds, top_text_insets),
-    PBL_IF_ROUND_ELSE(fonts_get_system_font(FONT_KEY_GOTHIC_24), 
-      fonts_get_system_font(FONT_KEY_GOTHIC_24)), 
-    GTextAlignmentCenter);
+    grect_inset(bounds, top_text_insets),s_top_text_font, GTextAlignmentCenter);
 
   // The main text layer that resides in the center of the screen
-  s_main_text_layer = make_text_layer(
-    GRect(0, center - padding, bounds.size.w, main_text_height), 
-    fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD), GTextAlignmentCenter);
+  GEdgeInsets main_text_insets = {.top = 10, .right = 0, .left = 0};
+  GRect main_text_bounds = grect_inset(
+    GRect(0, center - padding, bounds.size.w, main_text_height), main_text_insets);
+  s_main_text_font = fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD);
+  s_main_text_layer = make_text_layer(main_text_bounds, s_main_text_font, GTextAlignmentCenter);
 
-  // The text layer that is below the main text layer
-  //GEdgeInsets bot_text_insets = {.top = center+main_text_height/2, .right = 10, .left = 10};
-  //s_bot_text_layer = make_text_layer(
-  //  grect_inset(bounds, bot_text_insets),
-  //  fonts_get_system_font(FONT_KEY_GOTHIC_24), GTextAlignmentCenter);
+  // Create the ScrollLayer
+  s_scroll_layer = scroll_layer_create(bounds);
+  //scroll_layer_set_shadow_hidden(s_scroll_layer, true);
+
+  // Let the ScrollLayer receive click events, and set click handlers for windows.
+  scroll_layer_set_click_config_onto_window(s_scroll_layer, s_window);
+  scroll_layer_set_callbacks(s_scroll_layer, (ScrollLayerCallbacks) {
+    .click_config_provider =  click_config_provider,
+  });
 
   // Set the update procedure
-  //layer_set_update_proc((Layer *)s_top_text_layer, top_text_layer_update_proc);
-  //layer_set_update_proc((Layer *)s_main_text_layer, main_text_layer_update_proc);
-  //layer_set_update_proc((Layer *)s_bot_text_layer, bot_text_layer_update_proc);
-  //top_text_layer_update_proc();
-  //main_text_layer_update_proc();
-  //bot_text_layer_update_proc();
   prv_update_text();
 
-  // Add text layers to the window
-  layer_add_child(root_layer, text_layer_get_layer(s_top_text_layer));
-  layer_add_child(root_layer, text_layer_get_layer(s_main_text_layer));
-  //layer_add_child(root_layer, text_layer_get_layer(s_bot_text_layer));
+  // Add TextLayer as children of the ScrollLayer.
+  scroll_layer_add_child(s_scroll_layer, text_layer_get_layer(s_top_text_layer));
+  scroll_layer_add_child(s_scroll_layer, text_layer_get_layer(s_main_text_layer));
 
-  // Mark them as dirty so that they can be rendered by update procedure immediately
-  //layer_mark_dirty_all();
+  // Add the ScrollLayer to the window.
+  layer_add_child(root_layer, scroll_layer_get_layer(s_scroll_layer));
 }
 
 static void window_unload(Window *window) {
+  if (s_scroll_layer) {
+    scroll_layer_destroy(s_scroll_layer);
+    s_scroll_layer = NULL;
+  }
   if (s_main_text_layer) {
     text_layer_destroy(s_main_text_layer);
     s_main_text_layer = NULL;
@@ -181,49 +197,9 @@ static void window_unload(Window *window) {
     text_layer_destroy(s_top_text_layer);
     s_top_text_layer = NULL;
   }
-  if (s_bot_text_layer) {
-    text_layer_destroy(s_bot_text_layer);
-    s_bot_text_layer = NULL;
-  }
-  //if (s_debug1_layer) {
-  //  text_layer_destroy(s_debug1_layer);
-  //  s_debug1_layer = NULL;
-  //}
 
   window_destroy(s_window);
   s_window = NULL;
-}
-
-/* Back button click handler. */
-static void back_click_handler(ClickRecognizerRef recognizer, void *context) {
-  e_exit_reason = USER_EXIT;
-  window_stack_pop_all(false);
-}
-
-static void up_click_handler(ClickRecognizerRef recognizer, void *context) {
-  text_layer_set_text(s_main_text_layer, "test mode 0");
-  launch_send_test(0);
-}
-
-static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
-  text_layer_set_text(s_main_text_layer, "reset timestamp");
-  // Reset last update timestamp to 2 hour ago
-  store_write_config_time(time(NULL) - 2 * SECONDS_PER_DAY);
-  //steps_get_prior_week();
-}
-
-static void down_click_handler(ClickRecognizerRef recognizer, void *context) {
-  text_layer_set_text(s_main_text_layer, "test mode 1");
-  launch_send_test(1);
-}
-
-
-/* Set click event handlers. */
-static void click_config_provider(void *context) {
-  window_single_click_subscribe(BUTTON_ID_BACK, back_click_handler);
-  window_single_click_subscribe(BUTTON_ID_UP, up_click_handler);
-  window_single_click_subscribe(BUTTON_ID_SELECT, select_click_handler);
-  window_single_click_subscribe(BUTTON_ID_DOWN, down_click_handler);
 }
 
 /**
@@ -238,10 +214,6 @@ Window * wakeup_window_push() {
   steps_wakeup_window_update();
   if (!s_window) {
     s_window = window_create();
-
-    // Set click handlers for windows.
-    window_set_click_config_provider(s_window, click_config_provider);
-
 
     window_set_window_handlers(s_window, (WindowHandlers) {
       .load  = window_load,
