@@ -3,5 +3,6 @@
 #include <pebble.h>
 #include "../enamel.h"
 #include "../constants.h"
+#include "../modules/launch.h"
 
-void schedule_wakeup_events(int inactive_mins, time_t t_curr);
+void wakeup_schedule_events(int inactive_mins);

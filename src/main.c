@@ -16,7 +16,6 @@
 #include "windows/dialog_window.h"
 
 static EventHandle s_normal_msg_handler, s_enamel_msg_handler;
-static time_t s_launch_time;
 static time_t s_exit_time;
 static Window *s_dialog_window = NULL; 
 static Window *s_wakeup_window = NULL;
@@ -52,7 +51,7 @@ static void prv_init_callback(DictionaryIterator *iter, void *context) {
     case 0:
       // Connection between watch and phone is established (may or may not contain AppKeyJSReady).
       js_ready = true;
-      launch_send_launch_notification(s_launch_time);
+      launch_send_launch_notification();
       init_stage++;
       break;
     case 1:
@@ -94,7 +93,7 @@ static void prv_update_config(void *context) {
   
   if (enamel_get_activate()) {
     //TODO: double check whether this is redundant?
-    schedule_wakeup_events(steps_get_inactive_minutes(), s_launch_time);
+    wakeup_schedule_events(steps_get_inactive_minutes());
     if (s_wakeup_window == NULL) {
       prv_launch_handler(true); // FIXME: this will cause infinite recursive calls.  // Change from dialog_window to wakeup_window.
     } else {
@@ -157,7 +156,7 @@ static void prv_launch_handler(bool activate) {
     // Reset break count to 0 if it is the first launch in the day (since we will re-calculate
     // the steps upon the first wakeup event, it is safe to reset multiple times)
     time_t start_time = time_start_of_today() + enamel_get_daily_start_time();
-    if (s_launch_time < start_time + SECONDS_PER_HOUR + 5 * SECONDS_PER_MINUTE) { 
+    if (e_launch_time < start_time + SECONDS_PER_HOUR + 5 * SECONDS_PER_MINUTE) { 
       store_reset_break_count();
     }
 
@@ -207,7 +206,7 @@ static void prv_launch_handler(bool activate) {
     tick_second_subscribe(will_timeout);
 
     // Always re-schedule wakeup events (do not put return in the above code)
-    schedule_wakeup_events(steps_get_inactive_minutes(), s_launch_time);
+    wakeup_schedule_events(steps_get_inactive_minutes());
   } else {
     // Prevent seeing other windows when presseing the "back" button.
     window_stack_remove(s_wakeup_window, false);
@@ -218,7 +217,7 @@ static void prv_launch_handler(bool activate) {
 }
 
 static void init(void) {
-  s_launch_time = time(NULL); // FIXME: rounded to minute?
+  e_launch_time = time(NULL); // FIXME: rounded to minute?
 
   //health_subscribe();
   enamel_init();
@@ -244,10 +243,8 @@ static void deinit(void) {
     launch_send_exit_notification(s_exit_time);
   } else {
     // Store launch-exit record if the connection could not be established right now.
-    store_write_launchexit_event(s_launch_time, s_exit_time, e_launch_reason, e_exit_reason);
+    store_write_launchexit_event(e_launch_time, s_exit_time, e_launch_reason, e_exit_reason);
   }
-  
-  //store_write_launchexit_event(s_launch_time, s_exit_time, e_launch_reason, e_exit_reason);
 
   // Deinit Enamel to unregister App Message handlers and save settings
   if (s_enamel_on) {

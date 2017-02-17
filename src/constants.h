@@ -52,5 +52,6 @@ static const uint32_t PERSIST_KEY_LAUNCH_END        = 1128; // Keys 1001-1128 ar
 static const uint32_t PERSIST_KEY_UPLOAD_TIME       = 200;
 static const uint32_t PERSIST_KEY_CONFIG_TIME       = 201;
 static const uint32_t PERSIST_KEY_BREAK_COUNT       = 202;
-static const uint32_t PERSIST_KEY_RANDOM_MSG_INDEX  = 203; // Random message index.
+static const uint32_t PERSIST_KEY_BREAK_COUNT_TIME  = 203;
+static const uint32_t PERSIST_KEY_RANDOM_MSG_INDEX  = 204; // Random message index.
 

@@ -1,7 +1,5 @@
 #include "wakeup_window.h"
 
-static time_t s_time;
-
 static Window *s_window;
 static ScrollLayer *s_scroll_layer;
 static TextLayer *s_main_text_layer, *s_top_text_layer;
@@ -61,7 +59,7 @@ static void main_text_layer_update_proc() {
   if (e_launch_reason == LAUNCH_WAKEUP_NOTIFY) {
     char random_message[40];
     const char delim[2] = ":";
-    snprintf(random_message, sizeof(random_message), store_get_random_message());
+    snprintf(random_message, sizeof(random_message), store_read_random_message());
     // TODO: use custom version of strtok
     const char *message_id = strtok(random_message, delim);
     const char *message_content = strtok(NULL, ":");
@@ -91,7 +89,7 @@ static void main_text_layer_update_proc() {
     const char *daily_summary = enamel_get_message_daily_summary();
      
     snprintf(s_main_text_buf, sizeof(s_main_text_buf), daily_summary, 
-      store_get_break_count(), atoi(enamel_get_total_hour()));
+      store_read_break_count(), atoi(enamel_get_total_hour()));
   }
     
   text_layer_set_text(s_main_text_layer, s_main_text_buf);
@@ -127,9 +125,14 @@ static void back_click_handler(ClickRecognizerRef recognizer, void *context) {
 }
 
 static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
-  text_layer_set_text(s_main_text_layer, "reset timestamp");
+  e_exit_reason = EXIT_USER;
+  window_stack_pop_all(false);
+  //text_layer_set_text(s_main_text_layer, "reset timestamp");
+  //store_reset_break_count();
+
   // Reset last update timestamp to 2 hour ago
-  store_write_config_time(time(NULL) - 2 * SECONDS_PER_DAY);
+  //store_write_config_time(time(NULL) - 2 * SECONDS_PER_DAY);
+
   //steps_get_prior_week();
 }
 

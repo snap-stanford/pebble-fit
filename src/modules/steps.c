@@ -64,8 +64,9 @@ void prv_report_steps(int i) {
 void steps_update() {
   int i, break_freq, break_len, sliding_window;
   int nonsed_period = 0;
-  s_pass = false;
+	
   //if (!s_is_update) { // FIXME: wanted to avoid multiple updates in the same session (i.e. within 1 minute so that step count will not change at all)
+  	s_pass = false;
     s_end = time(NULL);
     s_start = s_end - SECONDS_PER_MINUTE * MAX_ENTRIES; 
 
@@ -111,7 +112,14 @@ void steps_update() {
     //APP_LOG(APP_LOG_LEVEL_ERROR, "enamel_get_sleep_minutes=%d", enamel_get_sleep_minutes());
     if (s_pass) {
       prv_report_steps(i);
-      store_increment_break_count();
+
+			// If the step goal had been achieved in this period, there is no need to calculate steps 
+  		// again, since we only increment break count once per period.
+			// FIXME: could optimiza by moving to the front of this function to save time.
+			time_t t_last = store_read_break_count_time();
+  		time_t break_freq_seconds = (time_t)enamel_get_break_freq() * SECONDS_PER_MINUTE;
+			if (t_last < e_launch_time / break_freq_seconds * break_freq_seconds) 
+      	store_increment_break_count();
 
       s_end = s_start + i;
       s_start = s_end - break_len - sliding_window + 1;
@@ -162,12 +170,12 @@ static void data_write(DictionaryIterator * out) {
 }
 
 /* Send steps in the time frame of 60 minutes. */
-void steps_send_in_between(time_t start, time_t end, bool force) {
+void steps_send_in_between(time_t t_start, time_t end, bool force) {
   if (force) {
     // Force prv_load_data to load load from Pebble Health.
     s_is_loaded = false;
   }
-  prv_load_data(&start, &end);
+  prv_load_data(&t_start, &end);
 
   if (s_num_records == 0) {
     APP_LOG(APP_LOG_LEVEL_INFO, "No new steps data to send.");
@@ -181,11 +189,11 @@ void steps_send_in_between(time_t start, time_t end, bool force) {
  * Send the latest steps data in the last hour.
  * FIXME: this could be integrated into store_resend_steps(). 
  */
-void steps_send_latest(time_t curr_time) {
-  time_t start = curr_time - (MAX_ENTRIES * SECONDS_PER_MINUTE);
-  steps_send_in_between(start, curr_time, false);
+void steps_send_latest(time_t t_curr) {
+  time_t t_start = t_curr - (MAX_ENTRIES * SECONDS_PER_MINUTE);
+  steps_send_in_between(t_start, t_curr, false);
 
-  store_write_update_time(curr_time);
+  store_write_upload_time(t_curr);
 }
 
 /**

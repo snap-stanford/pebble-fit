@@ -6,8 +6,9 @@
 #include "steps.h"
 #include "../services/wakeup.h"
 
-extern int e_exit_reason;
+extern time_t e_launch_time;
 extern int e_launch_reason;
+extern int e_exit_reason;
 
 /* Send launch events to the phone app. */
 void launch_send_launch_notification();

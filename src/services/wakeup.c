@@ -111,7 +111,7 @@ static WakeupId prv_reschedule_wakeup_event(uint8_t wakeup_i, time_t wakeup_time
  *  LAUNCH_WAKEUP_NOTIFY  | Notification wakeup: 2 * break_len before the next periodic wakeup. 
  *  LAUNCH_WAKEUP_DAILY   | Daily wakeup: at the end time of the day. 
  */
-void schedule_wakeup_events(int inactive_mins, time_t t_curr) {
+void wakeup_schedule_events(int inactive_mins) {
   time_t t_notify, t_wakeup;
   time_t break_freq_seconds = (time_t)enamel_get_break_freq() * SECONDS_PER_MINUTE;
   time_t break_len_seconds = (time_t)enamel_get_break_len() * SECONDS_PER_MINUTE;
@@ -126,22 +126,22 @@ void schedule_wakeup_events(int inactive_mins, time_t t_curr) {
 
   // Debug messages
   char curr_buf[12], start_buf[12], end_buf[12];
-  strftime(curr_buf, sizeof(curr_buf),"%H:%M:%S", localtime(&t_curr));
+  strftime(curr_buf, sizeof(curr_buf),"%H:%M:%S", localtime(&e_launch_time));
   strftime(start_buf, sizeof(start_buf),"%H:%M:%S", localtime(&t_start));
   strftime(end_buf, sizeof(end_buf), "%H:%M:%S", localtime(&t_end));
   APP_LOG(APP_LOG_LEVEL_INFO,"curr=%s, start=%s, end=%s", curr_buf, start_buf, end_buf);
 
-  APP_LOG(APP_LOG_LEVEL_ERROR, "%d", enamel_get_group());
   if (enamel_get_group() >= GROUP_REALTIME_RANDOM) {
     if (enamel_get_dynamic_wakeup() == true) { // TODO: dynamic wakeup is deprecated.
       APP_LOG(APP_LOG_LEVEL_ERROR, "Dynamic wakeup is deprecated!");
       if (enamel_get_break_freq() - inactive_mins <= MIN_SLEEP_MINUTES) {
-        t_wakeup = t_curr + MIN_SLEEP_MINUTES * SECONDS_PER_MINUTE;
+        t_wakeup = e_launch_time + MIN_SLEEP_MINUTES * SECONDS_PER_MINUTE;
       } else {
-        t_wakeup = t_curr + (enamel_get_break_freq() - inactive_mins) * SECONDS_PER_MINUTE;
+        t_wakeup = e_launch_time + (enamel_get_break_freq() - inactive_mins) * SECONDS_PER_MINUTE;
       }
     } else {
-      t_wakeup = (t_curr + break_freq_seconds - 1) / break_freq_seconds * break_freq_seconds;
+      t_wakeup = (e_launch_time + break_freq_seconds - 1) / 
+                  break_freq_seconds * break_freq_seconds;
     }
 
     // Boundary conditions checking
