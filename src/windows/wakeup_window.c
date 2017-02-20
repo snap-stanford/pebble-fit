@@ -118,10 +118,15 @@ static void back_click_handler(ClickRecognizerRef recognizer, void *context) {
   window_stack_pop_all(false);
 }
 
+/**
+ * Handler for the select button. It is same as back_click_handler() or used for debugging.
+ */
 static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
-  e_exit_reason = EXIT_USER;
-  window_stack_pop_all(false);
   //text_layer_set_text(s_main_text_layer, "reset timestamp");
+  //store_write_upload_time(e_launch_time);
+
+  back_click_handler(recognizer, context);
+
   //store_reset_break_count();
 
   // Reset last update timestamp to 2 hour ago

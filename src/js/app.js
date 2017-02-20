@@ -16,8 +16,8 @@ log.set_level(3);
 var SERVER = 'http://pebble-fit.herokuapp.com';
 
 // Local servers (use ifconfig to find out).
-//var SERVER = 'http://10.30.202.74:3000';
-var SERVER = 'http://10.34.183.179:3000';
+var SERVER = 'http://10.30.202.74:3000';
+//var SERVER = 'http://10.34.183.179:3000';
 
 // Flag to switch off server communication
 var USE_OFFLINE = true;
@@ -73,8 +73,8 @@ function send_data_to_route (route) {
 					clay.setSettings(key, settings[key]);
         }
       }
+			settings['AppKeyServerReceived'] = 1;
       console.log(JSON.stringify(settings));
-      //Pebble.sendAppMessage({ 'AppKeyServerReceived': 1 })
       settings['config_update'] = 0; // The first setting in config.json is dummy.
       Pebble.sendAppMessage(settings, function() {
         console.log('Sent config data to Pebble: ' + JSON.stringify(settings));

@@ -19,9 +19,8 @@ void launch_send_exit_notification();
 /* Send testing message to the phone app. */
 void launch_send_test();
 
-/* TODO .*/
-//void launch_resend(time_t time, int reason, bool is_launch);
-void launch_resend(time_t launch_time, time_t exit_time, int launch_reason, int exit_reason);
+void launch_resend(time_t t_launch, time_t t_exit, char *msg_id, uint8_t lr, uint8_t er);
 
 void launch_set_random_message();
 const char* launch_get_random_message();
+const char* launch_get_random_message_id();

@@ -1,11 +1,12 @@
 #include "comm.h"
 
-bool js_ready = false;
+bool e_js_ready = false;
+bool e_server_ready = false;
 
 /* Log that js is ready. */
-static void js_ready_handler(DictionaryIterator *iter, void *context) {
+static void e_js_ready_handler(DictionaryIterator *iter, void *context) {
   if(dict_find(iter, AppKeyJSReady)) {
-    js_ready = true;
+    e_js_ready = true;
     APP_LOG(APP_LOG_LEVEL_INFO, "Connected to JS!");
     ((CommCallback *) context)();
   } else {
@@ -15,7 +16,7 @@ static void js_ready_handler(DictionaryIterator *iter, void *context) {
 
 /* Open app message. */
 void comm_init(CommCallback *callback) {
-  app_message_register_inbox_received(js_ready_handler);
+  app_message_register_inbox_received(e_js_ready_handler);
   app_message_set_context(callback);
   
   const int inbox_size = APP_MESSAGE_INBOX_SIZE_MINIMUM;
@@ -42,7 +43,7 @@ void comm_send_data(
   AppMessageOutboxSent sent_handler,
   AppMessageInboxReceived received_handler
 ) {
-  if (!js_ready) {
+  if (!e_js_ready) {
     APP_LOG(APP_LOG_LEVEL_ERROR, "Communication is not ready.");
     return;
   }

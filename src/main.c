@@ -47,10 +47,16 @@ static void prv_init_callback(DictionaryIterator *iter, void *context) {
   bool is_finished = false;
 
   APP_LOG(APP_LOG_LEVEL_INFO, "Init stage %d", init_stage);
+
+  if(!e_server_ready && dict_find(iter, AppKeyServerReceived)) {
+    APP_LOG(APP_LOG_LEVEL_ERROR, "Server Ready!");
+    e_server_ready = true;
+  }
+
   switch (init_stage) {
     case 0:
-      // Connection between watch and phone is established (may or may not contain AppKeyJSReady).
-      js_ready = true;
+      // First message from phone. Connection between watch and phone is established.
+      e_js_ready = true;
       launch_send_launch_notification();
       init_stage++;
       break;
@@ -59,6 +65,7 @@ static void prv_init_callback(DictionaryIterator *iter, void *context) {
       is_finished = store_resend_launchexit_event();
       if (is_finished) {
         init_stage++; 
+
         // Since no data is sent and no packet expected to arrive, we call this function 
         // again to move to the next stage.
         prv_init_callback(iter, context);
@@ -227,7 +234,7 @@ static void init(void) {
   //health_subscribe();
   enamel_init();
   
-  //app_message_register_inbox_received(js_ready_handler);
+  //app_message_register_inbox_received(e_js_ready_handler);
   //app_message_set_context(callback);
   
   events_app_message_request_outbox_size(APP_MESSAGE_OUTBOX_SIZE_MINIMUM);
@@ -243,7 +250,7 @@ static void init(void) {
 static void deinit(void) {
   // FIXME: if app remains active, steps data keep sending to the server.
   s_exit_time = time(NULL);
-  if (js_ready) {
+  if (e_server_ready) {
     // Send the exit record (the launch record has already been uploaded).
     launch_send_exit_notification(s_exit_time);
   } else {
