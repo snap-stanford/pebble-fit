@@ -8,9 +8,8 @@ static GFont s_main_text_font, s_top_text_font;
 static int s_steps;
 static char s_start[12], s_end[12];
 static char s_top_text_buf[40];
-static char s_main_text_buf[1024];
+static char s_main_text_buf[512];
 static int s_inactive_mins;
-  
 
 /* Set standard attributes on new text layer in this window. */
 static TextLayer* make_text_layer(GRect bounds, GFont font, GTextAlignment align) {
@@ -56,14 +55,8 @@ static void top_text_layer_update_proc() {
 /* Procedure for how to update s_main_text_layer. */
 //static void main_text_layer_update_proc(Layer *layer, GContext *ctx) {
 static void main_text_layer_update_proc() {
-  if (e_launch_reason == LAUNCH_WAKEUP_NOTIFY) {
-    char random_message[40];
-    const char delim[2] = ":";
-    snprintf(random_message, sizeof(random_message), store_read_random_message());
-    // TODO: use custom version of strtok
-    const char *message_id = strtok(random_message, delim);
-    const char *message_content = strtok(NULL, ":");
-
+  //if (e_launch_reason == LAUNCH_WAKEUP_NOTIFY) {
+  if (e_launch_reason == LAUNCH_WAKEUP_NOTIFY || e_launch_reason == LAUNCH_PHONE) {
     // FIXME: For debugging purpose, display indicator for bluetooth connection
     const char *text;
     HealthActivityMask activity = health_service_peek_current_activities();
@@ -80,10 +73,11 @@ static void main_text_layer_update_proc() {
       default:
         text = "Unknown";
     }
+    APP_LOG(APP_LOG_LEVEL_INFO, "launch_set_random_message,content=%s",launch_get_random_message());
     if (connection_service_peek_pebble_app_connection()) {
-      snprintf(s_main_text_buf, sizeof(s_main_text_buf), "%s!%s!", message_content, text);
+      snprintf(s_main_text_buf, sizeof(s_main_text_buf), "%s!%s!", launch_get_random_message(), text);
     } else {
-      snprintf(s_main_text_buf, sizeof(s_main_text_buf), "%s.%s.", message_content, text);
+      snprintf(s_main_text_buf, sizeof(s_main_text_buf), "%s.%s.", launch_get_random_message(), text);
     }
   } else {
     const char *daily_summary = enamel_get_message_daily_summary();

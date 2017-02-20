@@ -29,8 +29,8 @@
 #define EXIT_USER                     1
 #define EXIT_TIMEOUT                  2
 
-/* The size of random message pool. */
-#define RANDOM_MSG_POOL_SIZE          3
+#define RANDOM_MSG_POOL_SIZE          3     // The size of random message pool
+#define RANDOM_MSG_SIZE_MAX           256   // Maximum number of characters for random message
 
 /* Different user groups (synchronized with PebbleKit JS). Already defined in enamel.h */
 //#define GROUP_PASSIVE_TRACKING        0

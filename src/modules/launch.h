@@ -22,3 +22,6 @@ void launch_send_test();
 /* TODO .*/
 //void launch_resend(time_t time, int reason, bool is_launch);
 void launch_resend(time_t launch_time, time_t exit_time, int launch_reason, int exit_reason);
+
+void launch_set_random_message();
+const char* launch_get_random_message();

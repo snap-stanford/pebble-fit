@@ -6,7 +6,6 @@
 #include "../modules/steps.h"
 #include "../modules/launch.h"
 #include "../modules/store.h" // TODO: for debugging purpose only
-#include "../modules/strtok.h"
 
 Window * wakeup_window_push();
 

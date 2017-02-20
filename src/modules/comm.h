@@ -22,7 +22,7 @@ typedef enum {
   AppKeyArrayLength,
   AppKeyArrayStart,
   AppKeyConfigRequest,
-  AppKeyTest0
+  AppKeyRandomMessage
 } AppKey;
 
 /* Init communication. */

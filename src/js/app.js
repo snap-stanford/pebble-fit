@@ -114,11 +114,12 @@ function send_steps_data(data, date) {
   send_data_to_route(url)
 }
 
-function send_launch_exit_data(configRequest, launchTime, exitTime, launchReason, exitReason, date) {
+function send_launch_exit_data(configRequest, randomMessage, launchTime, exitTime, launchReason, exitReason, date) {
   if (exitReason === undefined) {
     //log.debug('Uploading launch data only...')
     var url = '/launch' + '?date=' + date + '&reason=' + launchReason +
 			'&configrequest=' + configRequest + 
+			'&randommessage=' + randomMessage + 
       '&watch=' + Pebble.getWatchToken();
   } else if (launchReason === undefined) {
     //log.debug('Uploading exit data only...')
@@ -128,6 +129,7 @@ function send_launch_exit_data(configRequest, launchTime, exitTime, launchReason
     //log.debug('Uploading launch & exit data ...')
     var url = '/launchexit' + '?date=' + date +
       '&launchtime=' + launchTime + '&launchreason=' + launchReason +
+			'&randommessage=' + randomMessage + 
       '&exittime=' + exitTime + '&exitreason=' + exitReason +
       '&watch=' + Pebble.getWatchToken();
   }
@@ -166,11 +168,13 @@ Pebble.addEventListener('appmessage', function (dict) {
   if (dict.payload['AppKeyLaunchReason'] !== undefined || 
       dict.payload['AppKeyExitReason'] !== undefined) {
 		var configRequest = dict.payload['AppKeyConfigRequest'];
+		var randomMessage = dict.payload['AppKeyRandomMessage'];
     var launchTime = dict.payload['AppKeyLaunchTime'];
     var launchReason = dict.payload['AppKeyLaunchReason'];
     var exitTime = dict.payload['AppKeyExitTime'];
     var exitReason = dict.payload['AppKeyExitReason'];
-    send_launch_exit_data(configRequest, launchTime, exitTime, launchReason, exitReason, date);
+    send_launch_exit_data(configRequest, randomMessage, launchTime, 
+													exitTime, launchReason, exitReason, date);
   }
 
   /*

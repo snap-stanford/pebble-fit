@@ -163,6 +163,11 @@ static void prv_launch_handler(bool activate) {
     // TODO: Calculate steps only at the scheduled wakeup event? What if user accomplish goal and manually check it before the scheduled wakeup?
     steps_update(); 
 
+    // Get a random message from the persistent storage. This must happen before
+    // wakeup_window_push() and the first call to prv_init_callback. 
+    // TODO: no every group needs this. Only wakeup launch needs this.
+    launch_set_random_message();
+
     switch (launch_reason()) {
       case APP_LAUNCH_USER: // When launched via the launch menu on the watch.
         e_launch_reason = LAUNCH_USER;
