@@ -22,6 +22,7 @@ function saveEvent(req, res, config, next) {
     req.query.reason,
     req.query.date,
     req.query.watch,
+    req.query.msgid,
     function (err) {
       if (err) return next(err);
       if (config) res.status(200).json(config).end();
@@ -30,7 +31,7 @@ function saveEvent(req, res, config, next) {
 }
 
 router.get(['/launch'],
-  query.requireParam('query', ['watch', 'date', 'configrequest']),
+  query.requireParam('query', ['watch', 'reason', 'configrequest', 'msgid', 'date']),
   function (req, res, next) {
     if (req.query.configrequest === '1') {
       console.log("DEBUG: user is requesting for new update.");
@@ -68,7 +69,7 @@ router.get(['/launch'],
 
 // TODO: Keep delaunch for backward compatibility for a while.
 router.get(['/delaunch', '/exit'],
-  query.requireParam('query', ['watch', 'date']),
+  query.requireParam('query', ['watch', 'reason', 'date']),
   function (req, res, next) {
     saveEvent(req, res, null, next);
   });
@@ -86,23 +87,26 @@ router.get('/steps',
       })
   })
 
+/**
+ * Params: launchTime, exitTime, launchReason, exitReason, messageID, watchToken
+ */
 router.get(['/launchexit'],
-  query.requireParam('query', ['launchtime', 'exittime', 'launchreason', 'exitreason']),
+  query.requireParam('query', ['launchtime', 'launchreason', 'exittime', 'exitreason']),
   function (req, res, next) {
-    events.save('launch', req.query.launchreason, 
-      req.query.launchtime, req.query.watch,
+    console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+    events.save('launch', req.query.launchreason, req.query.launchtime, 
+      req.query.watch, req.query.msgid,
       function (err) {
-        if (err) return next(err)
-        res.status(200).end()
+        console.log("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB");
+        if (err) return next(err);
+
+        events.save('exit', req.query.exitreason, req.query.exittime, req.query.watch, null,
+          function (err) {
+            if (err) return next(err);
+            res.status(200).end();
+          });
       });
-    events.save('exit', req.query.exitreason, 
-      req.query.exittime, req.query.watch,
-      function (err) {
-        if (err) return next(err)
-        res.status(200).end()
-      });
-  }
-)
+  });
 
 router.get(['/latest_hour', '/latest_day'],
   query.requireParam('query', ['watch']),

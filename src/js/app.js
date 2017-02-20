@@ -16,8 +16,8 @@ log.set_level(3);
 var SERVER = 'http://pebble-fit.herokuapp.com';
 
 // Local servers (use ifconfig to find out).
-var SERVER = 'http://10.30.202.74:3000';
-//var SERVER = 'http://10.34.183.179:3000';
+//var SERVER = 'http://10.30.202.74:3000';
+var SERVER = 'http://10.34.149.13:3000';
 
 // Flag to switch off server communication
 var USE_OFFLINE = true;
@@ -46,6 +46,7 @@ function send_data_to_route (route) {
   // them to both the phone app and the watch app.
   function send_received_message(response) {
     if (response === undefined) {
+			// TODO: could also use config_update to indicate server connection.
       Pebble.sendAppMessage({ 'AppKeyServerReceived': 1 })
     } else {
       var settings = JSON.parse(response);
@@ -73,15 +74,17 @@ function send_data_to_route (route) {
 					clay.setSettings(key, settings[key]);
         }
       }
-			settings['AppKeyServerReceived'] = 1;
       console.log(JSON.stringify(settings));
       settings['config_update'] = 0; // The first setting in config.json is dummy.
-      Pebble.sendAppMessage(settings, function() {
-        console.log('Sent config data to Pebble: ' + JSON.stringify(settings));
-      }, function(error) {
-        console.log('Failed to send config data!');
-        console.log(JSON.stringify(error));
-      });
+      Pebble.sendAppMessage(settings, 
+				null,
+				//function () {
+      	//  console.log('Sent config data to Pebble: ' + JSON.stringify(settings));
+      	//}, 
+				function(error) {
+      	  console.log('Failed to send config data!');
+      	  console.log(JSON.stringify(error));
+      	});
     }
   }
 
@@ -114,12 +117,12 @@ function send_steps_data(data, date) {
   send_data_to_route(url)
 }
 
-function send_launch_exit_data(configRequest, randomMessage, launchTime, exitTime, launchReason, exitReason, date) {
+function send_launch_exit_data(configRequest, msgID, launchTime, exitTime, launchReason, exitReason, date) {
   if (exitReason === undefined) {
     //log.debug('Uploading launch data only...')
     var url = '/launch' + '?date=' + date + '&reason=' + launchReason +
 			'&configrequest=' + configRequest + 
-			'&randommessage=' + randomMessage + 
+			'&msgid=' + msgID + 
       '&watch=' + Pebble.getWatchToken();
   } else if (launchReason === undefined) {
     //log.debug('Uploading exit data only...')
@@ -129,8 +132,8 @@ function send_launch_exit_data(configRequest, randomMessage, launchTime, exitTim
     //log.debug('Uploading launch & exit data ...')
     var url = '/launchexit' + '?date=' + date +
       '&launchtime=' + launchTime + '&launchreason=' + launchReason +
-			'&randommessage=' + randomMessage + 
       '&exittime=' + exitTime + '&exitreason=' + exitReason +
+			'&msgid=' + msgID + 
       '&watch=' + Pebble.getWatchToken();
   }
 
@@ -168,12 +171,12 @@ Pebble.addEventListener('appmessage', function (dict) {
   if (dict.payload['AppKeyLaunchReason'] !== undefined || 
       dict.payload['AppKeyExitReason'] !== undefined) {
 		var configRequest = dict.payload['AppKeyConfigRequest'];
-		var randomMessage = dict.payload['AppKeyRandomMessage'];
+		var msgID = dict.payload['AppKeyMessageID'];
     var launchTime = dict.payload['AppKeyLaunchTime'];
     var launchReason = dict.payload['AppKeyLaunchReason'];
     var exitTime = dict.payload['AppKeyExitTime'];
     var exitReason = dict.payload['AppKeyExitReason'];
-    send_launch_exit_data(configRequest, randomMessage, launchTime, 
+    send_launch_exit_data(configRequest, msgID, launchTime, 
 													exitTime, launchReason, exitReason, date);
   }
 

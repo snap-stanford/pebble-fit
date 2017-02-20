@@ -39,7 +39,7 @@ static void top_text_layer_update_proc() {
     // DEBUG BEGIN
     if (!steps_get_pass()) {
       snprintf(s_top_text_buf, sizeof(s_top_text_buf), 
-               "%d steps during \n%s-%s", s_steps, s_start, s_end);
+               "sedentary %d steps during \n%s-%s", s_steps, s_start, s_end);
       text_layer_set_text(s_top_text_layer, s_top_text_buf);
     } else {
       snprintf(s_top_text_buf, sizeof(s_top_text_buf), 

@@ -5,7 +5,8 @@ var async = require('async')
 exports.save = function (data, start_time, watch_token, next) {
   var end = moment.unix(start_time).add(data.length - 1, 'minutes').toDate()
   var start = moment.unix(start_time)
-  // remove data we already have for this
+
+  // Remove data we already have for this
   Activity.remove({time: {$lte: end, $gte: start}, watch: watch_token}, function (err) {
     if (err) return next(err)
     async.forEachOf(data, function (steps, index, cb) {

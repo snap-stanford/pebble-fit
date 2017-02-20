@@ -62,7 +62,7 @@ void prv_report_steps(int i) {
  * Update steps count. 
  */
 void steps_update() {
-  int i, break_freq, break_len, sliding_window;
+  int left, right, break_freq, break_len, sliding_window;
   int nonsed_period = 0;
 	
   //if (!s_is_update) { // FIXME: wanted to avoid multiple updates in the same session (i.e. within 1 minute so that step count will not change at all)
@@ -82,25 +82,28 @@ void steps_update() {
     break_len = enamel_get_break_len() > break_freq ?  break_freq : enamel_get_break_len();
     sliding_window = enamel_get_sliding_window();
       
-    // Check whether the condition is met. Update s_pass which is the indicator.
-    for (i = 0; i < break_len + sliding_window; i++) {
-      if (s_step_records[i] >= enamel_get_step_threshold()) {
+    // Check whether the goal is met. Update s_pass which is the indicator.
+		// Use the first loop is to initialize.
+    for (right = 0; right < break_len + sliding_window; right++) {
+      if (s_step_records[right] >= enamel_get_step_threshold()) {
         nonsed_period += 1;
       }
     }
     if (nonsed_period >= break_len) {
       s_pass = true;
     } else {
-      int prv_i = 0;
-      for ( ; i < MAX_ENTRIES; i++, prv_i++) {
-        if (s_step_records[i] >= enamel_get_step_threshold()) {
+      left = 0;
+			// Count the non-sedentary periods and move both left and right ends.
+      for ( ; right < MAX_ENTRIES; right++, left++) {
+        if (s_step_records[right] >= enamel_get_step_threshold()) {
           nonsed_period += 1;
         }
-        if (i - prv_i > enamel_get_break_len() + 2) {
-          if (s_step_records[prv_i] >= enamel_get_step_threshold()) {
-            nonsed_period -= 1;
-          }
+        if (//right - left > enamel_get_break_len() + sliding_window &&
+            s_step_records[left] >= enamel_get_step_threshold()) {
+        	nonsed_period -= 1;
         }
+
+				// Once we know the goal is met, not need to continue computation.
         if (nonsed_period >= break_len) {
           s_pass = true;
           break;
@@ -111,7 +114,7 @@ void steps_update() {
     // Convert to human readable time for the display purpose.
     //APP_LOG(APP_LOG_LEVEL_ERROR, "enamel_get_sleep_minutes=%d", enamel_get_sleep_minutes());
     if (s_pass) {
-      prv_report_steps(i);
+      prv_report_steps(right);
 
 			// If the step goal had been achieved in this period, there is no need to calculate steps 
   		// again, since we only increment break count once per period.
@@ -121,8 +124,8 @@ void steps_update() {
 			if (t_last < e_launch_time / break_freq_seconds * break_freq_seconds) 
       	store_increment_break_count();
 
-      s_end = s_start + i;
-      s_start = s_end - break_len - sliding_window + 1;
+      s_end = s_start + right * SECONDS_PER_MINUTE;
+      s_start = s_end - (break_len + sliding_window - 1) * SECONDS_PER_MINUTE;
       strftime(s_start_buf, sizeof(s_start_buf), "%H:%M", localtime(&s_start));
       strftime(s_end_buf, sizeof(s_end_buf), "%H:%M", localtime(&s_end));
       APP_LOG(APP_LOG_LEVEL_INFO, "Non-sedentary period from %s to %s", s_start_buf, s_end_buf);

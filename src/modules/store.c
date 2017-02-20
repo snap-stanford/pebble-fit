@@ -33,7 +33,7 @@ void store_write_config_time(time_t time) {
  */
 bool store_resend_config_request(time_t t_curr) {
   // TODO: this forces request config everytime for debugging purpose.
-  return true;
+  return false;
 
   time_t last_config_time;
   if (!persist_exists(PERSIST_KEY_CONFIG_TIME)) {
@@ -72,6 +72,7 @@ void store_write_launchexit_event(time_t t_launch, time_t t_exit, uint8_t lr, ui
 
   // Convert message ID to ascii code (assuming each ID is 4 bytes)
   const char *msg_id = launch_get_random_message_id();
+APP_LOG(APP_LOG_LEVEL_ERROR, msg_id);
   uint32_t msg_id_ascii = 0;
   for (int i = 0; i < 4; i++) {
     msg_id_ascii <<= 8;
@@ -180,16 +181,13 @@ bool store_resend_launchexit_event() {
 
       // Convert message ID from ascii code back to char (assuming each ID is 4 bytes)
       msg_id_ascii = s_launchexit_data[2];
-      APP_LOG(APP_LOG_LEVEL_ERROR, "%u", (unsigned int) s_launchexit_data[0]);
-      APP_LOG(APP_LOG_LEVEL_ERROR, "%08x", (unsigned int) s_launchexit_data[1]);
-      APP_LOG(APP_LOG_LEVEL_ERROR, "%08x", (unsigned int) msg_id_ascii);
       for (int i = 3; i >= 0; i--) {
         msg_id[i] = (char)msg_id_ascii;
         msg_id_ascii >>= 8;
       }
       msg_id[4] = '\0';
 
-      //launch_resend(t_launch, t_exit, msg_id, lr, er);
+      launch_resend(t_launch, t_exit, msg_id, lr, er);
 
       persist_delete(key);
       s_launchexit_count--;
@@ -197,8 +195,8 @@ bool store_resend_launchexit_event() {
       // DEBUG
       APP_LOG(APP_LOG_LEVEL_INFO, "Resend launch and exit events to the server" \
           ". new records count=%d.", s_launchexit_count);
-      APP_LOG(APP_LOG_LEVEL_INFO, "t_launch=%u, t_exit=%u, msg_id_ascii=%04x, msg_id=%u, lr=%d, er=%d", 
-        (unsigned int)t_launch, (unsigned int)t_exit, (unsigned int)msg_id_ascii, (unsigned int)msg_id,
+      APP_LOG(APP_LOG_LEVEL_INFO, "t_launch=%u, t_exit=%u, msg_id_ascii=%04x, lr=%d, er=%d", 
+        (unsigned int)t_launch, (unsigned int)t_exit, (unsigned int)msg_id_ascii,
         (int)lr, (int)er);
     }
 

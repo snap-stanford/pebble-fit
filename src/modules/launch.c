@@ -20,7 +20,7 @@ static void prv_launch_data_write(DictionaryIterator * out) {
   dict_write_int(out, AppKeyDate, &e_launch_time, sizeof(int), true);
   dict_write_int(out, AppKeyLaunchReason, &e_launch_reason, sizeof(int), true);
   dict_write_int(out, AppKeyConfigRequest, &s_config_request, sizeof(int), true);
-  dict_write_cstring(out, AppKeyRandomMessage, s_msg_id);
+  dict_write_cstring(out, AppKeyMessageID, s_msg_id);
 }
 /* Add exit reason and date to out dict. */
 static void prv_exit_data_write(DictionaryIterator * out) {
@@ -36,7 +36,7 @@ static void prv_launch_exit_data_write(DictionaryIterator * out) {
   dict_write_int(out, AppKeyExitTime, &s_t_exit, sizeof(int), true);
   dict_write_uint8(out, AppKeyLaunchReason, s_lr);
   dict_write_uint8(out, AppKeyExitReason, s_er);
-  dict_write_cstring(out, AppKeyRandomMessage, s_msg_id);
+  dict_write_cstring(out, AppKeyMessageID, s_msg_id);
 }
 
 /**

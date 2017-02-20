@@ -37,7 +37,7 @@
       "AppKeyArrayLength": 10,
       "AppKeyArrayStart": 11,
       "AppKeyConfigRequest": 12,
-      "AppKeyRandomMessage": 13,
+      "AppKeyMessageID": 13,
       "config_update": 100,
       "config_update_interval": 101,
       "is_consent": 110,

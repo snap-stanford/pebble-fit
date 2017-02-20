@@ -1,8 +1,8 @@
 var mongoose = require('mongoose')
 
 var activitySchema = new mongoose.Schema({
-  time: {type: Date, required: true},
   steps: {type: Number, required: true},
+  time: {type: Date, required: true},
   watch: {type: String, required: true},
   created: {type: Date, default: Date.now}
 })
