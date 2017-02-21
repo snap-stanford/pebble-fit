@@ -8,6 +8,16 @@
 #include <pebble.h>
 
 // -----------------------------------------------------
+// Getter for 'config_update'
+bool enamel_get_config_update();
+// -----------------------------------------------------
+
+// -----------------------------------------------------
+// Getter for 'config_update_interval'
+const char* enamel_get_config_update_interval();
+// -----------------------------------------------------
+
+// -----------------------------------------------------
 // Getter for 'is_consent'
 bool enamel_get_is_consent();
 // -----------------------------------------------------
@@ -57,7 +67,8 @@ const char* enamel_get_survey_height_unit();
 
 // -----------------------------------------------------
 // Getter for 'survey_height'
-const char* enamel_get_survey_height();
+#define SURVEY_HEIGHT_PRECISION 1
+int32_t enamel_get_survey_height();
 // -----------------------------------------------------
 
 // -----------------------------------------------------
@@ -103,13 +114,19 @@ uint32_t enamel_get_daily_end_time();
 // -----------------------------------------------------
 
 // -----------------------------------------------------
-// Getter for 'sleep_minutes'
+// Getter for 'break_freq'
 typedef enum {
-	SLEEP_MINUTES_1_HOUR = 60,
-	SLEEP_MINUTES_30_MINUTES = 30,
-	SLEEP_MINUTES_15_MINUTES = 15,
-} SLEEP_MINUTESValue;
-SLEEP_MINUTESValue enamel_get_sleep_minutes();
+	BREAK_FREQ_EVERY_HOUR = 60,
+} BREAK_FREQValue;
+BREAK_FREQValue enamel_get_break_freq();
+// -----------------------------------------------------
+
+// -----------------------------------------------------
+// Getter for 'break_len'
+typedef enum {
+	BREAK_LEN_5_MINUTE = 5,
+} BREAK_LENValue;
+BREAK_LENValue enamel_get_break_len();
 // -----------------------------------------------------
 
 // -----------------------------------------------------
@@ -120,10 +137,7 @@ bool enamel_get_dynamic_wakeup();
 // -----------------------------------------------------
 // Getter for 'sliding_window'
 typedef enum {
-	SLIDING_WINDOW_3_MINUTES = 3,
-	SLIDING_WINDOW_5_MINUTES = 5,
-	SLIDING_WINDOW_10_MINUTES = 10,
-	SLIDING_WINDOW_15_MINUTES = 15,
+	SLIDING_WINDOW_2_MINUTES = 2,
 } SLIDING_WINDOWValue;
 SLIDING_WINDOWValue enamel_get_sliding_window();
 // -----------------------------------------------------
@@ -145,9 +159,6 @@ STEP_THRESHOLDValue enamel_get_step_threshold();
 // -----------------------------------------------------
 // Getter for 'display_duration'
 typedef enum {
-	DISPLAY_DURATION_10 = 10,
-	DISPLAY_DURATION_15 = 15,
-	DISPLAY_DURATION_20 = 20,
 	DISPLAY_DURATION_30 = 30,
 	DISPLAY_DURATION_40 = 40,
 	DISPLAY_DURATION_50 = 50,
@@ -157,7 +168,60 @@ DISPLAY_DURATIONValue enamel_get_display_duration();
 // -----------------------------------------------------
 
 // -----------------------------------------------------
+// Getter for 'total_hour'
+const char* enamel_get_total_hour();
+// -----------------------------------------------------
+
+// -----------------------------------------------------
+// Getter for 'group'
+typedef enum {
+	GROUP_PASSIVE_TRACKING = 0,
+	GROUP_DAILY_MESSAGE = 1,
+	GROUP_REALTIME_RANDOM = 2,
+	GROUP_REALTIME_ACTION = 3,
+	GROUP_REALTIME_OUTCOME = 4,
+	GROUP_REALTIME_HEALTH = 5,
+	GROUP_REALTIME_ADAPTIVE = 6,
+} GROUPValue;
+GROUPValue enamel_get_group();
+// -----------------------------------------------------
+
+// -----------------------------------------------------
+// Getter for 'config_summary'
+// -----------------------------------------------------
+
+// -----------------------------------------------------
+// Getter for 'message_daily_summary'
+const char* enamel_get_message_daily_summary();
+// -----------------------------------------------------
+
+// -----------------------------------------------------
+// Getter for 'message_random_0'
+const char* enamel_get_message_random_0();
+// -----------------------------------------------------
+
+// -----------------------------------------------------
+// Getter for 'message_random_1'
+const char* enamel_get_message_random_1();
+// -----------------------------------------------------
+
+// -----------------------------------------------------
+// Getter for 'message_random_2'
+const char* enamel_get_message_random_2();
+// -----------------------------------------------------
+
+// -----------------------------------------------------
 // Getter for 'version'
+// -----------------------------------------------------
+
+// -----------------------------------------------------
+// Getter for 'watch_alert_text'
+const char* enamel_get_watch_alert_text();
+// -----------------------------------------------------
+
+// -----------------------------------------------------
+// Getter for 'watch_pass_text'
+const char* enamel_get_watch_pass_text();
 // -----------------------------------------------------
 
 void enamel_init();

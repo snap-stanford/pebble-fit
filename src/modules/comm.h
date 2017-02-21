@@ -2,7 +2,8 @@
 
 #include <pebble.h>
 
-extern bool js_ready;
+extern bool e_js_ready;
+extern bool e_server_ready;
 
 typedef void (CommCallback)(void);
 typedef void (DataWriteCallback)(DictionaryIterator*);
@@ -20,7 +21,9 @@ typedef enum {
   AppKeyStepsData,
   AppKeyStorageData,
   AppKeyArrayLength,
-  AppKeyArrayStart
+  AppKeyArrayStart,
+  AppKeyConfigRequest,
+  AppKeyMessageID
 } AppKey;
 
 /* Init communication. */

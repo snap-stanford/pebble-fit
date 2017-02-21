@@ -1,6 +1,25 @@
 [
 {
   "type": "toggle",
+  "id": "config_update",
+  "messageKey": "config_update",
+  "defaultValue": false
+},
+{
+  "type": "input",
+  "id": "config_update_interval",
+  "messageKey": "config_update_interval",
+  "description": "The number of days between two configuration updates (the app will send request to check for new configuration update)",
+  "defaultValue": 1,
+  "attributes": {
+    "type": "number"
+  }
+},
+
+
+
+{
+  "type": "toggle",
   "id": "is_consent",
   "messageKey": "is_consent",
   "defaultValue": false
@@ -428,14 +447,14 @@
       "type": "toggle",
       "id": "activate",
       "messageKey": "activate",
-      "label": "Activate pebble-fit App",
-      "defaultValue": false
+      "label": "Activate Pebble Fit",
+      "defaultValue": true
     },
     {
       "type": "select",
       "id": "vibrate",
       "messageKey": "vibrate",
-      "label": "Alert vibration type",
+      "label": "Notify with Vibration",
       "defaultValue": 1,
       "options": [
         { "label": "Single short pulse",  "value": 1 },
@@ -449,7 +468,7 @@
       "type": "input",
       "id": "daily_start_time",
       "messageKey": "daily_start_time",
-      "defaultValue": "09:00",
+      "defaultValue": "08:00",
       "label": "Start time",
       "attributes": {
         "type": "time",
@@ -470,15 +489,24 @@
     },
     {
       "type": "select",
-      "id": "sleep_minutes",
-      "messageKey": "sleep_minutes",
+      "id": "break_freq",
+      "messageKey": "break_freq",
       "defaultValue": 60,
-      "label": "Sleep interval:",
-      "description": "The maximum time interval between alerts. Regardless of this number, the App will always check the step data in the last 60 minutes.",
+      "label": "Break Frequency:",
+      "description": "How frequently do you want to take walking breaks?",
       "options": [
-        { "label": "1 hour",        "value": 60 },
-        { "label": "30 minutes",    "value": 30 },
-        { "label": "15 minutes",    "value": 15 }
+        { "label": "Every hour",        "value": 60 }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "break_len",
+      "messageKey": "break_len",
+      "defaultValue": 5,
+      "label": "Break Length:",
+      "description": "How many minutes of walking do you want to define as a break?",
+      "options": [
+        { "label": "5 minute",        "value": 5 }
       ]
     },
     {
@@ -493,14 +521,11 @@
       "type": "select",
       "id": "sliding_window",
       "messageKey": "sliding_window",
-      "defaultValue": 3,
+      "defaultValue": 2,
       "label": "Sliding window:",
       "description": "Smaller intervals within the range of the last 60 minutes. Might not be adjustable by the user in the final version.",
       "options": [
-        { "label": "3 minutes",     "value": 3 },
-        { "label": "5 minutes",     "value": 5 },
-        { "label": "10 minutes",    "value": 10 },
-        { "label": "15 minutes",    "value": 15 }
+        { "label": "2 minutes",     "value": 2 }
       ]
     },
     {
@@ -524,21 +549,74 @@
       "type": "select",
       "id": "display_duration",
       "messageKey": "display_duration",
-      "defaultValue": 10,
+      "defaultValue": 30,
       "label": "Display duration (in seconds)",
       "description": "The notification message will only be displayed for a few seconds, and then the App will automatically go back into the sleep mode. You can still press the back button to manually suppress it before this timeout.",
       "options": [
-        { "label": "10",    "value": 10 },
-        { "label": "15",    "value": 15 },
-        { "label": "20",    "value": 20 },
         { "label": "30",    "value": 30 },
         { "label": "40",    "value": 40 },
         { "label": "50",    "value": 50 },
         { "label": "60",    "value": 60 }
       ]
+    },
+    {
+      "type": "input",
+      "id": "total_hour",
+      "messageKey": "total_hour",
+      "defaultValue": 0,
+      "attributes": {
+        "type": "number"
+      }
+    },
+    {
+      "type": "select",
+      "id": "group",
+      "messageKey": "group",
+      "defaultValue": 0,
+      "options": [
+        { "label": "passive_tracking",  "value": 0 },
+        { "label": "daily_message",     "value": 1 },
+        { "label": "realtime_random",   "value": 2 },
+        { "label": "realtime_action",   "value": 3 },
+        { "label": "realtime_outcome",  "value": 4 },
+        { "label": "realtime_health",   "value": 5 },
+        { "label": "realtime_adaptive", "value": 6 }
+      ]
+    },
+    {
+      "type": "text",
+      "id": "config_summary",
+      "messageKey": "config_summary",
+      "defaultValue": ""
+    },
+    {
+      "type": "input",
+      "id": "message_daily_summary",
+      "messageKey": "message_daily_summary",
+      "defaultValue": "You have accomplished %d of %d possible walking breaks today."
+    },
+    {
+      "type": "input",
+      "id": "message_random_0",
+      "messageKey": "message_random_0",
+      "defaultValue": ""
+    },
+    {
+      "type": "input",
+      "id": "message_random_1",
+      "messageKey": "message_random_1",
+      "defaultValue": ""
+    },
+    {
+      "type": "input",
+      "id": "message_random_2",
+      "messageKey": "message_random_2",
+      "defaultValue": ""
     }
   ]
 },
+
+
 
 
 
@@ -566,5 +644,17 @@
   "type": "text",
   "id": "watchtoken",
   "defaultValue": "" 
+},
+{
+  "type": "input",
+  "id": "watch_alert_text",
+  "messageKey": "watch_alert_text",
+  "defaultValue": "Let's Move"
+},
+{
+  "type": "input",
+  "id": "watch_pass_text",
+  "messageKey": "watch_pass_text",
+  "defaultValue": "Keep Up"
 }
 ]

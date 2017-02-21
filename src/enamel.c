@@ -30,6 +30,22 @@ static uint32_t s_dict_size = 0;
 static bool s_config_changed;
 
 // -----------------------------------------------------
+// Getter for 'config_update'
+bool enamel_get_config_update(){
+	Tuple* tuple = dict_find(&s_dict, 1815318859);
+	return tuple ? tuple->value->int32 == 1 : false;
+}
+// -----------------------------------------------------
+
+// -----------------------------------------------------
+// Getter for 'config_update_interval'
+const char* enamel_get_config_update_interval(){
+	Tuple* tuple = dict_find(&s_dict, 356850452);
+	return tuple ? tuple->value->cstring : "1";
+}
+// -----------------------------------------------------
+
+// -----------------------------------------------------
 // Getter for 'is_consent'
 bool enamel_get_is_consent(){
 	Tuple* tuple = dict_find(&s_dict, 2703378645);
@@ -88,9 +104,10 @@ const char* enamel_get_survey_height_unit(){
 
 // -----------------------------------------------------
 // Getter for 'survey_height'
-const char* enamel_get_survey_height(){
+int32_t enamel_get_survey_height(){
 	Tuple* tuple = dict_find(&s_dict, 2106823441);
-	return tuple ? tuple->value->cstring : "";
+		
+	return tuple ? tuple->value->int32 : 150;
 }
 // -----------------------------------------------------
 
@@ -122,7 +139,7 @@ const char* enamel_get_survey_race(){
 // Getter for 'activate'
 bool enamel_get_activate(){
 	Tuple* tuple = dict_find(&s_dict, 2910575235);
-	return tuple ? tuple->value->int32 == 1 : false;
+	return tuple ? tuple->value->int32 == 1 : true;
 }
 // -----------------------------------------------------
 
@@ -138,7 +155,7 @@ VIBRATEValue enamel_get_vibrate(){
 // Getter for 'daily_start_time'
 uint32_t enamel_get_daily_start_time(){
 	Tuple* tuple = dict_find(&s_dict, 280095890);
-	char* value =  tuple ? tuple->value->cstring : "09:00";
+	char* value =  tuple ? tuple->value->cstring : "08:00";
 	uint32_t sec = atoi(value) * 3600 + atoi(value+3) * 60;
 	if(strlen(value) > 6){
 		sec += atoi(value+6);
@@ -161,10 +178,18 @@ uint32_t enamel_get_daily_end_time(){
 // -----------------------------------------------------
 
 // -----------------------------------------------------
-// Getter for 'sleep_minutes'
-SLEEP_MINUTESValue enamel_get_sleep_minutes(){
-	Tuple* tuple = dict_find(&s_dict, 2891097914);
+// Getter for 'break_freq'
+BREAK_FREQValue enamel_get_break_freq(){
+	Tuple* tuple = dict_find(&s_dict, 4279048756);
 	return tuple ? atoi(tuple->value->cstring) : 60;
+}
+// -----------------------------------------------------
+
+// -----------------------------------------------------
+// Getter for 'break_len'
+BREAK_LENValue enamel_get_break_len(){
+	Tuple* tuple = dict_find(&s_dict, 3241445284);
+	return tuple ? atoi(tuple->value->cstring) : 5;
 }
 // -----------------------------------------------------
 
@@ -180,7 +205,7 @@ bool enamel_get_dynamic_wakeup(){
 // Getter for 'sliding_window'
 SLIDING_WINDOWValue enamel_get_sliding_window(){
 	Tuple* tuple = dict_find(&s_dict, 3755395031);
-	return tuple ? atoi(tuple->value->cstring) : 3;
+	return tuple ? atoi(tuple->value->cstring) : 2;
 }
 // -----------------------------------------------------
 
@@ -196,7 +221,59 @@ STEP_THRESHOLDValue enamel_get_step_threshold(){
 // Getter for 'display_duration'
 DISPLAY_DURATIONValue enamel_get_display_duration(){
 	Tuple* tuple = dict_find(&s_dict, 1482180045);
-	return tuple ? atoi(tuple->value->cstring) : 10;
+	return tuple ? atoi(tuple->value->cstring) : 30;
+}
+// -----------------------------------------------------
+
+// -----------------------------------------------------
+// Getter for 'total_hour'
+const char* enamel_get_total_hour(){
+	Tuple* tuple = dict_find(&s_dict, 3821242441);
+	return tuple ? tuple->value->cstring : "0";
+}
+// -----------------------------------------------------
+
+// -----------------------------------------------------
+// Getter for 'group'
+GROUPValue enamel_get_group(){
+	Tuple* tuple = dict_find(&s_dict, 148261412);
+	return tuple ? atoi(tuple->value->cstring) : 0;
+}
+// -----------------------------------------------------
+
+// -----------------------------------------------------
+// Getter for 'config_summary'
+// -----------------------------------------------------
+
+// -----------------------------------------------------
+// Getter for 'message_daily_summary'
+const char* enamel_get_message_daily_summary(){
+	Tuple* tuple = dict_find(&s_dict, 3122846783);
+	return tuple ? tuple->value->cstring : "You have accomplished %d of %d possible walking breaks today.";
+}
+// -----------------------------------------------------
+
+// -----------------------------------------------------
+// Getter for 'message_random_0'
+const char* enamel_get_message_random_0(){
+	Tuple* tuple = dict_find(&s_dict, 3597287856);
+	return tuple ? tuple->value->cstring : "";
+}
+// -----------------------------------------------------
+
+// -----------------------------------------------------
+// Getter for 'message_random_1'
+const char* enamel_get_message_random_1(){
+	Tuple* tuple = dict_find(&s_dict, 3597287857);
+	return tuple ? tuple->value->cstring : "";
+}
+// -----------------------------------------------------
+
+// -----------------------------------------------------
+// Getter for 'message_random_2'
+const char* enamel_get_message_random_2(){
+	Tuple* tuple = dict_find(&s_dict, 3597287858);
+	return tuple ? tuple->value->cstring : "";
 }
 // -----------------------------------------------------
 
@@ -204,17 +281,35 @@ DISPLAY_DURATIONValue enamel_get_display_duration(){
 // Getter for 'version'
 // -----------------------------------------------------
 
+// -----------------------------------------------------
+// Getter for 'watch_alert_text'
+const char* enamel_get_watch_alert_text(){
+	Tuple* tuple = dict_find(&s_dict, 3844772216);
+	return tuple ? tuple->value->cstring : "Let's Move";
+}
+// -----------------------------------------------------
+
+// -----------------------------------------------------
+// Getter for 'watch_pass_text'
+const char* enamel_get_watch_pass_text(){
+	Tuple* tuple = dict_find(&s_dict, 1189123568);
+	return tuple ? tuple->value->cstring : "Keep Up";
+}
+// -----------------------------------------------------
+
 
 static uint16_t prv_get_inbound_size() {
 	return 1
+		+ 7 + 4
+		+ 7 + ENAMEL_MAX_STRING_LENGTH
 		+ 7 + 4
 		+ 7 + ENAMEL_MAX_STRING_LENGTH
 		+ 7 + ENAMEL_MAX_STRING_LENGTH
 		+ 7 + 3
 		+ 7 + 4
 		+ 7 + 12
-		+ 7 + 7
-		+ 7 + ENAMEL_MAX_STRING_LENGTH
+		+ 7 + 3
+		+ 7 + 4
 		+ 7 + 5
 		+ 7 + ENAMEL_MAX_STRING_LENGTH
 		+ 7 + 9
@@ -223,14 +318,25 @@ static uint16_t prv_get_inbound_size() {
 		+ 7 + ENAMEL_MAX_STRING_LENGTH
 		+ 7 + ENAMEL_MAX_STRING_LENGTH
 		+ 7 + 3
+		+ 7 + 2
+		+ 7 + 4
+		+ 7 + 2
 		+ 7 + 4
 		+ 7 + 3
-		+ 7 + 4
-		+ 7 + 3
+		+ 7 + ENAMEL_MAX_STRING_LENGTH
+		+ 7 + 2
+		+ 7 + ENAMEL_MAX_STRING_LENGTH
+		+ 7 + ENAMEL_MAX_STRING_LENGTH
+		+ 7 + ENAMEL_MAX_STRING_LENGTH
+		+ 7 + ENAMEL_MAX_STRING_LENGTH
+		+ 7 + ENAMEL_MAX_STRING_LENGTH
+		+ 7 + ENAMEL_MAX_STRING_LENGTH
 ;
 }
 
 static uint32_t prv_map_messagekey(const uint32_t key){
+	if( key == MESSAGE_KEY_config_update) return 1815318859;
+	if( key == MESSAGE_KEY_config_update_interval) return 356850452;
 	if( key == MESSAGE_KEY_is_consent) return 2703378645;
 	if( key == MESSAGE_KEY_consent_name) return 4163168280;
 	if( key == MESSAGE_KEY_consent_email) return 3428345362;
@@ -246,12 +352,22 @@ static uint32_t prv_map_messagekey(const uint32_t key){
 	if( key == MESSAGE_KEY_vibrate) return 3086721838;
 	if( key == MESSAGE_KEY_daily_start_time) return 280095890;
 	if( key == MESSAGE_KEY_daily_end_time) return 988182165;
-	if( key == MESSAGE_KEY_sleep_minutes) return 2891097914;
+	if( key == MESSAGE_KEY_break_freq) return 4279048756;
+	if( key == MESSAGE_KEY_break_len) return 3241445284;
 	if( key == MESSAGE_KEY_dynamic_wakeup) return 351746595;
 	if( key == MESSAGE_KEY_sliding_window) return 3755395031;
 	if( key == MESSAGE_KEY_step_threshold) return 1001368360;
 	if( key == MESSAGE_KEY_display_duration) return 1482180045;
+	if( key == MESSAGE_KEY_total_hour) return 3821242441;
+	if( key == MESSAGE_KEY_group) return 148261412;
+	if( key == MESSAGE_KEY_config_summary) return 1785760913;
+	if( key == MESSAGE_KEY_message_daily_summary) return 3122846783;
+	if( key == MESSAGE_KEY_message_random_0) return 3597287856;
+	if( key == MESSAGE_KEY_message_random_1) return 3597287857;
+	if( key == MESSAGE_KEY_message_random_2) return 3597287858;
 	if( key == MESSAGE_KEY_version) return 4003360947;
+	if( key == MESSAGE_KEY_watch_alert_text) return 3844772216;
+	if( key == MESSAGE_KEY_watch_pass_text) return 1189123568;
 	return 0;
 }
 
@@ -265,7 +381,7 @@ static bool prv_each_settings_received(void *this, void *context) {
 }
 
 static void prv_inbox_received_handle(DictionaryIterator *iter, void *context) {
-	if(dict_find(iter, MESSAGE_KEY_is_consent)){
+	if(dict_find(iter, MESSAGE_KEY_config_update)){
 		if(s_dict_buffer){
 			free(s_dict_buffer);
 			s_dict_buffer = NULL;

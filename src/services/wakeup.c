@@ -62,38 +62,38 @@ void prv_write_wakeup_id_pm(uint8_t wakeup_i, WakeupId wakeup_id) {
 }
 
 /* Reschedule a wakeup event given its persistent storage index and next timestamp. */
-static WakeupId prv_reschedule_wakeup_event(uint8_t wakeup_i, time_t wakeup_time_t) {
+static WakeupId prv_reschedule_wakeup_event(uint8_t wakeup_i, time_t wakeup_time) {
   WakeupId wakeup_id = -1;
   uint8_t try = 0;
 
-  if ((wakeup_i < NUM_TOTAL_WAKEUP) && (wakeup_time_t > time(NULL))) {
+  if ((wakeup_i < NUM_TOTAL_WAKEUP) && (wakeup_time > time(NULL))) {
     wakeup_id = prv_read_wakeup_id_pm(wakeup_i);
     //APP_LOG(APP_LOG_LEVEL_ERROR, "Cancelling wakeup_id %d", (int)wakeup_id);
     wakeup_cancel(wakeup_id);
     
     // Automatically retry for a fixed number of iterations (increment by minutes)
     do {
-      wakeup_id = wakeup_schedule(wakeup_time_t + try * SECONDS_PER_MINUTE, 
+      wakeup_id = wakeup_schedule(wakeup_time + try * SECONDS_PER_MINUTE, 
         (int32_t)wakeup_i, false);
       try++;
     } while (wakeup_id < 0 && try <= MAX_RETRY); 
 
     if (wakeup_id < 0) {
       APP_LOG(APP_LOG_LEVEL_ERROR, 
-        "Failed to reschedule wakeup_i %d for wakeup_time_t %d with wakeup_id %d",
-        (int)wakeup_i, (int)wakeup_time_t, (int)wakeup_id);
+        "Failed to reschedule wakeup_i %d for wakeup_time %d with wakeup_id %d",
+        (int)wakeup_i, (int)wakeup_time, (int)wakeup_id);
     } else {
       // Debug message
-      char buf[12];
-      strftime(buf, sizeof(buf), "%H:%M:%S", localtime(&wakeup_time_t));
-      APP_LOG(APP_LOG_LEVEL_INFO, 
-        "reschedule_wakeup_event(): wakeup_i %d for time_t %s with wakeup_id %d",
+      char buf[16];
+      wakeup_time += --try * SECONDS_PER_MINUTE;
+      strftime(buf, sizeof(buf), "%d,%H:%M:%S", localtime(&wakeup_time));
+      APP_LOG(APP_LOG_LEVEL_INFO, "Schedule wakeup NO.%d on %s with wakeup_id %d",
         (int) wakeup_i, buf, (int)wakeup_id);
     }
     prv_write_wakeup_id_pm(wakeup_i, wakeup_id);
   } else {
-    APP_LOG(APP_LOG_LEVEL_ERROR, "The given wakeup_i %d or wakeup_time_t %d is invalid", 
-      (int)wakeup_i, (int)wakeup_time_t);
+    APP_LOG(APP_LOG_LEVEL_ERROR, "The given wakeup_i %d or wakeup_time %d is invalid", 
+      (int)wakeup_i, (int)wakeup_time);
   }
 
   return wakeup_id;
@@ -103,50 +103,67 @@ static WakeupId prv_reschedule_wakeup_event(uint8_t wakeup_i, time_t wakeup_time
 /* Schedule the next wakeup event and reschedule fallback wakeup events.
  * Try to set fallback wakeups also be within the start and end time
  * There are in total 4 wakeup events being scheduled.
- *  Index   | Description
- *  0       | depends on the value set by Clay configuration from the phone
- *            and the inactive minutes in the last sleep perioda (more dynamic)
- *  1       | in 1 hour after the start time of tomorrow 
- *  2       | in 24 hours from now 
- *  3       | in 1 week from now
+ *  Cookie / Index        | Description
+ *  0                     | Fallback wakeup: 1 days later 
+ *  1                     | Fallback wakeup: 2 days later 
+ *  2                     | Fallback wakeup: 3 days later 
+ *  LAUNCH_WAKEUP_PERIOD  | Next periodic wakeup: rounded to the break_freq minutes. 
+ *  LAUNCH_WAKEUP_NOTIFY  | Notification wakeup: 2 * break_len before the next periodic wakeup. 
+ *  LAUNCH_WAKEUP_DAILY   | Daily wakeup: at the end time of the day. 
  */
-void schedule_wakeup_events(int inactive_mins) {
-  time_t t_curr  = time(NULL);
-  time_t t_sod   = time_start_of_today();
-  time_t t_start = t_sod + enamel_get_daily_start_time();
-  time_t t_end   = t_sod + enamel_get_daily_end_time() ;
-  time_t t_event;
+void wakeup_schedule_events(int inactive_mins) {
+  time_t t_notify, t_wakeup;
+  time_t break_freq_seconds = (time_t)enamel_get_break_freq() * SECONDS_PER_MINUTE;
+  time_t break_len_seconds = (time_t)enamel_get_break_len() * SECONDS_PER_MINUTE;
+
+  // The first periodic wakeup event should be one period after the start time.
+  // If end time is smaller than start time, treat it as overnight exercise...
+  // Another alternative is to prevent this kind of input on Clay settings.
+  time_t t_sod = time_start_of_today();
+  time_t t_start = t_sod + enamel_get_daily_start_time() + break_freq_seconds;
+  time_t t_end = t_sod + enamel_get_daily_end_time();
+  if (t_end <= t_start) { t_end += SECONDS_PER_DAY; }
 
   // Debug messages
   char curr_buf[12], start_buf[12], end_buf[12];
-  strftime(curr_buf, sizeof(curr_buf),"%H:%M:%S", localtime(&t_curr));
+  strftime(curr_buf, sizeof(curr_buf),"%H:%M:%S", localtime(&e_launch_time));
   strftime(start_buf, sizeof(start_buf),"%H:%M:%S", localtime(&t_start));
   strftime(end_buf, sizeof(end_buf), "%H:%M:%S", localtime(&t_end));
   APP_LOG(APP_LOG_LEVEL_INFO,"curr=%s, start=%s, end=%s", curr_buf, start_buf, end_buf);
 
-  // Schedule the next wakeup event. If inactive for too long, will alert again
-  // sooner. Minimum = 5 minutes.
-  //force = force || t_event < prv_event_timestamp(PERSIST_KEY_WAKEUP_ID); // FIXME: refine 
-  //prv_cancel_event();
-  if (enamel_get_dynamic_wakeup() == true) {
-    if (enamel_get_sleep_minutes() - inactive_mins <= MIN_SLEEP_MINUTES) {
-      t_event = t_curr + MIN_SLEEP_MINUTES * SECONDS_PER_MINUTE;
+  if (enamel_get_group() >= GROUP_REALTIME_RANDOM) {
+    if (enamel_get_dynamic_wakeup() == true) { // TODO: dynamic wakeup is deprecated.
+      APP_LOG(APP_LOG_LEVEL_ERROR, "Dynamic wakeup is deprecated!");
+      if (enamel_get_break_freq() - inactive_mins <= MIN_SLEEP_MINUTES) {
+        t_wakeup = e_launch_time + MIN_SLEEP_MINUTES * SECONDS_PER_MINUTE;
+      } else {
+        t_wakeup = e_launch_time + (enamel_get_break_freq() - inactive_mins) * SECONDS_PER_MINUTE;
+      }
     } else {
-      t_event = t_curr + (enamel_get_sleep_minutes() - inactive_mins) * SECONDS_PER_MINUTE;
+      t_wakeup = (e_launch_time + break_freq_seconds - 1) / 
+                  break_freq_seconds * break_freq_seconds;
     }
-  } else {
-    t_event = t_curr + enamel_get_sleep_minutes() * SECONDS_PER_MINUTE;
-  }
-  if (t_end <= t_start) { t_end += SECONDS_PER_DAY; }
-  if (t_event < t_start) {
-    t_event = t_start;
-  } else if (t_event > t_end) {
-    t_event = t_start + SECONDS_PER_DAY;
-  }
-  prv_reschedule_wakeup_event(0, t_event); // Next wakeup event
+
+    // Boundary conditions checking
+    if (t_wakeup < t_start) {
+      t_wakeup = t_start;
+    } else if (t_wakeup > t_end) {
+      t_wakeup = t_start + SECONDS_PER_DAY;
+    }
+
+    // Schedule periodic wakeup
+    prv_reschedule_wakeup_event(LAUNCH_WAKEUP_PERIOD, t_wakeup);
+    
+    // Schedule notification wakeup
+    t_notify = t_wakeup - 2 * break_len_seconds;
+    prv_reschedule_wakeup_event(LAUNCH_WAKEUP_NOTIFY, t_notify);
+  } else if (enamel_get_group() == GROUP_DAILY_MESSAGE) {
+    // Schedule end-of-day wakeup only
+    prv_reschedule_wakeup_event(LAUNCH_WAKEUP_DAILY, t_end);
+  } // If group == 0 (GROUP_PASSIVE_TRACKING), no normal wakeup scheduled.
 
   // Schedule the fallback wakeup events
-  prv_reschedule_wakeup_event(1, t_start + SECONDS_PER_DAY + SECONDS_PER_HOUR);
-  prv_reschedule_wakeup_event(2, t_curr + SECONDS_PER_DAY);
-  prv_reschedule_wakeup_event(3, t_curr + SECONDS_PER_WEEK);
+  prv_reschedule_wakeup_event(0, t_start + SECONDS_PER_DAY);
+  prv_reschedule_wakeup_event(1, t_start + 2 * SECONDS_PER_DAY);
+  prv_reschedule_wakeup_event(2, t_start + 3 * SECONDS_PER_DAY);
 }
