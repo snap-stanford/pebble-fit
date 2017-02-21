@@ -7,7 +7,7 @@ static GFont s_main_text_font, s_top_text_font;
 
 static int s_steps;
 static char s_start[12], s_end[12];
-static char s_top_text_buf[40];
+static char s_top_text_buf[64];
 static char s_main_text_buf[512];
 static int s_inactive_mins;
 
