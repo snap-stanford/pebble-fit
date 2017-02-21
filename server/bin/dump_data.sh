@@ -7,6 +7,7 @@ DB=heroku_0cbvznft
 u=pebble-fit
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+DATE=$(date +%Y%m%d-%H:%M:%S)
 collections=( events activities users groups )
 
 if [[ $# -gt 1 ]]; then
@@ -19,11 +20,8 @@ export_json() {
   for collection in "${collections[@]}"; do
     echo "Dumping ${db} ${collection}......"
     mongoexport -h ${HOST} -d ${DB} -u ${u} -c ${collection} \
-        -o ${out_dir}/${collection}.json < ${DIR}/password.txt
+        -o ${out_dir}/${DATE}/${collection}.json < ${DIR}/password.txt
   done
-
-  # Change the output data directory name to the current date.
-  mv ${out_dir} $(dirname ${out_dir})/$(date +%Y%m%d-%H:%M:%S)
 }
 
 export_json
