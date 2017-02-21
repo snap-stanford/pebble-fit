@@ -1,5 +1,6 @@
 var express = require('express')
 var router = express.Router()
+var fs = require('fs')
 
 // Configurations
 var messages = require('../config/messages');
@@ -13,7 +14,7 @@ var activities = require('./activities')
 var events = require('./events')
 var messages = require('./messages')
 
-var configDir = '../config/';
+const configDir = './config/';
 
 // Insert a new entry to Events and send a response back.
 function saveEvent(req, res, config, next) {
@@ -34,35 +35,39 @@ router.get(['/launch'],
   query.requireParam('query', ['watch', 'reason', 'configrequest', 'msgid', 'date']),
   function (req, res, next) {
     if (req.query.configrequest === '1') {
-      console.log("DEBUG: user is requesting for new update.");
+      //console.log("DEBUG: user is requesting for new update.");
       users.getConfigFile(
         req.query.watch,
         function (err, file) {
           if (err) return next(err);
+
           if (file) { // New update available.
-            console.log("file: "+file);
 
             // Read the corresponding configuration file.
-            delete require.cache[configDir + file]
-            var config = require(configDir + file);
-            console.log(config);
+            fs.readFile(configDir + file, 'utf8', function (err, data) {
+              if (err) throw err;
+              var config = JSON.parse(data);
 
-            // Read the messages.
-            for (var m in config.messages) {
-              config.messages[m] = messages[config.messages[m]];
-            } 
-            if (config.hasOwnProperty('random_messages')) {
-              var messagesCount = config['random_messages'];
-              config['random_messages'] = messages.getRandomMessages(messagesCount);
-            }
-            console.log(config);
-            saveEvent(req, res, config, next);
+              // Read the messages.
+              for (var m in config.messages) {
+                config.messages[m] = messages[config.messages[m]];
+              } 
+
+              // Read the random messages.
+              if (config.hasOwnProperty('random_messages')) {
+                var messagesCount = config['random_messages'];
+                config['random_messages'] = messages.getRandomMessages(messagesCount);
+              }
+              //console.log(config);
+              saveEvent(req, res, config, next);
+            });
           } else { // No update available.
+            //console.log("DEBUG: no new update available.");
             saveEvent(req, res, null, next);
           }
         });
     } else { // If user not requesting new update.
-      console.log("DEBUG: user is NOT requesting for new update.");
+      //console.log("DEBUG: user is NOT requesting for new update.");
       saveEvent(req, res, null, next);
     }
   });
@@ -93,11 +98,9 @@ router.get('/steps',
 router.get(['/launchexit'],
   query.requireParam('query', ['launchtime', 'launchreason', 'exittime', 'exitreason']),
   function (req, res, next) {
-    console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
     events.save('launch', req.query.launchreason, req.query.launchtime, 
       req.query.watch, req.query.msgid,
       function (err) {
-        console.log("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB");
         if (err) return next(err);
 
         events.save('exit', req.query.exitreason, req.query.exittime, req.query.watch, null,
