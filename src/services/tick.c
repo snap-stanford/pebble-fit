@@ -8,8 +8,9 @@ static void prv_tick_step_progress_handle(struct tm *tick_time, TimeUnits units_
   //APP_LOG(APP_LOG_LEVEL_INFO, "%d tick unit changed", units_changed);
   if ((s_will_timeout && s_count >= enamel_get_display_duration()) || 
       s_count >= MAX_DISPLAY_DURATION) {
-    APP_LOG(APP_LOG_LEVEL_ERROR, "s_count=%d, s_will_timeout=%u", 
-      s_count, (unsigned) s_will_timeout);
+    //APP_LOG(APP_LOG_LEVEL_ERROR, "s_count=%d, s_will_timeout=%u", 
+    //  s_count, (unsigned) s_will_timeout);
+
     // Exit after timeout by popping out all the windows of this app 
     e_exit_reason = EXIT_TIMEOUT;
     window_stack_pop_all(false);

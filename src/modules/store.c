@@ -33,6 +33,7 @@ void store_write_config_time(time_t time) {
  */
 bool store_resend_config_request(time_t t_curr) {
   // TODO: this forces request config everytime for debugging purpose.
+  //return true;
   return false;
 
   time_t last_config_time;
@@ -72,7 +73,6 @@ void store_write_launchexit_event(time_t t_launch, time_t t_exit, uint8_t lr, ui
 
   // Convert message ID to ascii code (assuming each ID is 4 bytes)
   const char *msg_id = launch_get_random_message_id();
-APP_LOG(APP_LOG_LEVEL_ERROR, msg_id);
   uint32_t msg_id_ascii = 0;
   for (int i = 0; i < 4; i++) {
     msg_id_ascii <<= 8;

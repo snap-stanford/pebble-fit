@@ -50,7 +50,6 @@ static void prv_init_callback(DictionaryIterator *iter, void *context) {
 
   if (!e_server_ready && (dict_find(iter, MESSAGE_KEY_config_update) || 
       dict_find(iter, AppKeyServerReceived))) {
-    APP_LOG(APP_LOG_LEVEL_ERROR, "Server Ready!");
     e_server_ready = true;
   }
 
@@ -60,6 +59,7 @@ static void prv_init_callback(DictionaryIterator *iter, void *context) {
       e_js_ready = true;
       launch_send_launch_notification();
       init_stage++;
+      init_stage = 5; // TODO
       break;
     case 1:
       // Connection between phone and server is established.
@@ -251,7 +251,6 @@ static void init(void) {
 static void deinit(void) {
   // FIXME: if app remains active, steps data keep sending to the server.
   s_exit_time = time(NULL);
-  APP_LOG(APP_LOG_LEVEL_ERROR, "deinit");
   if (e_server_ready) {
     // Send the exit record (the launch record has already been uploaded).
     launch_send_exit_notification(s_exit_time);

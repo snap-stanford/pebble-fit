@@ -1,5 +1,5 @@
 {
-  "version": "1.0.0",
+  "version": "0.8.0",
   "author": "Stanford SNAP",
   "dependencies": {
     "enamel": "^1.2.4",

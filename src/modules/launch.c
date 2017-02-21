@@ -60,7 +60,6 @@ void launch_send_exit_notification(time_t time) {
 void launch_resend(time_t t_launch, time_t t_exit, char *msg_id, uint8_t lr, uint8_t er) {
   // The current launch record has been uploaded and the current exit reason has 
   // not yet been collected, so it is safe to modify these two varaibles here.
-  APP_LOG(APP_LOG_LEVEL_INFO, "launch_resend");
   s_t_launch = t_launch;
   s_t_exit = t_exit;
   s_msg_id = msg_id;

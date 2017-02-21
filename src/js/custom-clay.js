@@ -37,7 +37,7 @@ module.exports = function(minified) {
     'dynamic_wakeup', 'sliding_window', 'display_duration'];
   var hidden_components = [
     'is_consent', 'config_update', 'config_update_interval',
-    'message_daily_summary', 'total_hour', 
+    'message_daily_summary', //'total_hour', 
 		//'message_random_0', 'message_random_1', 'message_random_2',
     'dynamic_wakeup', 'sliding_window', 'display_duration',
     'watch_alert_text', 'watch_pass_text',
@@ -272,6 +272,7 @@ module.exports = function(minified) {
     disabled_components.forEach(function (c) { clayConfig.getItemById(c).disable(); });
 
     clayConfig.getItemById('watchtoken').set(clayConfig.meta.watchToken);
+    clayConfig.getItemById('version').set('v0.8.0');
 
     updateConfigSummary.call();
     changeEnableApp.call(activateToggle);

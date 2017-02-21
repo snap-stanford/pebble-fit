@@ -638,7 +638,7 @@
   "type": "text",
   "id": "version",
   "messageKey": "version",
-  "defaultValue": "v0.8.0" 
+  "defaultValue": "v1.0.0" 
 },
 {
   "type": "text",

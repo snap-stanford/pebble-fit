@@ -40,8 +40,7 @@ exports.getConfigFile = function (watchToken, next) {
 };
 
 var updateConfig = function (user, next) {
-  console.log("in updateConfig: ");
-  console.log(user);
+  //console.log("in updateConfig: user = "user.); console.log(user);
   groups.getConfigFile(user.group, user.configUpdatedAt, function (err, group) {
     console.log("group = " + group);
     if (err) return next(err);

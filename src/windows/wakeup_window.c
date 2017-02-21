@@ -82,6 +82,7 @@ static void main_text_layer_update_proc() {
   } else {
     const char *daily_summary = enamel_get_message_daily_summary();
      
+APP_LOG(APP_LOG_LEVEL_ERROR, enamel_get_total_hour());
     snprintf(s_main_text_buf, sizeof(s_main_text_buf), daily_summary, 
       store_read_break_count(), atoi(enamel_get_total_hour()));
   }
