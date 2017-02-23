@@ -32,9 +32,9 @@ function saveEvent(req, res, config, next) {
 }
 
 router.get(['/launch'],
-  query.requireParam('query', ['watch', 'reason', 'configrequest', 'msgid', 'date']),
+  query.requireParam('query', ['watch', 'reason', 'msgid', 'date']),
   function (req, res, next) {
-    if (req.query.configrequest === '1') {
+    if (req.query.configrequest && req.query.configrequest === '1') {
       //console.log("DEBUG: user is requesting for new update.");
       users.getConfigFile(
         req.query.watch,
