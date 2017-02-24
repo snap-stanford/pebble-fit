@@ -382,23 +382,52 @@ static bool prv_each_settings_received(void *this, void *context) {
 
 static void prv_inbox_received_handle(DictionaryIterator *iter, void *context) {
 	if(dict_find(iter, MESSAGE_KEY_config_update)){
-		if(s_dict_buffer){
-			free(s_dict_buffer);
-			s_dict_buffer = NULL;
-		}
-		s_dict_size = dict_size(iter);
-		s_dict_buffer = malloc(s_dict_size);
+    DictionaryResult res;
 
-		Tuple *tuple=dict_read_first(iter);
+    Tuple *tuple=dict_read_first(iter);
 		while(tuple){
 			tuple->key = prv_map_messagekey(tuple->key);
 			tuple=dict_read_next(iter);
 		}
 
-		dict_write_begin(&s_dict, s_dict_buffer, s_dict_size);
-		dict_write_end(&s_dict);
-		dict_merge(&s_dict, &s_dict_size, iter, false, prv_key_update_cb, NULL);
+    //printf("s_dict_size=%u, iter size = %u\n", (unsigned int)s_dict_size, (unsigned int) dict_size(iter));
+    //tuple = dict_find(&s_dict, 3821242441);
+    //if (tuple) printf("total_hour=%s\n", tuple->value->cstring);
+    //else printf("total_hour not exist");
 
+    // Create a temporary pointer to the original s_dict memory.
+    DictionaryIterator temp_dict;
+    uint8_t* temp_dict_buffer = s_dict_buffer;
+
+    // Create a new buffer that is as large as s_dict and iter combined.
+    uint32_t new_dict_size = s_dict_size+dict_size(iter);
+    s_dict_size = new_dict_size;
+    s_dict_buffer = malloc(new_dict_size);
+
+    // Move the content in original s_dict to this new buffer.
+		dict_write_begin(&temp_dict, s_dict_buffer, new_dict_size);
+		dict_write_end(&temp_dict);
+		res = dict_merge(&temp_dict, &new_dict_size, &s_dict, false, prv_key_update_cb, NULL);
+    //printf("temp_dict size = %u", (unsigned) dict_size(&temp_dict));
+    //printf("1.res = %d", res);
+
+    // Move the content in the iter to this new buffer.
+    new_dict_size = s_dict_size;
+		res = dict_merge(&temp_dict, &new_dict_size, iter, false, prv_key_update_cb, NULL);
+    printf("temp_dict size = %u", (unsigned) dict_size(&temp_dict));
+    printf("2.res = %d", res);
+
+    // Point s_dict to this new buffer and update s_dict_size according to the actual content.
+    s_dict = temp_dict;
+    s_dict_size = dict_size(&s_dict);
+    
+    free(temp_dict_buffer);
+    
+    //tuple = dict_find(&s_dict, 3821242441);
+    //if (tuple) printf("total_hour=%s\n", tuple->value->cstring);
+    //else printf("total_hour not exist");
+
+    // Give control to the other user-defined handler.
 		if(s_handler_list){
 			linked_list_foreach(s_handler_list, prv_each_settings_received, NULL);
 		}

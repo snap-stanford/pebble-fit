@@ -117,6 +117,8 @@ uint32_t enamel_get_daily_end_time();
 // Getter for 'break_freq'
 typedef enum {
 	BREAK_FREQ_EVERY_HOUR = 60,
+	BREAK_FREQ_11_MINUTES = 11,
+	BREAK_FREQ_15_MINUTES = 15,
 } BREAK_FREQValue;
 BREAK_FREQValue enamel_get_break_freq();
 // -----------------------------------------------------

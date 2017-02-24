@@ -13,7 +13,7 @@ static bool s_pass = false;
 
 /* Load health service data for the last hour into a static array. */
 static void prv_load_data(time_t *start, time_t *end) {
-	s_steps = 0;
+  s_steps = 0;
   if (!s_is_loaded) {
     // Set the static array to zeros
     s_num_records = 0;
@@ -64,9 +64,9 @@ void prv_report_steps(int i) {
 void steps_update() {
   int left, right, break_freq, break_len, sliding_window;
   int nonsed_period = 0;
-	
+  
   //if (!s_is_update) { // FIXME: wanted to avoid multiple updates in the same session (i.e. within 1 minute so that step count will not change at all)
-  	s_pass = false;
+    s_pass = false;
     s_end = time(NULL);
     s_start = s_end - SECONDS_PER_MINUTE * MAX_ENTRIES; 
 
@@ -83,7 +83,9 @@ void steps_update() {
     sliding_window = enamel_get_sliding_window();
       
     // Check whether the goal is met. Update s_pass which is the indicator.
-		// Use the first loop is to initialize.
+    // Use the first loop is to initialize.
+    //APP_LOG(APP_LOG_LEVEL_ERROR, "bl=%d, bf=%d, sw=%d, threshold=%d", 
+    //  break_len, break_freq, sliding_window, enamel_get_step_threshold());
     for (right = 0; right < break_len + sliding_window; right++) {
       if (s_step_records[right] >= enamel_get_step_threshold()) {
         nonsed_period += 1;
@@ -93,17 +95,17 @@ void steps_update() {
       s_pass = true;
     } else {
       left = 0;
-			// Count the non-sedentary periods and move both left and right ends.
+      // Count the non-sedentary periods and move both left and right ends.
       for ( ; right < MAX_ENTRIES; right++, left++) {
         if (s_step_records[right] >= enamel_get_step_threshold()) {
           nonsed_period += 1;
         }
         if (//right - left > enamel_get_break_len() + sliding_window &&
             s_step_records[left] >= enamel_get_step_threshold()) {
-        	nonsed_period -= 1;
+          nonsed_period -= 1;
         }
 
-				// Once we know the goal is met, not need to continue computation.
+        // Once we know the goal is met, not need to continue computation.
         if (nonsed_period >= break_len) {
           s_pass = true;
           break;
@@ -116,13 +118,13 @@ void steps_update() {
     if (s_pass) {
       prv_report_steps(right);
 
-			// If the step goal had been achieved in this period, there is no need to calculate steps 
-  		// again, since we only increment break count once per period.
-			// FIXME: could optimiza by moving to the front of this function to save time.
-			time_t t_last = store_read_break_count_time();
-  		time_t break_freq_seconds = (time_t)enamel_get_break_freq() * SECONDS_PER_MINUTE;
-			if (t_last < e_launch_time / break_freq_seconds * break_freq_seconds) 
-      	store_increment_break_count();
+      // If the step goal had been achieved in this period, there is no need to calculate steps 
+      // again, since we only increment break count once per period.
+      // FIXME: could optimiza by moving to the front of this function to save time.
+      time_t t_last = store_read_break_count_time();
+      time_t break_freq_seconds = (time_t)enamel_get_break_freq() * SECONDS_PER_MINUTE;
+      if (t_last < e_launch_time / break_freq_seconds * break_freq_seconds) 
+        store_increment_break_count();
 
       s_end = s_start + right * SECONDS_PER_MINUTE;
       s_start = s_end - (break_len + sliding_window - 1) * SECONDS_PER_MINUTE;

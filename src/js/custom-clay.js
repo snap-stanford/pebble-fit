@@ -33,7 +33,7 @@ module.exports = function(minified) {
     'daily_start_time', 'daily_end_time', 'activate_text'];
 
   // Components that should always be hidden.
-  var disabled_components = ['step_threshold', 
+  var disabled_components = [//'step_threshold', 
     'dynamic_wakeup', 'sliding_window', 'display_duration'];
   var hidden_components = [
     'is_consent', 'config_update', 'config_update_interval',

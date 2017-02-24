@@ -33,8 +33,8 @@ void store_write_config_time(time_t time) {
  */
 bool store_resend_config_request(time_t t_curr) {
   // TODO: this forces request config everytime for debugging purpose.
-  //return true;
-  return false;
+  return true;
+  //return false;
 
   time_t last_config_time;
   if (!persist_exists(PERSIST_KEY_CONFIG_TIME)) {
@@ -287,7 +287,6 @@ const char* store_read_random_message() {
     int index = persist_read_int(PERSIST_KEY_RANDOM_MSG_INDEX);
     index = index >= RANDOM_MSG_POOL_SIZE - 1? 0 : index + 1;
     persist_write_int(PERSIST_KEY_RANDOM_MSG_INDEX, index);
-    APP_LOG(APP_LOG_LEVEL_ERROR, "index=%d", index);
 
     switch (index) {
       case 1: return enamel_get_message_random_1(); break;

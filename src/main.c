@@ -59,7 +59,7 @@ static void prv_init_callback(DictionaryIterator *iter, void *context) {
       e_js_ready = true;
       launch_send_launch_notification();
       init_stage++;
-      init_stage = 5; // TODO
+      //init_stage = 5; // TODO
       break;
     case 1:
       // Connection between phone and server is established.
@@ -98,6 +98,7 @@ static void prv_init_callback(DictionaryIterator *iter, void *context) {
 static void prv_update_config(void *context) {
   APP_LOG(APP_LOG_LEVEL_INFO, "in prv_update_config. %d", enamel_get_activate());
   APP_LOG(APP_LOG_LEVEL_INFO, "%s, %d, %d", enamel_get_watch_alert_text(), enamel_get_is_consent(), enamel_get_break_freq());
+  // TODO 2/24: this seems to cause the scroll window not properly response to the up/down buttons.
   
   if (enamel_get_activate()) {
     //TODO: double check whether this is redundant?
