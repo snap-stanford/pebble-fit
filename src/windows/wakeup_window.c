@@ -57,27 +57,12 @@ static void top_text_layer_update_proc() {
 static void main_text_layer_update_proc() {
   //if (e_launch_reason == LAUNCH_WAKEUP_NOTIFY) {
   if (e_launch_reason == LAUNCH_WAKEUP_NOTIFY || e_launch_reason == LAUNCH_PHONE) {
-    // FIXME: For debugging purpose, display indicator for bluetooth connection
-    const char *text;
-    HealthActivityMask activity = health_service_peek_current_activities();
-    switch(activity) {
-      case HealthActivityNone:
-        text = "None"; break;
-      case HealthActivitySleep: 
-      case HealthActivityRestfulSleep: 
-        text = "Sleeping"; break;
-      case HealthActivityWalk:
-        text = "Walking"; break;
-      case HealthActivityRun:
-        text = "Running"; break;
-      default:
-        text = "Unknown";
-    }
+
     APP_LOG(APP_LOG_LEVEL_INFO, "launch_set_random_message,content=%s",launch_get_random_message());
     if (connection_service_peek_pebble_app_connection()) {
-      snprintf(s_main_text_buf, sizeof(s_main_text_buf), "%s!%s!", launch_get_random_message(), text);
+      snprintf(s_main_text_buf, sizeof(s_main_text_buf), "%s!", launch_get_random_message());
     } else {
-      snprintf(s_main_text_buf, sizeof(s_main_text_buf), "%s.%s.", launch_get_random_message(), text);
+      snprintf(s_main_text_buf, sizeof(s_main_text_buf), "%s.", launch_get_random_message());
     }
   } else {
     const char *daily_summary = enamel_get_message_daily_summary();
@@ -90,7 +75,7 @@ APP_LOG(APP_LOG_LEVEL_ERROR, enamel_get_total_hour());
   text_layer_set_text(s_main_text_layer, s_main_text_buf);
 
   // Set up ScrollLayer according to the text size (assuming top_text_layer_update_proc done).
-  strcat(s_main_text_buf, "\n\n\n");
+  strcat(s_main_text_buf, "\n\n\n\n");
   GSize text_size = text_layer_get_content_size(s_main_text_layer);
   GSize text_size2 = text_layer_get_content_size(s_top_text_layer);
   text_size.w += text_size2.w;
@@ -126,7 +111,10 @@ static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
   //text_layer_set_text(s_main_text_layer, "reset timestamp");
   //store_write_upload_time(e_launch_time);
 
-  back_click_handler(recognizer, context);
+  //back_click_handler(recognizer, context);
+  launch_set_random_message();
+  snprintf(s_main_text_buf, sizeof(s_main_text_buf), "%s!", launch_get_random_message());
+  text_layer_set_text(s_main_text_layer, s_main_text_buf);
 
   //store_reset_break_count();
 

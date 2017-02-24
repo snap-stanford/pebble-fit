@@ -2,7 +2,7 @@ var Group = require('../models/groups');
 var _ = require('lodash');
 var moment = require('moment');
 
-exports.getConfigFile = function (name, date, next) {
+exports.getConfigFile = function (name, date, force, next) {
   //Group.findOne({ 'name': group }).
   //  where('configUpdatedAt').gt(date).
 	//	select('file').
@@ -22,7 +22,13 @@ exports.getConfigFile = function (name, date, next) {
           next(null, group);
         });
       } else {
-        next(err, group);
+        console.log(date);
+        console.log(group.configUpdatedAt);
+        if (force || group.configUpdatedAt > date) {
+          next(err, group);
+        } else {
+          next(err, null);
+        }
       }
     });
 

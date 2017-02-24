@@ -31,17 +31,17 @@ exports.getConfigFile = function (watchToken, next) {
 	save(watchToken, null, function (err, user) {
 	  console.log("save callback");
 	  if (err) return next(err);
-	  updateConfig(user, next);
+	  updateConfig(user, next, true);
 	});
       } else {
-	updateConfig(user, next);
+	updateConfig(user, next, false);
       }
     });
 };
 
-var updateConfig = function (user, next) {
+var updateConfig = function (user, next, force) {
   //console.log("in updateConfig: user = "user.); console.log(user);
-  groups.getConfigFile(user.group, user.configUpdatedAt, function (err, group) {
+  groups.getConfigFile(user.group, user.configUpdatedAt, force, function (err, group) {
     console.log("group = " + group);
     if (err) return next(err);
     if (!group) return next(null, null);

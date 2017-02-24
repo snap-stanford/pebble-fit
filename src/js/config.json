@@ -495,7 +495,9 @@
       "label": "Break Frequency:",
       "description": "How frequently do you want to take walking breaks?",
       "options": [
-        { "label": "Every hour",        "value": 60 }
+        { "label": "Every hour",        "value": 60 },
+        { "label": "11 minutes",        "value": 11 },
+        { "label": "15 minutes",        "value": 15 }
       ]
     },
     {
