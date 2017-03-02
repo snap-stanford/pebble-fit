@@ -1,5 +1,9 @@
-module.exports = function(minified) {
+var _clayConfig;
+
+module.exports = function (minified) {
   var clayConfig = this;
+  _clayConfig = clayConfig;
+
   var $ = minified.$;
   var _ = minified._;
   var HTML = minified.HTML;
@@ -279,3 +283,7 @@ module.exports = function(minified) {
   });
 
 };
+
+module.exports.foo = function () {
+  return _clayConfig;
+}

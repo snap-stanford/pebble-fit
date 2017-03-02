@@ -493,11 +493,11 @@
       "messageKey": "break_freq",
       "defaultValue": 60,
       "label": "Break Frequency:",
-      "description": "How frequently do you want to take walking breaks?",
+      "description": "How frequently do you want to take walking breaks (in minutes)?",
       "options": [
-        { "label": "Every hour",        "value": 60 },
-        { "label": "11 minutes",        "value": 11 },
-        { "label": "15 minutes",        "value": 15 }
+        { "label": "60",        "value": 60 },
+        { "label": "11",        "value": 11 },
+        { "label": "15",        "value": 15 }
       ]
     },
     {
@@ -508,7 +508,7 @@
       "label": "Break Length:",
       "description": "How many minutes of walking do you want to define as a break?",
       "options": [
-        { "label": "5 minute",        "value": 5 }
+        { "label": "5",        "value": 5 }
       ]
     },
     {
@@ -527,7 +527,7 @@
       "label": "Sliding window:",
       "description": "Smaller intervals within the range of the last 60 minutes. Might not be adjustable by the user in the final version.",
       "options": [
-        { "label": "2 minutes",     "value": 2 }
+        { "label": "2",     "value": 2 }
       ]
     },
     {
@@ -571,19 +571,10 @@
       }
     },
     {
-      "type": "select",
+      "type": "input",
       "id": "group",
       "messageKey": "group",
-      "defaultValue": 0,
-      "options": [
-        { "label": "passive_tracking",  "value": 0 },
-        { "label": "daily_message",     "value": 1 },
-        { "label": "realtime_random",   "value": 2 },
-        { "label": "realtime_action",   "value": 3 },
-        { "label": "realtime_outcome",  "value": 4 },
-        { "label": "realtime_health",   "value": 5 },
-        { "label": "realtime_adaptive", "value": 6 }
-      ]
+      "defaultValue": "passive_tracking"
     },
     {
       "type": "text",

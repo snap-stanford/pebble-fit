@@ -103,13 +103,13 @@ static WakeupId prv_reschedule_wakeup_event(uint8_t wakeup_i, time_t wakeup_time
 /* Schedule the next wakeup event and reschedule fallback wakeup events.
  * Try to set fallback wakeups also be within the start and end time
  * There are in total 4 wakeup events being scheduled.
- *  Cookie / Index        | Description
- *  0                     | Fallback wakeup: 1 days later 
- *  1                     | Fallback wakeup: 2 days later 
- *  2                     | Fallback wakeup: 3 days later 
- *  LAUNCH_WAKEUP_PERIOD  | Next periodic wakeup: rounded to the break_freq minutes. 
- *  LAUNCH_WAKEUP_NOTIFY  | Notification wakeup: 2 * break_len before the next periodic wakeup. 
- *  LAUNCH_WAKEUP_DAILY   | Daily wakeup: at the end time of the day. 
+ *  Cookie / Index         | Description
+ *  0                      | Fallback wakeup: 1 days later 
+ *  1                      | Fallback wakeup: 2 days later 
+ *  2                      | Fallback wakeup: 3 days later 
+ *  3/LAUNCH_WAKEUP_PERIOD | Next periodic wakeup: rounded to the break_freq minutes. 
+ *  4/LAUNCH_WAKEUP_NOTIFY | Notification wakeup: 2 * break_len before the next periodic wakeup. 
+ *  5/LAUNCH_WAKEUP_DAILY  | Daily wakeup: at the end time of the day. 
  */
 void wakeup_schedule_events(int inactive_mins) {
   time_t t_notify, t_wakeup;
@@ -129,20 +129,21 @@ void wakeup_schedule_events(int inactive_mins) {
   strftime(curr_buf, sizeof(curr_buf),"%H:%M:%S", localtime(&e_launch_time));
   strftime(start_buf, sizeof(start_buf),"%H:%M:%S", localtime(&t_start));
   strftime(end_buf, sizeof(end_buf), "%H:%M:%S", localtime(&t_end));
-  APP_LOG(APP_LOG_LEVEL_INFO,"curr=%s, start=%s, end=%s", curr_buf, start_buf, end_buf);
+  APP_LOG(APP_LOG_LEVEL_INFO,"group=%s, curr=%s, start=%s, end=%s", 
+    enamel_get_group(), curr_buf, start_buf, end_buf);
 
-  if (enamel_get_group() >= GROUP_REALTIME_RANDOM) {
+  if (strncmp(enamel_get_group(), "real_time", strlen("real_time")) == 0) {
+    APP_LOG(APP_LOG_LEVEL_ERROR, "real_time");
     if (enamel_get_dynamic_wakeup() == true) { // TODO: dynamic wakeup is deprecated.
       APP_LOG(APP_LOG_LEVEL_ERROR, "Dynamic wakeup is deprecated!");
-      if (enamel_get_break_freq() - inactive_mins <= MIN_SLEEP_MINUTES) {
-        t_wakeup = e_launch_time + MIN_SLEEP_MINUTES * SECONDS_PER_MINUTE;
-      } else {
-        t_wakeup = e_launch_time + (enamel_get_break_freq() - inactive_mins) * SECONDS_PER_MINUTE;
-      }
-    } else {
-      t_wakeup = (e_launch_time + break_freq_seconds - 1) / 
-                  break_freq_seconds * break_freq_seconds;
-    }
+      //if (enamel_get_break_freq() - inactive_mins <= MIN_SLEEP_MINUTES) {
+      //  t_wakeup = e_launch_time + MIN_SLEEP_MINUTES * SECONDS_PER_MINUTE;
+      //} else {
+      //  t_wakeup = e_launch_time + (enamel_get_break_freq()-inactive_mins) * SECONDS_PER_MINUTE;
+      //}
+    } 
+    // Round up to the next period.
+    t_wakeup = (e_launch_time+break_freq_seconds-1) / break_freq_seconds * break_freq_seconds;
 
     // Boundary conditions checking
     if (t_wakeup < t_start) {
@@ -157,10 +158,11 @@ void wakeup_schedule_events(int inactive_mins) {
     // Schedule notification wakeup
     t_notify = t_wakeup - 2 * break_len_seconds;
     prv_reschedule_wakeup_event(LAUNCH_WAKEUP_NOTIFY, t_notify);
-  } else if (enamel_get_group() == GROUP_DAILY_MESSAGE) {
+  } else if (strncmp(enamel_get_group(), "daily_message", strlen("daily_message")) == 1) {
     // Schedule end-of-day wakeup only
+    APP_LOG(APP_LOG_LEVEL_ERROR, "daily_message");
     prv_reschedule_wakeup_event(LAUNCH_WAKEUP_DAILY, t_end);
-  } // If group == 0 (GROUP_PASSIVE_TRACKING), no normal wakeup scheduled.
+  } // else the group must be "passive_tracking, so no normal wakeup scheduled.
 
   // Schedule the fallback wakeup events
   prv_reschedule_wakeup_event(0, t_start + SECONDS_PER_DAY);
