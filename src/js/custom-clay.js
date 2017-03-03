@@ -276,7 +276,7 @@ module.exports = function (minified) {
     disabled_components.forEach(function (c) { clayConfig.getItemById(c).disable(); });
 
     clayConfig.getItemById('watchtoken').set(clayConfig.meta.watchToken);
-    clayConfig.getItemById('version').set('v0.8.0');
+    clayConfig.getItemById('version').set('v0.8.1');
 
     updateConfigSummary.call();
     changeEnableApp.call(activateToggle);

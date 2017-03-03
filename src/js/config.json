@@ -448,7 +448,7 @@
       "id": "activate",
       "messageKey": "activate",
       "label": "Activate Pebble Fit",
-      "defaultValue": true
+      "defaultValue": false
     },
     {
       "type": "select",

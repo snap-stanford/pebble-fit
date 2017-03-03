@@ -32,15 +32,14 @@ void store_write_config_time(time_t time) {
  * Return true if we need to send new configuration request to the server, otherwise false.
  */
 bool store_resend_config_request(time_t t_curr) {
-  // TODO: this forces request config everytime for debugging purpose.
-  return true;
-  //return false;
-
   time_t last_config_time;
+
   if (!persist_exists(PERSIST_KEY_CONFIG_TIME)) {
     return true;
   }
+
   persist_read_data(PERSIST_KEY_CONFIG_TIME, &last_config_time, sizeof(time_t));
+
   if (t_curr-last_config_time > atoi(enamel_get_config_update_interval())*SECONDS_PER_DAY) {
     return true;
   } else {
@@ -53,7 +52,8 @@ bool store_resend_config_request(time_t t_curr) {
  */
 void store_write_upload_time(time_t time) {
   APP_LOG(APP_LOG_LEVEL_INFO, "Store update time = %d", (int) time);
-  persist_write_data(PERSIST_KEY_UPLOAD_TIME, &time, sizeof(time_t));
+  //persist_write_data(PERSIST_KEY_UPLOAD_TIME, &time, sizeof(time_t));
+  persist_write_data(PERSIST_KEY_CONFIG_TIME, &time, sizeof(time_t));
 }
 
 /**

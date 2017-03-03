@@ -3,6 +3,16 @@
 static Window *s_window;
 static TextLayer *s_text_layer;
 
+/** 
+ * Update the text displayed on this dialog window.
+ */
+void dialog_text_layer_update_proc(char *text) {
+  text_layer_set_text(s_text_layer, text);
+}
+
+/**
+ * Create the window and push to the window stack. 
+ */
 static void window_load(Window *window) {
   Layer *root_layer = window_get_root_layer(window);
 
@@ -19,7 +29,6 @@ static void window_load(Window *window) {
 	text_layer_set_text_color(s_text_layer, GColorRed);
   text_layer_set_text_alignment(s_text_layer, GTextAlignmentCenter);
   text_layer_set_font(s_text_layer, fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD));
-  text_layer_set_text(s_text_layer, "You must activate this app from the 'Settings' page on your phone.");
 
 
   // Add text layer to the window

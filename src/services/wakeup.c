@@ -1,42 +1,8 @@
 #include "wakeup.h"
 
-/* Set the wakeup to be X minutes from now. */
-//static void prv_wakeup_set_minutes_from_now(double min) {
-//  time_t timestamp = time(NULL) + (min * SECONDS_PER_MINUTE);
-//  const int cookie = 0;
-//  const bool notify_if_missed = false;
-//  wakeup_schedule(timestamp, cookie, notify_if_missed);
-//  APP_LOG(APP_LOG_LEVEL_INFO, "Set wakeup ~%d minutes from now", (int) min);
-//}
-
-/* Cancel a specific scheduled wakeup event. */
-//static void prv_cancel_event(){
-//  APP_LOG(APP_LOG_LEVEL_INFO, "in prv_cancel_event");
-//  uint32_t key = PERSIST_KEY_WAKEUP_ID;
-//  if (persist_exists(key)) {
-//    WakeupId wakeup_id = persist_read_int(key);
-//    time_t wakeup_timestamp = 0;
-//    if (wakeup_query(wakeup_id, &wakeup_timestamp)) {
-//      //APP_LOG(APP_LOG_LEVEL_INFO, "Cancelling previously scheduled wakeup event at %s, ");
-//      wakeup_cancel(wakeup_id);
-//    }
-//  }
-//}
-
-/* Get the timestamp of a specific wakeup event. */
-//static time_t prv_event_timestamp() {
-//  uint32_t key = PERSIST_KEY_WAKEUP_ID;
-//  if (persist_exists(key)) {
-//    WakeupId wakeup_id = persist_read_int(key);
-//    time_t wakeup_timestamp = 0;
-//    if (wakeup_query(wakeup_id, &wakeup_timestamp)) {
-//      return wakeup_timestamp;
-//    }
-//  }
-//  return -1;
-//}
-
-/* Get the wakeup ID from persistent storage at a given index. */
+/** 
+ * Get the wakeup ID from persistent storage at a given index. 
+ */
 static WakeupId prv_read_wakeup_id_pm(uint8_t wakeup_i) {
   WakeupId wakeup_id = -1;
   if (wakeup_i < NUM_USED_WAKEUP) {
@@ -49,7 +15,9 @@ static WakeupId prv_read_wakeup_id_pm(uint8_t wakeup_i) {
   return wakeup_id;
 }
 
-/* Set the wakeup ID of a given index in persistent storage. */
+/** 
+ * Set the wakeup ID of a given index in persistent storage. 
+ */
 void prv_write_wakeup_id_pm(uint8_t wakeup_i, WakeupId wakeup_id) {
   if (wakeup_i < NUM_USED_WAKEUP) {
     WakeupId wakeup_array[NUM_USED_WAKEUP];
@@ -61,7 +29,9 @@ void prv_write_wakeup_id_pm(uint8_t wakeup_i, WakeupId wakeup_id) {
   }
 }
 
-/* Reschedule a wakeup event given its persistent storage index and next timestamp. */
+/** 
+ * Reschedule a wakeup event given its persistent storage index and next timestamp. 
+ */
 static WakeupId prv_reschedule_wakeup_event(uint8_t wakeup_i, time_t wakeup_time) {
   WakeupId wakeup_id = -1;
   uint8_t try = 0;
@@ -98,7 +68,6 @@ static WakeupId prv_reschedule_wakeup_event(uint8_t wakeup_i, time_t wakeup_time
 
   return wakeup_id;
 }
-
 
 /* Schedule the next wakeup event and reschedule fallback wakeup events.
  * Try to set fallback wakeups also be within the start and end time
@@ -168,4 +137,11 @@ void wakeup_schedule_events(int inactive_mins) {
   prv_reschedule_wakeup_event(0, t_start + SECONDS_PER_DAY);
   prv_reschedule_wakeup_event(1, t_start + 2 * SECONDS_PER_DAY);
   prv_reschedule_wakeup_event(2, t_start + 3 * SECONDS_PER_DAY);
+}
+
+/**
+ * Deprecated. Schedule a warning wakeup in the next minute.
+ */
+void wakeup_schedule_warning(time_t t_exit) {
+  prv_reschedule_wakeup_event(LAUNCH_WAKEUP_WARN, t_exit + SECONDS_PER_MINUTE);
 }
