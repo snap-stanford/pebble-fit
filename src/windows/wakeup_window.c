@@ -1,8 +1,10 @@
 #include "wakeup_window.h"
 
 static Window *s_window;
-static ScrollLayer *s_scroll_layer;
 static TextLayer *s_main_text_layer, *s_top_text_layer;
+static ScrollLayer *s_scroll_layer;
+static ContentIndicator *s_indicator;
+static Layer *s_indicator_up_layer, *s_indicator_down_layer;
 static GFont s_main_text_font, s_top_text_font;
 
 static int s_steps;
@@ -130,8 +132,8 @@ static void click_config_provider(void *context) {
 }
 
 static void window_load(Window *window) {
-  Layer *root_layer = window_get_root_layer(window);
-  GRect bounds = layer_get_bounds(root_layer);
+  Layer *window_layer = window_get_root_layer(window);
+  GRect bounds = layer_get_bounds(window_layer);
 
   //int padding = PBL_IF_ROUND_ELSE(10, 0);
   int padding = 10;
@@ -140,22 +142,10 @@ static void window_load(Window *window) {
   //int main_text_height = PBL_IF_ROUND_ELSE(60, 70);
   int main_text_height = 2000;
 
-  // The text layer that is above the main text layer
-  GEdgeInsets top_text_insets = {.top = 10, .right = 10, .left = 10};
-  s_top_text_font = fonts_get_system_font(FONT_KEY_GOTHIC_24); 
-  s_top_text_layer = make_text_layer(
-    grect_inset(bounds, top_text_insets),s_top_text_font, GTextAlignmentCenter);
 
-  // The main text layer that resides in the center of the screen
-  GEdgeInsets main_text_insets = {.top = 10, .right = 0, .left = 0};
-  GRect main_text_bounds = grect_inset(
-    GRect(0, center - padding, bounds.size.w, main_text_height), main_text_insets);
-  s_main_text_font = fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD);
-  s_main_text_layer = make_text_layer(main_text_bounds, s_main_text_font, GTextAlignmentCenter);
-
-  // Create the ScrollLayer
+  // Create the ScrollLayer.
   s_scroll_layer = scroll_layer_create(bounds);
-  //scroll_layer_set_shadow_hidden(s_scroll_layer, true);
+  scroll_layer_set_shadow_hidden(s_scroll_layer, true);
 
   // Let the ScrollLayer receive click events, and set click handlers for windows.
   scroll_layer_set_click_config_onto_window(s_scroll_layer, s_window);
@@ -163,15 +153,73 @@ static void window_load(Window *window) {
     .click_config_provider =  click_config_provider,
   });
 
-  // Set the update procedure
-  prv_update_text();
+  // Add the ScrollLayer to the main window layer.
+  layer_add_child(window_layer, scroll_layer_get_layer(s_scroll_layer));
+
+
+
+  // Get the ContentIndicator from the ScrollLayer
+  s_indicator = scroll_layer_get_content_indicator(s_scroll_layer);
+
+  // Create two Layers to draw the arrows
+  s_indicator_up_layer = layer_create(GRect(0, 0, bounds.size.w, STATUS_BAR_LAYER_HEIGHT));
+  s_indicator_down_layer = layer_create(GRect(0, bounds.size.h - STATUS_BAR_LAYER_HEIGHT,
+                                              bounds.size.w, STATUS_BAR_LAYER_HEIGHT));
+
+  // Configure the properties of each indicator
+  const ContentIndicatorConfig up_config = (ContentIndicatorConfig) {
+    .layer = s_indicator_up_layer,
+    .times_out = false,
+    .alignment = GAlignCenter,
+    .colors = {
+      .foreground = GColorBlack,
+      .background = GColorWhite
+    }
+  };
+  content_indicator_configure_direction(s_indicator, ContentIndicatorDirectionUp,
+                                        &up_config);
+  
+  const ContentIndicatorConfig down_config = (ContentIndicatorConfig) {
+    .layer = s_indicator_down_layer,
+    .times_out = false,
+    .alignment = GAlignCenter,
+    .colors = {
+      .foreground = GColorBlack,
+      .background = GColorWhite
+    }
+  };
+  content_indicator_configure_direction(s_indicator, ContentIndicatorDirectionDown,
+                                        &down_config);
+
+  // Add indicator Layers as children of the main window layer.
+  layer_add_child(window_layer, s_indicator_up_layer);
+  layer_add_child(window_layer, s_indicator_down_layer);
+
+
+
+  // Create the top TextLayer that is above the main TextLayer.
+  GEdgeInsets top_text_insets = {.top = 10, .right = 10, .left = 10};
+  s_top_text_font = fonts_get_system_font(FONT_KEY_GOTHIC_24); 
+  s_top_text_layer = make_text_layer(grect_inset(bounds, top_text_insets),
+                                     s_top_text_font, GTextAlignmentCenter);
+
+  // Create the main TextLayer that resides in the center of the screen.
+  GEdgeInsets main_text_insets = {.top = 10, .right = 0, .left = 0};
+  GRect main_text_bounds = grect_inset(GRect(0, center - padding, bounds.size.w, 
+                                             main_text_height), main_text_insets);
+  s_main_text_font = fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD);
+  s_main_text_layer = make_text_layer(main_text_bounds, s_main_text_font, GTextAlignmentCenter);
 
   // Add TextLayer as children of the ScrollLayer.
   scroll_layer_add_child(s_scroll_layer, text_layer_get_layer(s_top_text_layer));
   scroll_layer_add_child(s_scroll_layer, text_layer_get_layer(s_main_text_layer));
 
-  // Add the ScrollLayer to the window.
-  layer_add_child(root_layer, scroll_layer_get_layer(s_scroll_layer));
+  // Enable paging and text flow with an inset of 5 pixels
+  text_layer_enable_screen_text_flow_and_paging(s_top_text_layer, 5);
+  text_layer_enable_screen_text_flow_and_paging(s_main_text_layer, 5);
+
+  // Set the update procedure for TextLayer.
+  prv_update_text();
 }
 
 static void window_unload(Window *window) {
@@ -186,6 +234,14 @@ static void window_unload(Window *window) {
   if (s_top_text_layer) {
     text_layer_destroy(s_top_text_layer);
     s_top_text_layer = NULL;
+  }
+  if (s_indicator_up_layer) {
+    layer_destroy(s_indicator_up_layer);
+    s_indicator_up_layer = NULL;
+  }
+  if (s_indicator_up_layer) {
+    layer_destroy(s_indicator_down_layer);
+    s_indicator_down_layer = NULL;
   }
 
   window_destroy(s_window);
