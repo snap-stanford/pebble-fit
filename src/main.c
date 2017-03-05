@@ -159,11 +159,35 @@ static void prv_wakeup_vibrate(bool force) {
   }
 }
 
-/* Push a window depends on whether this App is activated or not. */ 
+/**
+ * Handle wakeup events.
+ */
+static void wakeup_handler(WakeupId wakeup_id, int32_t wakeup_cookie) {
+  APP_LOG(APP_LOG_LEVEL_INFO, "wakeup %d , cookie %d", (int)wakeup_id, (int)wakeup_cookie);
+  
+  // wakeup_cookie is the index associated to the wakeup event.
+  e_launch_reason = wakeup_cookie;
+  
+  if (wakeup_cookie >= LAUNCH_WAKEUP_PERIOD) {
+    prv_wakeup_vibrate(false);
+  } else {
+    APP_LOG(APP_LOG_LEVEL_ERROR, "Fallback wakeup! cookie=%d", (int)wakeup_cookie);
+  }
+  
+  // TODO: if this is a notification wakeup and goal is met, should we still push window?
+  if (s_wakeup_window) {
+    window_stack_remove(s_wakeup_window, false);
+  }
+  s_wakeup_window =  wakeup_window_push();
+}
+
+/** 
+ * Handle launch events. 
+ * Push a window depends on whether this App is activated or not.
+ */
 static void prv_launch_handler(bool activate) {
   if (activate) {
     WakeupId wakeup_id;
-    int32_t wakeup_cookie;
     bool will_timeout = false;
     // FIXME: subscribe to wakeup event to update steps even App is in the foreground.
 
@@ -193,7 +217,10 @@ static void prv_launch_handler(bool activate) {
       case APP_LAUNCH_WAKEUP: // When launched due to wakeup event.
         will_timeout = true;
 
+        int32_t wakeup_cookie;
         wakeup_get_launch_event(&wakeup_id, &wakeup_cookie);
+        wakeup_handler(wakeup_id, wakeup_cookie);        
+/*
         APP_LOG(APP_LOG_LEVEL_INFO, "wakeup %d , cookie %d", (int)wakeup_id, (int)wakeup_cookie);
 
         // wakeup_cookie is the index associated to the wakeup event.
@@ -207,6 +234,7 @@ static void prv_launch_handler(bool activate) {
 
         // TODO: if this is a notification wakeup and goal is met, should we still push window?
         s_wakeup_window =  wakeup_window_push();
+*/
         break;
       case APP_LAUNCH_PHONE: // When open the App's settings page or after installation 
         e_launch_reason = LAUNCH_PHONE;
@@ -248,6 +276,9 @@ static void init(void) {
   s_enamel_msg_handler = enamel_settings_received_subscribe(prv_update_config, NULL);
 
   events_app_message_open(); // Call pebble-events app_message_open function
+
+  // subscribe to wakeup service to get wakeup events while app is running
+  wakeup_service_subscribe(wakeup_handler);
 
   // TODO: Modify the default value of activate in config.json
   prv_launch_handler(enamel_get_activate());

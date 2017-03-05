@@ -14,7 +14,7 @@
 #define MIN_SLEEP_MINUTES             10
 
 /* Maximum number of wakeup events allowed for an App. */
-#define NUM_USED_WAKEUP               7
+#define NUM_USED_WAKEUP               6
 #define NUM_TOTAL_WAKEUP              8
 
 /* Launch/exit reasons. */
@@ -24,7 +24,6 @@
 #define LAUNCH_WAKEUP_PERIOD          3
 #define LAUNCH_WAKEUP_NOTIFY          4
 #define LAUNCH_WAKEUP_DAILY           5
-#define LAUNCH_WAKEUP_WARN            6
 
 #define EXIT_OTHER                    0
 #define EXIT_USER                     1

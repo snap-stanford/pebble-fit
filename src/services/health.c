@@ -36,7 +36,8 @@ static void health_handler(HealthEventType event, void *context) {
   }
 }
 
-/* Subscribe to health updates. */
+/* Subscribe to health updates. Deprecated, moved into steps.c
+*/
 void health_subscribe() {
   HealthServiceAccessibilityMask result = 
     health_service_metric_accessible(

@@ -110,8 +110,12 @@ void wakeup_schedule_events(int inactive_mins) {
       //  t_wakeup = e_launch_time + (enamel_get_break_freq()-inactive_mins) * SECONDS_PER_MINUTE;
       //}
     } 
-    // Round up to the next period.
-    t_wakeup = (e_launch_time+break_freq_seconds-1) / break_freq_seconds * break_freq_seconds;
+
+    // Round up to the next Period Wakeup time. 
+		// Note: use the current timestamp instead of the launch timestamp, since the launch 
+ 		// timestamp might be serveral minutes ago if the app wakes up while the app is on (i.e. 
+		// manually launched by the user).
+    t_wakeup = (time(NULL)+break_freq_seconds-1) / break_freq_seconds * break_freq_seconds;
 
     // Boundary conditions checking
     if (t_wakeup < t_start) {
