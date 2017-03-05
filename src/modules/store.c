@@ -24,23 +24,27 @@ static uint32_t s_launchexit_data[3];
  * Write into the persistent storage the latest timestamp at which we update configuration.
  */
 void store_write_config_time(time_t time) {
-  APP_LOG(APP_LOG_LEVEL_ERROR, "Store configuration time = %d", (int) time);
+  APP_LOG(APP_LOG_LEVEL_INFO, "Store configuration time = %u", (unsigned) time);
   persist_write_data(PERSIST_KEY_CONFIG_TIME, &time, sizeof(time_t));
 }
 
 /**
  * Return true if we need to send new configuration request to the server, otherwise false.
+ * Note: Since currently we will reset the daily step status (store_read_break_count()), we 
+ *   must avoid sending config_request if the user has accomplished any daily break goal.
+ *   Make sure there is a non-Period Wakup scheduled daily before any Period Wakeup.
  */
 bool store_resend_config_request(time_t t_curr) {
-  time_t last_config_time;
-
   if (!persist_exists(PERSIST_KEY_CONFIG_TIME)) {
     return true;
   }
 
+  time_t last_config_time;
+
   persist_read_data(PERSIST_KEY_CONFIG_TIME, &last_config_time, sizeof(time_t));
 
-  if (t_curr-last_config_time > atoi(enamel_get_config_update_interval())*SECONDS_PER_DAY) {
+  if (store_read_break_count() == 0 && 
+			t_curr-last_config_time > atoi(enamel_get_config_update_interval()) * SECONDS_PER_DAY) {
     return true;
   } else {
     return false;
@@ -51,17 +55,18 @@ bool store_resend_config_request(time_t t_curr) {
  * Write the latest timestamp at which we upload steps data.
  */
 void store_write_upload_time(time_t time) {
-  APP_LOG(APP_LOG_LEVEL_INFO, "Store update time = %d", (int) time);
-  //persist_write_data(PERSIST_KEY_UPLOAD_TIME, &time, sizeof(time_t));
-  persist_write_data(PERSIST_KEY_CONFIG_TIME, &time, sizeof(time_t));
+  APP_LOG(APP_LOG_LEVEL_INFO, "Store update time = %u", (unsigned) time);
+  persist_write_data(PERSIST_KEY_UPLOAD_TIME, &time, sizeof(time_t));
 }
 
 /**
- * Read the latest timestamp at which we upload steps data.
+ * Return the timestamp of the last time we upload steps data to the server.
  */
 time_t store_read_upload_time() {
   time_t res;
+
   persist_read_data(PERSIST_KEY_UPLOAD_TIME, &res, sizeof(time_t));
+
   return res;
 }
 

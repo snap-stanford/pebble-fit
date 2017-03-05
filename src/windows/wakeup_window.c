@@ -114,8 +114,6 @@ static void back_click_handler(ClickRecognizerRef recognizer, void *context) {
  * Handler for the select button. It is same as back_click_handler() or used for debugging.
  */
 static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
-
-
   //text_layer_set_text(s_main_text_layer, "reset timestamp");
   //store_write_upload_time(e_launch_time - 2 * SECONDS_PER_DAY);
 

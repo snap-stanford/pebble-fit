@@ -6,4 +6,4 @@
 #include "../modules/launch.h"
 
 void wakeup_schedule_events(int inactive_mins);
-void wakeup_schedule_warning(time_t t_exit);
+//void wakeup_schedule_warning(time_t t_exit);

@@ -58,7 +58,6 @@ static void prv_init_callback(DictionaryIterator *iter, void *context) {
       e_js_ready = true;
       launch_send_launch_notification();
       init_stage++;
-      //init_stage = 5; // TODO
       break;
     case 1:
       // Connection between phone and server is established.
@@ -79,7 +78,7 @@ static void prv_init_callback(DictionaryIterator *iter, void *context) {
       }
       break;
     case 3: 
-      steps_send_latest();
+      steps_send_latest(e_launch_time);
       init_stage++;
       break;
     default:
@@ -122,7 +121,7 @@ static void prv_update_config(void *context) {
     window_stack_remove(s_wakeup_window, false);
   }
 
-  store_write_config_time(time(NULL));
+  store_write_config_time(e_launch_time);
 
   store_reset_break_count();
 

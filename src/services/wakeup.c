@@ -102,7 +102,6 @@ void wakeup_schedule_events(int inactive_mins) {
     enamel_get_group(), curr_buf, start_buf, end_buf);
 
   if (strncmp(enamel_get_group(), "real_time", strlen("real_time")) == 0) {
-    APP_LOG(APP_LOG_LEVEL_ERROR, "real_time");
     if (enamel_get_dynamic_wakeup() == true) { // TODO: dynamic wakeup is deprecated.
       APP_LOG(APP_LOG_LEVEL_ERROR, "Dynamic wakeup is deprecated!");
       //if (enamel_get_break_freq() - inactive_mins <= MIN_SLEEP_MINUTES) {
@@ -129,7 +128,6 @@ void wakeup_schedule_events(int inactive_mins) {
     prv_reschedule_wakeup_event(LAUNCH_WAKEUP_NOTIFY, t_notify);
   } else if (strncmp(enamel_get_group(), "daily_message", strlen("daily_message")) == 1) {
     // Schedule end-of-day wakeup only
-    APP_LOG(APP_LOG_LEVEL_ERROR, "daily_message");
     prv_reschedule_wakeup_event(LAUNCH_WAKEUP_DAILY, t_end);
   } // else the group must be "passive_tracking, so no normal wakeup scheduled.
 
@@ -142,6 +140,6 @@ void wakeup_schedule_events(int inactive_mins) {
 /**
  * Deprecated. Schedule a warning wakeup in the next minute.
  */
-void wakeup_schedule_warning(time_t t_exit) {
-  prv_reschedule_wakeup_event(LAUNCH_WAKEUP_WARN, t_exit + SECONDS_PER_MINUTE);
-}
+//void wakeup_schedule_warning(time_t t_exit) {
+//  prv_reschedule_wakeup_event(LAUNCH_WAKEUP_WARN, t_exit + SECONDS_PER_MINUTE);
+//}
