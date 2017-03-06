@@ -15,7 +15,8 @@ static void prv_tick_step_progress_handle(struct tm *tick_time, TimeUnits units_
     e_exit_reason = EXIT_TIMEOUT;
     window_stack_pop_all(false);
   } else if (s_count % (SECONDS_PER_MINUTE * enamel_get_sliding_window()) == 0) {
-    wakeup_window_breathe();
+    //wakeup_window_breathe();
+    APP_LOG(APP_LOG_LEVEL_INFO, "wakeup_window_breathe is disabled.");
   }
   s_count++;
 }

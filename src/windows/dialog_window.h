@@ -2,5 +2,5 @@
 
 #include <pebble.h>
 
-/* Create the window and push to the window stack. */
 Window * dialog_window_push();
+void dialog_text_layer_update_proc(char *text);

@@ -1,5 +1,9 @@
-module.exports = function(minified) {
+var _clayConfig;
+
+module.exports = function (minified) {
   var clayConfig = this;
+  _clayConfig = clayConfig;
+
   var $ = minified.$;
   var _ = minified._;
   var HTML = minified.HTML;
@@ -272,10 +276,14 @@ module.exports = function(minified) {
     disabled_components.forEach(function (c) { clayConfig.getItemById(c).disable(); });
 
     clayConfig.getItemById('watchtoken').set(clayConfig.meta.watchToken);
-    clayConfig.getItemById('version').set('v0.8.0');
+    clayConfig.getItemById('version').set('v0.8.1');
 
     updateConfigSummary.call();
     changeEnableApp.call(activateToggle);
   });
 
 };
+
+module.exports.foo = function () {
+  return _clayConfig;
+}

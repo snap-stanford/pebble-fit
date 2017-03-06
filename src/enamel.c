@@ -139,7 +139,7 @@ const char* enamel_get_survey_race(){
 // Getter for 'activate'
 bool enamel_get_activate(){
 	Tuple* tuple = dict_find(&s_dict, 2910575235);
-	return tuple ? tuple->value->int32 == 1 : true;
+	return tuple ? tuple->value->int32 == 1 : false;
 }
 // -----------------------------------------------------
 
@@ -235,9 +235,9 @@ const char* enamel_get_total_hour(){
 
 // -----------------------------------------------------
 // Getter for 'group'
-GROUPValue enamel_get_group(){
+const char* enamel_get_group(){
 	Tuple* tuple = dict_find(&s_dict, 148261412);
-	return tuple ? atoi(tuple->value->cstring) : 0;
+	return tuple ? tuple->value->cstring : "passive_tracking";
 }
 // -----------------------------------------------------
 
@@ -324,7 +324,7 @@ static uint16_t prv_get_inbound_size() {
 		+ 7 + 4
 		+ 7 + 3
 		+ 7 + ENAMEL_MAX_STRING_LENGTH
-		+ 7 + 2
+		+ 7 + ENAMEL_MAX_STRING_LENGTH
 		+ 7 + ENAMEL_MAX_STRING_LENGTH
 		+ 7 + ENAMEL_MAX_STRING_LENGTH
 		+ 7 + ENAMEL_MAX_STRING_LENGTH
@@ -391,9 +391,9 @@ static void prv_inbox_received_handle(DictionaryIterator *iter, void *context) {
 		}
 
     //printf("s_dict_size=%u, iter size = %u\n", (unsigned int)s_dict_size, (unsigned int) dict_size(iter));
-    //tuple = dict_find(&s_dict, 3821242441);
-    //if (tuple) printf("total_hour=%s\n", tuple->value->cstring);
-    //else printf("total_hour not exist");
+    //tuple = dict_find(iter, 148261412);
+    //if (tuple) printf("group=%s\n", tuple->value->cstring);
+    //else printf("group not exist");
 
     // Create a temporary pointer to the original s_dict memory.
     DictionaryIterator temp_dict;
@@ -414,8 +414,10 @@ static void prv_inbox_received_handle(DictionaryIterator *iter, void *context) {
     // Move the content in the iter to this new buffer.
     new_dict_size = s_dict_size;
 		res = dict_merge(&temp_dict, &new_dict_size, iter, false, prv_key_update_cb, NULL);
-    printf("temp_dict size = %u", (unsigned) dict_size(&temp_dict));
-    printf("2.res = %d", res);
+    if (res != 0) {
+      printf("temp_dict size = %u", (unsigned) dict_size(&temp_dict));
+      printf("2.res = %d", res);
+    }
 
     // Point s_dict to this new buffer and update s_dict_size according to the actual content.
     s_dict = temp_dict;
@@ -423,9 +425,9 @@ static void prv_inbox_received_handle(DictionaryIterator *iter, void *context) {
     
     free(temp_dict_buffer);
     
-    //tuple = dict_find(&s_dict, 3821242441);
-    //if (tuple) printf("total_hour=%s\n", tuple->value->cstring);
-    //else printf("total_hour not exist");
+    //tuple = dict_find(&s_dict, 148261412);
+    //if (tuple) printf("group=%s\n", tuple->value->cstring);
+    //else printf("group not exist");
 
     // Give control to the other user-defined handler.
 		if(s_handler_list){

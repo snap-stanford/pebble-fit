@@ -19,12 +19,11 @@ static EventHandle s_normal_msg_handler, s_enamel_msg_handler;
 static time_t s_exit_time;
 static Window *s_dialog_window = NULL; 
 static Window *s_wakeup_window = NULL;
-static bool s_enamel_on = false;
 
 //static void prv_launch_write(DictionaryIterator * out);
 static void prv_update_config(void *context);
 static void prv_init_callback(DictionaryIterator *iter, void *context);
-static void prv_wakeup_vibrate();
+static void prv_wakeup_vibrate(bool force);
 static void prv_launch_handler(bool activate);
 
 
@@ -59,7 +58,6 @@ static void prv_init_callback(DictionaryIterator *iter, void *context) {
       e_js_ready = true;
       launch_send_launch_notification();
       init_stage++;
-      //init_stage = 5; // TODO
       break;
     case 1:
       // Connection between phone and server is established.
@@ -80,7 +78,7 @@ static void prv_init_callback(DictionaryIterator *iter, void *context) {
       }
       break;
     case 3: 
-      steps_send_latest();
+      steps_send_latest(e_launch_time);
       init_stage++;
       break;
     default:
@@ -106,17 +104,24 @@ static void prv_update_config(void *context) {
     if (s_wakeup_window == NULL) {
       prv_launch_handler(true); // FIXME: this will cause infinite recursive calls.  // Change from dialog_window to wakeup_window.
     } else {
-      wakeup_window_breathe(); // Update the current content of wakeup_window.
+      // Update the current content of wakeup_window.
+      wakeup_window_breathe(); 
     }
+
+    // Prevent seeing other windows when presseing the "back" button.
+    window_stack_remove(s_dialog_window, false);
   } else {
     APP_LOG(APP_LOG_LEVEL_ERROR, "Got inactivated. Cancelling all wakeup events!");
     wakeup_cancel_all();
     if (s_wakeup_window != NULL) {
       prv_launch_handler(false); // Change from wakeup_window to dialog_window.
     }
+
+    // Prevent seeing other windows when presseing the "back" button.
+    window_stack_remove(s_wakeup_window, false);
   }
 
-  store_write_config_time(time(NULL));
+  store_write_config_time(e_launch_time);
 
   store_reset_break_count();
 
@@ -127,11 +132,11 @@ static void prv_update_config(void *context) {
  * If the activity goal is met or the current activity is Sleep/RestfulSleep, it does nothing.
  * Otherwise, it will alert users by vibration and popping up alert window on the watch.
  */
-static void prv_wakeup_vibrate() {
+static void prv_wakeup_vibrate(bool force) {
   HealthActivityMask activity = health_service_peek_current_activities();
 
   if (activity != HealthActivitySleep && activity != HealthActivityRestfulSleep &&
-      !steps_get_pass()) {
+      (force || !steps_get_pass())) {
     switch (enamel_get_vibrate()) {
       case 1: vibes_short_pulse();      break;
       case 2: vibes_long_pulse();       break;
@@ -154,11 +159,35 @@ static void prv_wakeup_vibrate() {
   }
 }
 
-/* Push a window depends on whether this App is activated or not. */ 
+/**
+ * Handle wakeup events.
+ */
+static void wakeup_handler(WakeupId wakeup_id, int32_t wakeup_cookie) {
+  APP_LOG(APP_LOG_LEVEL_INFO, "wakeup %d , cookie %d", (int)wakeup_id, (int)wakeup_cookie);
+  
+  // wakeup_cookie is the index associated to the wakeup event.
+  e_launch_reason = wakeup_cookie;
+  
+  if (wakeup_cookie >= LAUNCH_WAKEUP_PERIOD) {
+    prv_wakeup_vibrate(false);
+  } else {
+    APP_LOG(APP_LOG_LEVEL_ERROR, "Fallback wakeup! cookie=%d", (int)wakeup_cookie);
+  }
+  
+  // TODO: if this is a notification wakeup and goal is met, should we still push window?
+  if (s_wakeup_window) {
+    window_stack_remove(s_wakeup_window, false);
+  }
+  s_wakeup_window =  wakeup_window_push();
+}
+
+/** 
+ * Handle launch events. 
+ * Push a window depends on whether this App is activated or not.
+ */
 static void prv_launch_handler(bool activate) {
   if (activate) {
     WakeupId wakeup_id;
-    int32_t wakeup_cookie;
     bool will_timeout = false;
     // FIXME: subscribe to wakeup event to update steps even App is in the foreground.
 
@@ -188,19 +217,24 @@ static void prv_launch_handler(bool activate) {
       case APP_LAUNCH_WAKEUP: // When launched due to wakeup event.
         will_timeout = true;
 
+        int32_t wakeup_cookie;
         wakeup_get_launch_event(&wakeup_id, &wakeup_cookie);
+        wakeup_handler(wakeup_id, wakeup_cookie);        
+/*
         APP_LOG(APP_LOG_LEVEL_INFO, "wakeup %d , cookie %d", (int)wakeup_id, (int)wakeup_cookie);
 
         // wakeup_cookie is the index associated to the wakeup event.
         e_launch_reason = wakeup_cookie;
+        
         if (wakeup_cookie <= LAUNCH_WAKEUP_DAILY) {
-          prv_wakeup_vibrate();
+          prv_wakeup_vibrate(false);
         } else {
           APP_LOG(APP_LOG_LEVEL_ERROR, "Fallback wakeup! cookie=%d", (int)wakeup_cookie);
         }
 
         // TODO: if this is a notification wakeup and goal is met, should we still push window?
         s_wakeup_window =  wakeup_window_push();
+*/
         break;
       case APP_LAUNCH_PHONE: // When open the App's settings page or after installation 
         e_launch_reason = LAUNCH_PHONE;
@@ -213,8 +247,6 @@ static void prv_launch_handler(bool activate) {
         wakeup_cancel_all();
         s_wakeup_window = wakeup_window_push();
     }
-    // Prevent seeing other windows when presseing the "back" button.
-    window_stack_remove(s_dialog_window, false);
 
     // Start timer
     tick_second_subscribe(will_timeout);
@@ -222,9 +254,8 @@ static void prv_launch_handler(bool activate) {
     // Always re-schedule wakeup events (do not put return in the above code)
     wakeup_schedule_events(steps_get_inactive_minutes());
   } else {
-    // Prevent seeing other windows when presseing the "back" button.
-    window_stack_remove(s_wakeup_window, false);
     s_dialog_window = dialog_window_push();
+    dialog_text_layer_update_proc("You must activate this app from the 'Settings' page on your phone.");
   }
 
   APP_LOG(APP_LOG_LEVEL_INFO, "pebble-fit launch_reason = %d", e_launch_reason);
@@ -240,31 +271,35 @@ static void init(void) {
   //app_message_set_context(callback);
   
   events_app_message_request_outbox_size(APP_MESSAGE_OUTBOX_SIZE_MINIMUM);
-        //s_normal_msg_handler = events_app_message_register_inbox_received(prv_test, prv_init_callback);
-        s_normal_msg_handler = events_app_message_register_inbox_received(prv_init_callback, NULL);
+
+  s_normal_msg_handler = events_app_message_register_inbox_received(prv_init_callback, NULL);
   s_enamel_msg_handler = enamel_settings_received_subscribe(prv_update_config, NULL);
+
   events_app_message_open(); // Call pebble-events app_message_open function
+
+  // subscribe to wakeup service to get wakeup events while app is running
+  wakeup_service_subscribe(wakeup_handler);
 
   // TODO: Modify the default value of activate in config.json
   prv_launch_handler(enamel_get_activate());
 }
 
 static void deinit(void) {
-  // FIXME: if app remains active, steps data keep sending to the server.
+  // FIXME: if app remains active, steps data keep sending to the server?
   s_exit_time = time(NULL);
-  if (e_server_ready) {
-    // Send the exit record (the launch record has already been uploaded).
-    launch_send_exit_notification(s_exit_time);
-  } else {
-    // Store launch-exit record if the connection could not be established right now.
-    store_write_launchexit_event(e_launch_time, s_exit_time, e_launch_reason, e_exit_reason);
+  if (enamel_get_activate()) {
+    if (e_server_ready) {
+      // Send the exit record (the launch record has already been uploaded).
+      launch_send_exit_notification(s_exit_time);
+    } else {
+      // Store launch-exit record if the connection could not be established right now.
+      store_write_launchexit_event(e_launch_time, s_exit_time, e_launch_reason, e_exit_reason);
+    }
   }
 
   // Deinit Enamel to unregister App Message handlers and save settings
-  if (s_enamel_on) {
-    enamel_settings_received_unsubscribe(s_normal_msg_handler);
-    enamel_settings_received_unsubscribe(s_enamel_msg_handler);
-  }
+  enamel_settings_received_unsubscribe(s_normal_msg_handler);
+  enamel_settings_received_unsubscribe(s_enamel_msg_handler);
   enamel_deinit();
 
   // App will exit to default watchface

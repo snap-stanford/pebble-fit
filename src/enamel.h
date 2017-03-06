@@ -116,9 +116,9 @@ uint32_t enamel_get_daily_end_time();
 // -----------------------------------------------------
 // Getter for 'break_freq'
 typedef enum {
-	BREAK_FREQ_EVERY_HOUR = 60,
-	BREAK_FREQ_11_MINUTES = 11,
-	BREAK_FREQ_15_MINUTES = 15,
+	BREAK_FREQ_60 = 60,
+	BREAK_FREQ_11 = 11,
+	BREAK_FREQ_15 = 15,
 } BREAK_FREQValue;
 BREAK_FREQValue enamel_get_break_freq();
 // -----------------------------------------------------
@@ -126,7 +126,7 @@ BREAK_FREQValue enamel_get_break_freq();
 // -----------------------------------------------------
 // Getter for 'break_len'
 typedef enum {
-	BREAK_LEN_5_MINUTE = 5,
+	BREAK_LEN_5 = 5,
 } BREAK_LENValue;
 BREAK_LENValue enamel_get_break_len();
 // -----------------------------------------------------
@@ -139,7 +139,7 @@ bool enamel_get_dynamic_wakeup();
 // -----------------------------------------------------
 // Getter for 'sliding_window'
 typedef enum {
-	SLIDING_WINDOW_2_MINUTES = 2,
+	SLIDING_WINDOW_2 = 2,
 } SLIDING_WINDOWValue;
 SLIDING_WINDOWValue enamel_get_sliding_window();
 // -----------------------------------------------------
@@ -176,16 +176,7 @@ const char* enamel_get_total_hour();
 
 // -----------------------------------------------------
 // Getter for 'group'
-typedef enum {
-	GROUP_PASSIVE_TRACKING = 0,
-	GROUP_DAILY_MESSAGE = 1,
-	GROUP_REALTIME_RANDOM = 2,
-	GROUP_REALTIME_ACTION = 3,
-	GROUP_REALTIME_OUTCOME = 4,
-	GROUP_REALTIME_HEALTH = 5,
-	GROUP_REALTIME_ADAPTIVE = 6,
-} GROUPValue;
-GROUPValue enamel_get_group();
+const char* enamel_get_group();
 // -----------------------------------------------------
 
 // -----------------------------------------------------

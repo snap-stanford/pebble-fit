@@ -1,42 +1,8 @@
 #include "wakeup.h"
 
-/* Set the wakeup to be X minutes from now. */
-//static void prv_wakeup_set_minutes_from_now(double min) {
-//  time_t timestamp = time(NULL) + (min * SECONDS_PER_MINUTE);
-//  const int cookie = 0;
-//  const bool notify_if_missed = false;
-//  wakeup_schedule(timestamp, cookie, notify_if_missed);
-//  APP_LOG(APP_LOG_LEVEL_INFO, "Set wakeup ~%d minutes from now", (int) min);
-//}
-
-/* Cancel a specific scheduled wakeup event. */
-//static void prv_cancel_event(){
-//  APP_LOG(APP_LOG_LEVEL_INFO, "in prv_cancel_event");
-//  uint32_t key = PERSIST_KEY_WAKEUP_ID;
-//  if (persist_exists(key)) {
-//    WakeupId wakeup_id = persist_read_int(key);
-//    time_t wakeup_timestamp = 0;
-//    if (wakeup_query(wakeup_id, &wakeup_timestamp)) {
-//      //APP_LOG(APP_LOG_LEVEL_INFO, "Cancelling previously scheduled wakeup event at %s, ");
-//      wakeup_cancel(wakeup_id);
-//    }
-//  }
-//}
-
-/* Get the timestamp of a specific wakeup event. */
-//static time_t prv_event_timestamp() {
-//  uint32_t key = PERSIST_KEY_WAKEUP_ID;
-//  if (persist_exists(key)) {
-//    WakeupId wakeup_id = persist_read_int(key);
-//    time_t wakeup_timestamp = 0;
-//    if (wakeup_query(wakeup_id, &wakeup_timestamp)) {
-//      return wakeup_timestamp;
-//    }
-//  }
-//  return -1;
-//}
-
-/* Get the wakeup ID from persistent storage at a given index. */
+/** 
+ * Get the wakeup ID from persistent storage at a given index. 
+ */
 static WakeupId prv_read_wakeup_id_pm(uint8_t wakeup_i) {
   WakeupId wakeup_id = -1;
   if (wakeup_i < NUM_USED_WAKEUP) {
@@ -49,7 +15,9 @@ static WakeupId prv_read_wakeup_id_pm(uint8_t wakeup_i) {
   return wakeup_id;
 }
 
-/* Set the wakeup ID of a given index in persistent storage. */
+/** 
+ * Set the wakeup ID of a given index in persistent storage. 
+ */
 void prv_write_wakeup_id_pm(uint8_t wakeup_i, WakeupId wakeup_id) {
   if (wakeup_i < NUM_USED_WAKEUP) {
     WakeupId wakeup_array[NUM_USED_WAKEUP];
@@ -61,7 +29,9 @@ void prv_write_wakeup_id_pm(uint8_t wakeup_i, WakeupId wakeup_id) {
   }
 }
 
-/* Reschedule a wakeup event given its persistent storage index and next timestamp. */
+/** 
+ * Reschedule a wakeup event given its persistent storage index and next timestamp. 
+ */
 static WakeupId prv_reschedule_wakeup_event(uint8_t wakeup_i, time_t wakeup_time) {
   WakeupId wakeup_id = -1;
   uint8_t try = 0;
@@ -99,17 +69,16 @@ static WakeupId prv_reschedule_wakeup_event(uint8_t wakeup_i, time_t wakeup_time
   return wakeup_id;
 }
 
-
 /* Schedule the next wakeup event and reschedule fallback wakeup events.
  * Try to set fallback wakeups also be within the start and end time
  * There are in total 4 wakeup events being scheduled.
- *  Cookie / Index        | Description
- *  0                     | Fallback wakeup: 1 days later 
- *  1                     | Fallback wakeup: 2 days later 
- *  2                     | Fallback wakeup: 3 days later 
- *  LAUNCH_WAKEUP_PERIOD  | Next periodic wakeup: rounded to the break_freq minutes. 
- *  LAUNCH_WAKEUP_NOTIFY  | Notification wakeup: 2 * break_len before the next periodic wakeup. 
- *  LAUNCH_WAKEUP_DAILY   | Daily wakeup: at the end time of the day. 
+ *  Cookie / Index         | Description
+ *  0                      | Fallback wakeup: 1 days later 
+ *  1                      | Fallback wakeup: 2 days later 
+ *  2                      | Fallback wakeup: 3 days later 
+ *  3/LAUNCH_WAKEUP_PERIOD | Next periodic wakeup: rounded to the break_freq minutes. 
+ *  4/LAUNCH_WAKEUP_NOTIFY | Notification wakeup: 2 * break_len before the next periodic wakeup. 
+ *  5/LAUNCH_WAKEUP_DAILY  | Daily wakeup: at the end time of the day. 
  */
 void wakeup_schedule_events(int inactive_mins) {
   time_t t_notify, t_wakeup;
@@ -129,20 +98,24 @@ void wakeup_schedule_events(int inactive_mins) {
   strftime(curr_buf, sizeof(curr_buf),"%H:%M:%S", localtime(&e_launch_time));
   strftime(start_buf, sizeof(start_buf),"%H:%M:%S", localtime(&t_start));
   strftime(end_buf, sizeof(end_buf), "%H:%M:%S", localtime(&t_end));
-  APP_LOG(APP_LOG_LEVEL_INFO,"curr=%s, start=%s, end=%s", curr_buf, start_buf, end_buf);
+  APP_LOG(APP_LOG_LEVEL_INFO,"group=%s, curr=%s, start=%s, end=%s", 
+    enamel_get_group(), curr_buf, start_buf, end_buf);
 
-  if (enamel_get_group() >= GROUP_REALTIME_RANDOM) {
+  if (strncmp(enamel_get_group(), "real_time", strlen("real_time")) == 0) {
     if (enamel_get_dynamic_wakeup() == true) { // TODO: dynamic wakeup is deprecated.
       APP_LOG(APP_LOG_LEVEL_ERROR, "Dynamic wakeup is deprecated!");
-      if (enamel_get_break_freq() - inactive_mins <= MIN_SLEEP_MINUTES) {
-        t_wakeup = e_launch_time + MIN_SLEEP_MINUTES * SECONDS_PER_MINUTE;
-      } else {
-        t_wakeup = e_launch_time + (enamel_get_break_freq() - inactive_mins) * SECONDS_PER_MINUTE;
-      }
-    } else {
-      t_wakeup = (e_launch_time + break_freq_seconds - 1) / 
-                  break_freq_seconds * break_freq_seconds;
-    }
+      //if (enamel_get_break_freq() - inactive_mins <= MIN_SLEEP_MINUTES) {
+      //  t_wakeup = e_launch_time + MIN_SLEEP_MINUTES * SECONDS_PER_MINUTE;
+      //} else {
+      //  t_wakeup = e_launch_time + (enamel_get_break_freq()-inactive_mins) * SECONDS_PER_MINUTE;
+      //}
+    } 
+
+    // Round up to the next Period Wakeup time. 
+		// Note: use the current timestamp instead of the launch timestamp, since the launch 
+ 		// timestamp might be serveral minutes ago if the app wakes up while the app is on (i.e. 
+		// manually launched by the user).
+    t_wakeup = (time(NULL)+break_freq_seconds-1) / break_freq_seconds * break_freq_seconds;
 
     // Boundary conditions checking
     if (t_wakeup < t_start) {
@@ -157,13 +130,20 @@ void wakeup_schedule_events(int inactive_mins) {
     // Schedule notification wakeup
     t_notify = t_wakeup - 2 * break_len_seconds;
     prv_reschedule_wakeup_event(LAUNCH_WAKEUP_NOTIFY, t_notify);
-  } else if (enamel_get_group() == GROUP_DAILY_MESSAGE) {
+  } else if (strncmp(enamel_get_group(), "daily_message", strlen("daily_message")) == 1) {
     // Schedule end-of-day wakeup only
     prv_reschedule_wakeup_event(LAUNCH_WAKEUP_DAILY, t_end);
-  } // If group == 0 (GROUP_PASSIVE_TRACKING), no normal wakeup scheduled.
+  } // else the group must be "passive_tracking, so no normal wakeup scheduled.
 
   // Schedule the fallback wakeup events
   prv_reschedule_wakeup_event(0, t_start + SECONDS_PER_DAY);
   prv_reschedule_wakeup_event(1, t_start + 2 * SECONDS_PER_DAY);
   prv_reschedule_wakeup_event(2, t_start + 3 * SECONDS_PER_DAY);
 }
+
+/**
+ * Deprecated. Schedule a warning wakeup in the next minute.
+ */
+//void wakeup_schedule_warning(time_t t_exit) {
+//  prv_reschedule_wakeup_event(LAUNCH_WAKEUP_WARN, t_exit + SECONDS_PER_MINUTE);
+//}

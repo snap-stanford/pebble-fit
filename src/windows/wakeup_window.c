@@ -1,8 +1,10 @@
 #include "wakeup_window.h"
 
 static Window *s_window;
-static ScrollLayer *s_scroll_layer;
 static TextLayer *s_main_text_layer, *s_top_text_layer;
+static ScrollLayer *s_scroll_layer;
+static ContentIndicator *s_indicator;
+static Layer *s_indicator_up_layer, *s_indicator_down_layer;
 static GFont s_main_text_font, s_top_text_font;
 
 static int s_steps;
@@ -23,64 +25,68 @@ static TextLayer* make_text_layer(GRect bounds, GFont font, GTextAlignment align
 }
 
 /* Procedure for how to update s_top_text_layer. */
-//static void top_text_layer_update_proc(Layer *layer, GContext *ctx) {
 static void top_text_layer_update_proc() {
   char *text;
-  if (e_launch_reason == LAUNCH_WAKEUP_PERIOD) {
+
+  // Display a warning wakeup to notify the user of losing connection for 36 hours.
+  if (!connection_service_peek_pebble_app_connection() && 
+      store_read_upload_time() < e_launch_time - 36 * SECONDS_PER_HOUR) {
+    text = "Please launch Pebble app on the phone to synch!";
+    snprintf(s_top_text_buf, sizeof(s_top_text_buf), "%s", text);
+  } else if (e_launch_reason == LAUNCH_WAKEUP_PERIOD) {
     if (steps_get_pass()) {
       text = "Break accomplished. Nice work!";
     } else {
       text = "Opps! Break missed.";
     }
     snprintf(s_top_text_buf, sizeof(s_top_text_buf), "%s", text);
-    text_layer_set_text(s_top_text_layer, s_top_text_buf);
-  } else {
-    //text = "";
+  } else { 
+    // Other launch event, supposed to display nothing in this top TextLayer.
+    text = "";
+    snprintf(s_top_text_buf, sizeof(s_top_text_buf), "%s", text);
+
     // DEBUG BEGIN
+/*
     if (!steps_get_pass()) {
       snprintf(s_top_text_buf, sizeof(s_top_text_buf), 
                "sedentary %d steps during \n%s-%s", s_steps, s_start, s_end);
-      text_layer_set_text(s_top_text_layer, s_top_text_buf);
     } else {
       snprintf(s_top_text_buf, sizeof(s_top_text_buf), 
                "non-sedentary during \n%s-%s", s_start, s_end);
-      text_layer_set_text(s_top_text_layer, s_top_text_buf);
     }
+*/
+
     // DEBUG END
   }
 
-  //text_layer_set_text(s_top_text_layer, s_top_text_buf);
+  text_layer_set_text(s_top_text_layer, s_top_text_buf);
 }
 
 /* Procedure for how to update s_main_text_layer. */
-//static void main_text_layer_update_proc(Layer *layer, GContext *ctx) {
 static void main_text_layer_update_proc() {
-  //if (e_launch_reason == LAUNCH_WAKEUP_NOTIFY) {
-  if (e_launch_reason == LAUNCH_WAKEUP_NOTIFY || e_launch_reason == LAUNCH_PHONE) {
+  if (e_launch_reason == LAUNCH_WAKEUP_NOTIFY) {
+  //if (e_launch_reason == LAUNCH_WAKEUP_NOTIFY || e_launch_reason == LAUNCH_PHONE) {
 
     APP_LOG(APP_LOG_LEVEL_INFO, "launch_set_random_message,content=%s",launch_get_random_message());
-    if (connection_service_peek_pebble_app_connection()) {
-      snprintf(s_main_text_buf, sizeof(s_main_text_buf), "%s!", launch_get_random_message());
-    } else {
-      snprintf(s_main_text_buf, sizeof(s_main_text_buf), "%s.", launch_get_random_message());
-    }
+    snprintf(s_main_text_buf, sizeof(s_main_text_buf), "%s", launch_get_random_message());
   } else {
     const char *daily_summary = enamel_get_message_daily_summary();
      
-APP_LOG(APP_LOG_LEVEL_ERROR, enamel_get_total_hour());
     snprintf(s_main_text_buf, sizeof(s_main_text_buf), daily_summary, 
       store_read_break_count(), atoi(enamel_get_total_hour()));
+
+    strcat(s_main_text_buf, "\n\n\n\n");
   }
     
   text_layer_set_text(s_main_text_layer, s_main_text_buf);
 
   // Set up ScrollLayer according to the text size (assuming top_text_layer_update_proc done).
-  strcat(s_main_text_buf, "\n\n\n\n");
-  GSize text_size = text_layer_get_content_size(s_main_text_layer);
-  GSize text_size2 = text_layer_get_content_size(s_top_text_layer);
-  text_size.w += text_size2.w;
-  text_size.h += text_size2.h;
-  scroll_layer_set_content_size(s_scroll_layer, text_size);
+  GSize top_text_size = text_layer_get_content_size(s_top_text_layer);
+  GSize main_text_size = text_layer_get_content_size(s_main_text_layer);
+  main_text_size.w += top_text_size.w;
+  main_text_size.h += top_text_size.h;
+
+  scroll_layer_set_content_size(s_scroll_layer, main_text_size);
 }
 
 /**
@@ -109,12 +115,13 @@ static void back_click_handler(ClickRecognizerRef recognizer, void *context) {
  */
 static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
   //text_layer_set_text(s_main_text_layer, "reset timestamp");
-  //store_write_upload_time(e_launch_time);
+  //store_write_upload_time(e_launch_time - 2 * SECONDS_PER_DAY);
 
-  //back_click_handler(recognizer, context);
   launch_set_random_message();
   snprintf(s_main_text_buf, sizeof(s_main_text_buf), "%s!", launch_get_random_message());
   text_layer_set_text(s_main_text_layer, s_main_text_buf);
+
+  //back_click_handler(recognizer, context); // TODO
 
   //store_reset_break_count();
 
@@ -131,8 +138,8 @@ static void click_config_provider(void *context) {
 }
 
 static void window_load(Window *window) {
-  Layer *root_layer = window_get_root_layer(window);
-  GRect bounds = layer_get_bounds(root_layer);
+  Layer *window_layer = window_get_root_layer(window);
+  GRect bounds = layer_get_bounds(window_layer);
 
   //int padding = PBL_IF_ROUND_ELSE(10, 0);
   int padding = 10;
@@ -141,38 +148,99 @@ static void window_load(Window *window) {
   //int main_text_height = PBL_IF_ROUND_ELSE(60, 70);
   int main_text_height = 2000;
 
-  // The text layer that is above the main text layer
-  GEdgeInsets top_text_insets = {.top = 10, .right = 10, .left = 10};
-  s_top_text_font = fonts_get_system_font(FONT_KEY_GOTHIC_24); 
-  s_top_text_layer = make_text_layer(
-    grect_inset(bounds, top_text_insets),s_top_text_font, GTextAlignmentCenter);
 
-  // The main text layer that resides in the center of the screen
-  GEdgeInsets main_text_insets = {.top = 10, .right = 0, .left = 0};
-  GRect main_text_bounds = grect_inset(
-    GRect(0, center - padding, bounds.size.w, main_text_height), main_text_insets);
-  s_main_text_font = fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD);
-  s_main_text_layer = make_text_layer(main_text_bounds, s_main_text_font, GTextAlignmentCenter);
-
-  // Create the ScrollLayer
+  // Create the ScrollLayer.
   s_scroll_layer = scroll_layer_create(bounds);
-  //scroll_layer_set_shadow_hidden(s_scroll_layer, true);
+  scroll_layer_set_shadow_hidden(s_scroll_layer, true);
 
   // Let the ScrollLayer receive click events, and set click handlers for windows.
-  scroll_layer_set_click_config_onto_window(s_scroll_layer, s_window);
+  scroll_layer_set_click_config_onto_window(s_scroll_layer, window);
   scroll_layer_set_callbacks(s_scroll_layer, (ScrollLayerCallbacks) {
     .click_config_provider =  click_config_provider,
   });
 
-  // Set the update procedure
-  prv_update_text();
+  // Add the ScrollLayer to the main window layer.
+  layer_add_child(window_layer, scroll_layer_get_layer(s_scroll_layer));
+
+
+
+  // Get the ContentIndicator from the ScrollLayer
+  s_indicator = scroll_layer_get_content_indicator(s_scroll_layer);
+
+  // Create two Layers to draw the arrows
+  s_indicator_up_layer = layer_create(GRect(0, 0, bounds.size.w, STATUS_BAR_LAYER_HEIGHT));
+  s_indicator_down_layer = layer_create(GRect(0, bounds.size.h - STATUS_BAR_LAYER_HEIGHT,
+                                              bounds.size.w, STATUS_BAR_LAYER_HEIGHT));
+
+  // Configure the properties of each indicator
+  const ContentIndicatorConfig up_config = (ContentIndicatorConfig) {
+    .layer = s_indicator_up_layer,
+    .times_out = false,
+    .alignment = GAlignCenter,
+    .colors = {
+      .foreground = GColorBlack,
+      .background = GColorWhite
+    }
+  };
+  content_indicator_configure_direction(s_indicator, ContentIndicatorDirectionUp,
+                                        &up_config);
+  
+  const ContentIndicatorConfig down_config = (ContentIndicatorConfig) {
+    .layer = s_indicator_down_layer,
+    .times_out = false,
+    .alignment = GAlignCenter,
+    .colors = {
+      .foreground = GColorBlack,
+      .background = GColorWhite
+    }
+  };
+  content_indicator_configure_direction(s_indicator, ContentIndicatorDirectionDown,
+                                        &down_config);
+
+  // Add indicator Layers as children of the main window layer.
+  layer_add_child(window_layer, s_indicator_up_layer);
+  layer_add_child(window_layer, s_indicator_down_layer);
+
+
+
+  // Create the top TextLayer that is above the main TextLayer.
+  s_top_text_font = fonts_get_system_font(FONT_KEY_GOTHIC_24); 
+  s_top_text_layer = make_text_layer(bounds, s_top_text_font, GTextAlignmentCenter);
 
   // Add TextLayer as children of the ScrollLayer.
   scroll_layer_add_child(s_scroll_layer, text_layer_get_layer(s_top_text_layer));
+
+  // Enable paging and text flow with an inset of 5 pixels
+  text_layer_enable_screen_text_flow_and_paging(s_top_text_layer, 5);
+
+  top_text_layer_update_proc();
+
+
+
+  // Create the main TextLayer that display after the top TextLayer.
+  // Note: due to the fact that text_layer_get_content_size() does no give accurate value when
+  // used with text_layer_enable_screen_text_flow_and_paging(), we add an arbitrary margin
+  // when creating the main TextLayer.
+  GSize top_text_size = text_layer_get_content_size(s_top_text_layer);
+  GRect main_bounds = GRect(bounds.origin.x, bounds.origin.y + top_text_size.h + 5, 
+                            bounds.size.w, bounds.size.h);
+  //GEdgeInsets top_text_insets = {.top = 10, .right = 10, .left = 10};
+  s_main_text_font = fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD);
+  //s_main_text_layer = make_text_layer(main_bounds, s_main_text_font, GTextAlignmentCenter);
+  s_main_text_layer = make_text_layer(grect_inset(main_bounds, GEdgeInsets(10)), 
+                                      s_main_text_font, GTextAlignmentCenter);
+
+  // Add TextLayer as children of the ScrollLayer.
   scroll_layer_add_child(s_scroll_layer, text_layer_get_layer(s_main_text_layer));
 
-  // Add the ScrollLayer to the window.
-  layer_add_child(root_layer, scroll_layer_get_layer(s_scroll_layer));
+  // Enable paging and text flow with an inset of 5 pixels
+  // If there is too much text in the top TextLayer, this pagination might cause 
+  // unneccessary line spaces and clipped texts.
+  if (top_text_size.h == 0) {
+    text_layer_enable_screen_text_flow_and_paging(s_main_text_layer, 5);
+  }
+
+  main_text_layer_update_proc();
 }
 
 static void window_unload(Window *window) {
@@ -187,6 +255,14 @@ static void window_unload(Window *window) {
   if (s_top_text_layer) {
     text_layer_destroy(s_top_text_layer);
     s_top_text_layer = NULL;
+  }
+  if (s_indicator_up_layer) {
+    layer_destroy(s_indicator_up_layer);
+    s_indicator_up_layer = NULL;
+  }
+  if (s_indicator_up_layer) {
+    layer_destroy(s_indicator_down_layer);
+    s_indicator_down_layer = NULL;
   }
 
   window_destroy(s_window);

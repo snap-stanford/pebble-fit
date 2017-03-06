@@ -32,15 +32,6 @@
 #define RANDOM_MSG_POOL_SIZE          3     // The size of random message pool
 #define RANDOM_MSG_SIZE_MAX           256   // Maximum number of characters for random message
 
-/* Different user groups (synchronized with PebbleKit JS). Already defined in enamel.h */
-//#define GROUP_PASSIVE_TRACKING        0
-//#define GROUP_DAILY_MESSAGE           1
-//#define GROUP_REALTIME_RANDOM         2
-//#define GROUP_REALTIME_ACTION         3
-//#define GROUP_REALTIME_OUTCOME        4
-//#define GROUP_REALTIME_HEALTH         5
-//#define GROUP_REALTIME_ADAPTIVE       6
-
 /* Persistent Storage Keys. FIXME: supposed type is uint32_t. */
 static const int      AppKeyArrayData               = 200; // FIXME: change to 4321? (diff from PERSIST_KEY_UPLOAD_TIME)
 static const uint32_t PERSIST_KEY_WAKEUP_ID         = 111;
