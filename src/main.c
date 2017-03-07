@@ -220,8 +220,7 @@ static void prv_launch_handler(bool activate) {
         APP_LOG(APP_LOG_LEVEL_ERROR, "Cancelling all wakeup events! Must be rescheduled.");
         wakeup_cancel_all();
 
-        //s_wakeup_window = wakeup_window_push();
-        wakeup_handler(0, LAUNCH_WAKEUP_PERIOD); //TODO
+        s_wakeup_window = wakeup_window_push();
         break;
       case APP_LAUNCH_WAKEUP: // When launched due to wakeup event.
         will_timeout = true;
