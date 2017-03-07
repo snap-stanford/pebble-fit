@@ -73,9 +73,9 @@ static void main_text_layer_update_proc() {
     const char *daily_summary = enamel_get_message_daily_summary();
      
     snprintf(s_main_text_buf, sizeof(s_main_text_buf), daily_summary, 
-      store_read_break_count(), atoi(enamel_get_total_hour()));
+      store_read_break_count(), atoi(enamel_get_total_break()));
 
-    strcat(s_main_text_buf, "\n\n\n\n");
+    strcat(s_main_text_buf, "\n\n\n");
   }
     
   text_layer_set_text(s_main_text_layer, s_main_text_buf);
@@ -222,12 +222,13 @@ static void window_load(Window *window) {
   // used with text_layer_enable_screen_text_flow_and_paging(), we add an arbitrary margin
   // when creating the main TextLayer.
   GSize top_text_size = text_layer_get_content_size(s_top_text_layer);
-  GRect main_bounds = GRect(bounds.origin.x, bounds.origin.y + top_text_size.h + 5, 
+  GRect main_bounds = GRect(bounds.origin.x, bounds.origin.y + top_text_size.h, 
                             bounds.size.w, bounds.size.h);
-  //GEdgeInsets top_text_insets = {.top = 10, .right = 10, .left = 10};
+  GEdgeInsets main_text_insets = {.top = 5, .right = 20, .left = 20};
   s_main_text_font = fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD);
   //s_main_text_layer = make_text_layer(main_bounds, s_main_text_font, GTextAlignmentCenter);
-  s_main_text_layer = make_text_layer(grect_inset(main_bounds, GEdgeInsets(10)), 
+  //s_main_text_layer = make_text_layer(grect_inset(main_bounds, GEdgeInsets(15)), 
+  s_main_text_layer = make_text_layer(grect_inset(main_bounds, main_text_insets), 
                                       s_main_text_font, GTextAlignmentCenter);
 
   // Add TextLayer as children of the ScrollLayer.

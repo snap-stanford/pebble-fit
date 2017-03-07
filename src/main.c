@@ -23,7 +23,6 @@ static Window *s_wakeup_window = NULL;
 //static void prv_launch_write(DictionaryIterator * out);
 static void prv_update_config(void *context);
 static void prv_init_callback(DictionaryIterator *iter, void *context);
-static void prv_wakeup_vibrate(bool force);
 static void prv_launch_handler(bool activate);
 
 
@@ -100,7 +99,7 @@ static void prv_update_config(void *context) {
   
   if (enamel_get_activate()) {
     //TODO: double check whether this is redundant?
-    wakeup_schedule_events(steps_get_inactive_minutes());
+    wakeup_schedule_events();
     if (s_wakeup_window == NULL) {
       prv_launch_handler(true); // FIXME: this will cause infinite recursive calls.  // Change from dialog_window to wakeup_window.
     } else {
@@ -133,6 +132,7 @@ static void prv_update_config(void *context) {
  * Otherwise, it will alert users by vibration and popping up alert window on the watch.
  */
 static void prv_wakeup_vibrate(bool force) {
+  APP_LOG(APP_LOG_LEVEL_ERROR, "in prv_wakeup_vibrate()");
   HealthActivityMask activity = health_service_peek_current_activities();
 
   if (activity != HealthActivitySleep && activity != HealthActivityRestfulSleep &&
@@ -174,11 +174,19 @@ static void wakeup_handler(WakeupId wakeup_id, int32_t wakeup_cookie) {
     APP_LOG(APP_LOG_LEVEL_ERROR, "Fallback wakeup! cookie=%d", (int)wakeup_cookie);
   }
   
-  // TODO: if this is a notification wakeup and goal is met, should we still push window?
+  // This could happen if we receive wakeup event while the app has been on the foreground.
   if (s_wakeup_window) {
     window_stack_remove(s_wakeup_window, false);
   }
-  s_wakeup_window =  wakeup_window_push();
+
+  // TODO: if this is a notification wakeup and goal is met, should we still push window?
+  s_wakeup_window = wakeup_window_push();
+
+  // Start timer
+  tick_second_subscribe(true);
+
+  // Always re-schedule wakeup events (do not put return in the above code)
+  wakeup_schedule_events();
 }
 
 /** 
@@ -212,7 +220,8 @@ static void prv_launch_handler(bool activate) {
         APP_LOG(APP_LOG_LEVEL_ERROR, "Cancelling all wakeup events! Must be rescheduled.");
         wakeup_cancel_all();
 
-        s_wakeup_window = wakeup_window_push();
+        //s_wakeup_window = wakeup_window_push();
+        wakeup_handler(0, LAUNCH_WAKEUP_PERIOD); //TODO
         break;
       case APP_LAUNCH_WAKEUP: // When launched due to wakeup event.
         will_timeout = true;
@@ -248,11 +257,13 @@ static void prv_launch_handler(bool activate) {
         s_wakeup_window = wakeup_window_push();
     }
 
-    // Start timer
-    tick_second_subscribe(will_timeout);
+    if (launch_reason() != APP_LAUNCH_WAKEUP) {
+      // Start timer
+      tick_second_subscribe(will_timeout);
 
-    // Always re-schedule wakeup events (do not put return in the above code)
-    wakeup_schedule_events(steps_get_inactive_minutes());
+      // Always re-schedule wakeup events (do not put return in the above code)
+      wakeup_schedule_events();
+    }
   } else {
     s_dialog_window = dialog_window_push();
     dialog_text_layer_update_proc("You must activate this app from the 'Settings' page on your phone.");

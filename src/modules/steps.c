@@ -30,8 +30,8 @@ static void prv_load_data(time_t *start, time_t *end) {
 
     // Read the data and store into the static array
     // FIXME: due to some unknown bugs, health_service_get_minute_history() can only fetch
-    // a limited number of elements (less than 100). Be carefull, since it will crash 
-    // the watch firmware and force the reboot of the watch.
+    // a limited number of elements (less than 100). This is why we set MAX_ENTRIES = 60.
+    // Otherwise it will crash the watch and force the reboot of the watch.
     HealthMinuteData minute_data[MAX_ENTRIES];
     s_num_records = health_service_get_minute_history(&minute_data[0], MAX_ENTRIES, start, end);
 
@@ -82,11 +82,12 @@ void steps_update() {
     break_len = enamel_get_break_len() > break_freq ?  break_freq : enamel_get_break_len();
     sliding_window = enamel_get_sliding_window();
       
-    // Check whether the goal is met. Update s_pass which is the indicator.
-    // Use the first loop is to initialize.
     //APP_LOG(APP_LOG_LEVEL_ERROR, "bl=%d, bf=%d, sw=%d, threshold=%d", 
     //  break_len, break_freq, sliding_window, enamel_get_step_threshold());
-    for (right = 0; right < break_len + sliding_window; right++) {
+    
+    // Check whether the goal is met. Update s_pass which is the indicator.
+    // Use the first loop is to initialize.
+    for (right=MAX_ENTRIES-enamel_get_break_freq(); right<break_len+sliding_window; right++) {
       if (s_step_records[right] >= enamel_get_step_threshold()) {
         nonsed_period += 1;
       }

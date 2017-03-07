@@ -495,9 +495,8 @@
       "label": "Break Frequency:",
       "description": "How frequently do you want to take walking breaks (in minutes)?",
       "options": [
-        { "label": "60",        "value": 60 },
-        { "label": "11",        "value": 11 },
-        { "label": "15",        "value": 15 }
+        { "label": "5",         "value": 5 },
+        { "label": "60",        "value": 60 }
       ]
     },
     {
@@ -508,6 +507,7 @@
       "label": "Break Length:",
       "description": "How many minutes of walking do you want to define as a break?",
       "options": [
+        { "label": "1",        "value": 1 },
         { "label": "5",        "value": 5 }
       ]
     },
@@ -563,8 +563,8 @@
     },
     {
       "type": "input",
-      "id": "total_hour",
-      "messageKey": "total_hour",
+      "id": "total_break",
+      "messageKey": "total_break",
       "defaultValue": 0,
       "attributes": {
         "type": "number"

@@ -1,5 +1,5 @@
 {
-  "version": "0.8.0",
+  "version": "0.1.0",
   "author": "Stanford SNAP",
   "dependencies": {
     "enamel": "^1.2.4",
@@ -64,7 +64,7 @@
       "break_len": 3007,
       "display_duration": 3008,
       "dynamic_wakeup": 3009,
-      "total_hour": 3011,
+      "total_break": 3011,
       "group": 3012,
       "config_summary": 3013,
       "message_daily_summary": 4001,
