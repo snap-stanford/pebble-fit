@@ -25,47 +25,44 @@ export_json() {
   ts_end=$2
   output_name=$3
 
+  # Choose the correct command.
+  hash mongoexport >/dev/null 2>&1
+  if [[ $? -eq 0 ]]; then
+    # Use the system installation of mongoexport.
+    cmd="mongoexport"
+  elif [[ -x ${DIR}/mongoexport ]]; then 
+    # Use the local installation of mongoexport.
+    cmd="${DIR}/mongoexport"
+  else
+    echo "Error: could not find mongoexport!"
+    exit 1
+  fi
+
   for collection in "${collections[@]}"; do
     echo; echo "Try dumping database \"${DB}\", collection \"${collection}\" to ${out_dir}......"
-    hash mongoexport >/dev/null 2>&1
-    if [[ $? -eq 0 ]]; then
-      # Use the system installation of mongoexport
-      cmd="mongoexport"
-    elif [[ -x ${DIR}/mongoexport ]]; then 
-      # Use the local installation of mongoexport
-      cmd="${DIR}/mongoexport"
-    else
-      echo "Error: could not find mongoexport!"
-      exit 1
-    fi
+    
     out_file=${out_dir}/${output_name}/${collection}.json
     if [[ ${collection} == 'events' || ${collection} == 'activities' ]]; then
-      query="--query \"{\\\"time\\\":{\\\$gt:new Date(${ts_start}),\\\$lte:new Date(${ts_end})}}\""
-    else 
-      query=""
+      query="--query \"{\\\"created\\\":{\\\$gt:new Date(${ts_start}),\\\$lte:new Date(${ts_end})}}\""
+    else # groups and users collection
+      query="--query \"{\\\"configUpdatedAt\\\":{\\\$gt:new Date(${ts_start}),\\\$lte:new Date(${ts_end})}}\""
     fi
   
-    cmd+=" -h ${HOST} -d ${DB} -u ${u} -c ${collection} -o ${out_file} ${query} < ${PASSWD}"
+    cmd_final=${cmd}" -h ${HOST} -d ${DB} -u ${u} -c ${collection} -o ${out_file} ${query} < ${PASSWD}"
 
-    echo $cmd
-    eval ${cmd}
+    echo ${cmd_final}
+    eval ${cmd_final}
 
-    # Change permission to read only.
+    # Change permission of the output files to read-only.
     chmod 444 ${out_file}
   done
 
-  # Change permission to read only.
-  chmod 544 ${out_dir}/${output_name}
+  # Change permission of the output directory to read-only.
+  chmod 554 ${out_dir}/${output_name}
 }
 
-# Dump the data 1 week ago as to capture the missing data.
-ts_start=`date +%s -d "-7 days"`000
-ts_end=`date +%s -d "-6 days"`000
-output_name=`date +%Y%m%d-%H:%M:%S -d "-6 days"`
-export_json ${ts_start} ${ts_end} ${output_name}
-
 # Dump the daliy data.
-ts_start=`date +%s -d "-1 days"`000
+ts_start=`date +%s -d "-1 day"`000
 ts_end=`date +%s`000
-output_name=`date +%Y%m%d-%H:%M:%S`-daily
+output_name=`date +%Y%m%d-%H:%M:%S`
 export_json ${ts_start} ${ts_end} ${output_name}
