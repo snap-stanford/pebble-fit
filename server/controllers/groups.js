@@ -3,9 +3,9 @@ var _ = require('lodash');
 var moment = require('moment');
 
 exports.getConfigFile = function (name, date, force, next) {
-  //Group.findOne({ 'name': group }).
+  //Group.findOne({ 'name': name }).
   //  where('configUpdatedAt').gt(date).
-	//	select('file').
+        //      select('file').
   //  exec(next);
     
   Group.findOne({ 'name': name }).
@@ -33,13 +33,13 @@ exports.getConfigFile = function (name, date, force, next) {
     });
 
   // TODO: debugging force to return config file always
-  //Group.findOne({ 'name': group }).
-	//	select('file').
+  //Group.findOne({ 'name': name }).
+  //  select('file').
   //  exec(next);
 };
 
 exports.random_pick = function (next) {
   Group.aggregate([{ $sample: { size: 1 } }]).
-		project('name').
+                project('name').
     exec(next);
 };

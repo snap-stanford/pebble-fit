@@ -35,6 +35,7 @@ void store_write_config_time(time_t time) {
  *   Make sure there is a non-Period Wakup scheduled daily before any Period Wakeup.
  */
 bool store_resend_config_request(time_t t_curr) {
+  return true;
   if (!persist_exists(PERSIST_KEY_CONFIG_TIME)) {
     return true;
   }
@@ -296,6 +297,13 @@ const char* store_read_random_message() {
     switch (index) {
       case 1: return enamel_get_message_random_1(); break;
       case 2: return enamel_get_message_random_2(); break;
+      case 3: return enamel_get_message_random_3(); break;
+      case 4: return enamel_get_message_random_4(); break;
+      case 5: return enamel_get_message_random_5(); break;
+      case 6: return enamel_get_message_random_6(); break;
+      case 7: return enamel_get_message_random_7(); break;
+      case 8: return enamel_get_message_random_8(); break;
+      case 9: return enamel_get_message_random_9(); break;
       default: return enamel_get_message_random_0();
     }
   }

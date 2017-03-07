@@ -29,7 +29,7 @@
 #define EXIT_USER                     1
 #define EXIT_TIMEOUT                  2
 
-#define RANDOM_MSG_POOL_SIZE          3     // The size of random message pool
+#define RANDOM_MSG_POOL_SIZE          10    // The size of random message pool
 #define RANDOM_MSG_SIZE_MAX           256   // Maximum number of characters for random message
 
 /* Persistent Storage Keys. FIXME: supposed type is uint32_t. */

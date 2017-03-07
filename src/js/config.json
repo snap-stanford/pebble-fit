@@ -605,6 +605,48 @@
       "id": "message_random_2",
       "messageKey": "message_random_2",
       "defaultValue": ""
+    },
+    {
+      "type": "input",
+      "id": "message_random_3",
+      "messageKey": "message_random_3",
+      "defaultValue": ""
+    },
+    {
+      "type": "input",
+      "id": "message_random_4",
+      "messageKey": "message_random_4",
+      "defaultValue": ""
+    },
+    {
+      "type": "input",
+      "id": "message_random_5",
+      "messageKey": "message_random_5",
+      "defaultValue": ""
+    },
+    {
+      "type": "input",
+      "id": "message_random_6",
+      "messageKey": "message_random_6",
+      "defaultValue": ""
+    },
+    {
+      "type": "input",
+      "id": "message_random_7",
+      "messageKey": "message_random_7",
+      "defaultValue": ""
+    },
+    {
+      "type": "input",
+      "id": "message_random_8",
+      "messageKey": "message_random_8",
+      "defaultValue": ""
+    },
+    {
+      "type": "input",
+      "id": "message_random_9",
+      "messageKey": "message_random_9",
+      "defaultValue": ""
     }
   ]
 },

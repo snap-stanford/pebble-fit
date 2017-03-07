@@ -68,9 +68,16 @@
       "group": 3012,
       "config_summary": 3013,
       "message_daily_summary": 4001,
-      "message_random_0": 4002,
-      "message_random_1": 4003,
-      "message_random_2": 4004
+      "message_random_0": 4010,
+      "message_random_1": 4011,
+      "message_random_2": 4012,
+      "message_random_3": 4013,
+      "message_random_4": 4014,
+      "message_random_5": 4015,
+      "message_random_6": 4016,
+      "message_random_7": 4017,
+      "message_random_8": 4018,
+      "message_random_9": 4019
     },
     "resources": {
       "media": []
