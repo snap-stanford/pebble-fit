@@ -42,7 +42,9 @@ module.exports = function (minified) {
   var hidden_components = [
     'is_consent', 'config_update', 'config_update_interval',
     'message_daily_summary', 'total_break', 'group',
-    'message_random_0', 'message_random_1', 'message_random_2',
+    'message_random_0', 'message_random_1', 'message_random_2', 'message_random_3', 
+    'message_random_4', 'message_random_5', 'message_random_6', 'message_random_7', 
+    'message_random_8', 'message_random_9',
     'dynamic_wakeup', 'sliding_window', 'display_duration',
     'watch_alert_text', 'watch_pass_text',
     'eligible_4', 'eligible_5', 'eligible_6']; // TODO: hiding some eligible components for now

@@ -180,7 +180,9 @@ static void wakeup_handler(WakeupId wakeup_id, int32_t wakeup_cookie) {
   }
 
   // TODO: if this is a notification wakeup and goal is met, should we still push window?
-  s_wakeup_window = wakeup_window_push();
+  if (e_launch_reason != LAUNCH_WAKEUP_NOTIFY || !steps_get_pass()) {
+    s_wakeup_window = wakeup_window_push();
+  }
 
   // Start timer
   tick_second_subscribe(true);

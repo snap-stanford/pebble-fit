@@ -87,7 +87,10 @@ void steps_update() {
     
     // Check whether the goal is met. Update s_pass which is the indicator.
     // Use the first loop is to initialize.
-    for (right=MAX_ENTRIES-enamel_get_break_freq(); right<break_len+sliding_window; right++) {
+    //for (right=MAX_ENTRIES-enamel_get_break_freq(); right<break_len+sliding_window; right++) {
+    int start_index = e_launch_reason == LAUNCH_WAKEUP_PERIOD? 
+      MAX_ENTRIES-enamel_get_break_freq() : MAX_ENTRIES-enamel_get_break_freq()+2*break_len;
+    for (right = start_index; right < break_len + sliding_window; right++) {
       if (s_step_records[right] >= enamel_get_step_threshold()) {
         nonsed_period += 1;
       }
