@@ -1,4 +1,5 @@
 
+# This script is used for dumping MongoDB data to the local server.
 # password.txt should contain the password the specific database.
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -9,7 +10,7 @@ collections=( events activities users groups )
 # Database information 
 HOST=ds111748.mlab.com:11748
 DB=heroku_0cbvznft
-u=pebble-fit
+u=user
 PASSWD=${DIR}/password.txt
 
 # Input arguments check.
@@ -17,7 +18,7 @@ if [[ $# -gt 1 ]]; then
     echo "$0: Usage: dump_data.sh [out_dir]"
     exit 1
 fi
-out_dir=${1:-dump}
+out_dir=${1:-mongodump}
 
 # Dump data as JSON files.
 export_json() {

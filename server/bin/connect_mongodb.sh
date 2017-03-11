@@ -1,7 +1,7 @@
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-args=" ds111748.mlab.com:11748/heroku_0cbvznft -u pebble-fit -p"
+args=" ds111748.mlab.com:11748/heroku_0cbvznft -u user -p"
 
 hash mongo >/dev/null 2>&1
 if [[ $? -eq 0 ]]; then
