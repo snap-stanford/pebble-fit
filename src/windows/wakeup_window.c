@@ -228,8 +228,9 @@ static void window_load(Window *window) {
   s_main_text_font = fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD);
   //s_main_text_layer = make_text_layer(main_bounds, s_main_text_font, GTextAlignmentCenter);
   //s_main_text_layer = make_text_layer(grect_inset(main_bounds, GEdgeInsets(15)), 
-  s_main_text_layer = make_text_layer(grect_inset(main_bounds, main_text_insets), 
-                                      s_main_text_font, GTextAlignmentCenter);
+  s_main_text_layer = make_text_layer(
+    PBL_IF_ROUND_ELSE(grect_inset(main_bounds, main_text_insets), main_bounds), 
+    s_main_text_font, GTextAlignmentCenter);
 
   // Add TextLayer as children of the ScrollLayer.
   scroll_layer_add_child(s_scroll_layer, text_layer_get_layer(s_main_text_layer));
