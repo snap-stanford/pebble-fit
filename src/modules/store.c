@@ -39,12 +39,14 @@ bool store_resend_config_request(time_t t_curr) {
     return true;
   }
 
-  time_t last_config_time;
+  time_t t_last_config_time;
 
-  persist_read_data(PERSIST_KEY_CONFIG_TIME, &last_config_time, sizeof(time_t));
+  persist_read_data(PERSIST_KEY_CONFIG_TIME, &t_last_config_time, sizeof(time_t));
+  APP_LOG(APP_LOG_LEVEL_ERROR, "t_config_time=%u", (unsigned) t_last_config_time);
 
+  // TODO
   if (store_read_break_count() == 0 && 
-			t_curr-last_config_time > atoi(enamel_get_config_update_interval()) * SECONDS_PER_DAY) {
+			t_curr-t_last_config_time > atoi(enamel_get_config_update_interval()) * SECONDS_PER_DAY) {
     return true;
   } else {
     return false;
@@ -224,6 +226,7 @@ bool store_resend_steps(time_t t_curr) {
 
   if (persist_exists(PERSIST_KEY_UPLOAD_TIME)) {
     persist_read_data(PERSIST_KEY_UPLOAD_TIME, &t_last_upload, sizeof(time_t));
+    APP_LOG(APP_LOG_LEVEL_ERROR, "t_last_upload=%u", (unsigned) t_last_upload);
     if (t_last_upload  < time_start_of_today() - 2 * SECONDS_PER_DAY) {
       // If last upload time is ealier than 2 days ago, only upload starting at 2 days ago
       t_last_upload = time_start_of_today() - 2 * SECONDS_PER_DAY;
@@ -296,6 +299,13 @@ const char* store_read_random_message() {
     switch (index) {
       case 1: return enamel_get_message_random_1(); break;
       case 2: return enamel_get_message_random_2(); break;
+      case 3: return enamel_get_message_random_3(); break;
+      case 4: return enamel_get_message_random_4(); break;
+      case 5: return enamel_get_message_random_5(); break;
+      case 6: return enamel_get_message_random_6(); break;
+      case 7: return enamel_get_message_random_7(); break;
+      case 8: return enamel_get_message_random_8(); break;
+      case 9: return enamel_get_message_random_9(); break;
       default: return enamel_get_message_random_0();
     }
   }

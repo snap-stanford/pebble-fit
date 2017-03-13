@@ -116,9 +116,8 @@ uint32_t enamel_get_daily_end_time();
 // -----------------------------------------------------
 // Getter for 'break_freq'
 typedef enum {
+	BREAK_FREQ_5 = 5,
 	BREAK_FREQ_60 = 60,
-	BREAK_FREQ_11 = 11,
-	BREAK_FREQ_15 = 15,
 } BREAK_FREQValue;
 BREAK_FREQValue enamel_get_break_freq();
 // -----------------------------------------------------
@@ -126,6 +125,7 @@ BREAK_FREQValue enamel_get_break_freq();
 // -----------------------------------------------------
 // Getter for 'break_len'
 typedef enum {
+	BREAK_LEN_1 = 1,
 	BREAK_LEN_5 = 5,
 } BREAK_LENValue;
 BREAK_LENValue enamel_get_break_len();
@@ -170,8 +170,8 @@ DISPLAY_DURATIONValue enamel_get_display_duration();
 // -----------------------------------------------------
 
 // -----------------------------------------------------
-// Getter for 'total_hour'
-const char* enamel_get_total_hour();
+// Getter for 'total_break'
+const char* enamel_get_total_break();
 // -----------------------------------------------------
 
 // -----------------------------------------------------
@@ -201,6 +201,41 @@ const char* enamel_get_message_random_1();
 // -----------------------------------------------------
 // Getter for 'message_random_2'
 const char* enamel_get_message_random_2();
+// -----------------------------------------------------
+
+// -----------------------------------------------------
+// Getter for 'message_random_3'
+const char* enamel_get_message_random_3();
+// -----------------------------------------------------
+
+// -----------------------------------------------------
+// Getter for 'message_random_4'
+const char* enamel_get_message_random_4();
+// -----------------------------------------------------
+
+// -----------------------------------------------------
+// Getter for 'message_random_5'
+const char* enamel_get_message_random_5();
+// -----------------------------------------------------
+
+// -----------------------------------------------------
+// Getter for 'message_random_6'
+const char* enamel_get_message_random_6();
+// -----------------------------------------------------
+
+// -----------------------------------------------------
+// Getter for 'message_random_7'
+const char* enamel_get_message_random_7();
+// -----------------------------------------------------
+
+// -----------------------------------------------------
+// Getter for 'message_random_8'
+const char* enamel_get_message_random_8();
+// -----------------------------------------------------
+
+// -----------------------------------------------------
+// Getter for 'message_random_9'
+const char* enamel_get_message_random_9();
 // -----------------------------------------------------
 
 // -----------------------------------------------------

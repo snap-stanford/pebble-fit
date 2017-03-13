@@ -80,7 +80,8 @@ static WakeupId prv_reschedule_wakeup_event(uint8_t wakeup_i, time_t wakeup_time
  *  4/LAUNCH_WAKEUP_NOTIFY | Notification wakeup: 2 * break_len before the next periodic wakeup. 
  *  5/LAUNCH_WAKEUP_DAILY  | Daily wakeup: at the end time of the day. 
  */
-void wakeup_schedule_events(int inactive_mins) {
+//void wakeup_schedule_events(int inactive_mins) {
+void wakeup_schedule_events() {
   time_t t_notify, t_wakeup;
   time_t break_freq_seconds = (time_t)enamel_get_break_freq() * SECONDS_PER_MINUTE;
   time_t break_len_seconds = (time_t)enamel_get_break_len() * SECONDS_PER_MINUTE;
@@ -112,9 +113,9 @@ void wakeup_schedule_events(int inactive_mins) {
     } 
 
     // Round up to the next Period Wakeup time. 
-		// Note: use the current timestamp instead of the launch timestamp, since the launch 
- 		// timestamp might be serveral minutes ago if the app wakes up while the app is on (i.e. 
-		// manually launched by the user).
+    // Note: use the current timestamp instead of the launch timestamp, since the launch 
+    // timestamp might be serveral minutes ago if the app wakes up while the app is on (i.e. 
+    // manually launched by the user).
     t_wakeup = (time(NULL)+break_freq_seconds-1) / break_freq_seconds * break_freq_seconds;
 
     // Boundary conditions checking
@@ -140,10 +141,3 @@ void wakeup_schedule_events(int inactive_mins) {
   prv_reschedule_wakeup_event(1, t_start + 2 * SECONDS_PER_DAY);
   prv_reschedule_wakeup_event(2, t_start + 3 * SECONDS_PER_DAY);
 }
-
-/**
- * Deprecated. Schedule a warning wakeup in the next minute.
- */
-//void wakeup_schedule_warning(time_t t_exit) {
-//  prv_reschedule_wakeup_event(LAUNCH_WAKEUP_WARN, t_exit + SECONDS_PER_MINUTE);
-//}

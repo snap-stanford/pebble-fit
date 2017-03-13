@@ -226,9 +226,9 @@ DISPLAY_DURATIONValue enamel_get_display_duration(){
 // -----------------------------------------------------
 
 // -----------------------------------------------------
-// Getter for 'total_hour'
-const char* enamel_get_total_hour(){
-	Tuple* tuple = dict_find(&s_dict, 3821242441);
+// Getter for 'total_break'
+const char* enamel_get_total_break(){
+	Tuple* tuple = dict_find(&s_dict, 793029197);
 	return tuple ? tuple->value->cstring : "0";
 }
 // -----------------------------------------------------
@@ -273,6 +273,62 @@ const char* enamel_get_message_random_1(){
 // Getter for 'message_random_2'
 const char* enamel_get_message_random_2(){
 	Tuple* tuple = dict_find(&s_dict, 3597287858);
+	return tuple ? tuple->value->cstring : "";
+}
+// -----------------------------------------------------
+
+// -----------------------------------------------------
+// Getter for 'message_random_3'
+const char* enamel_get_message_random_3(){
+	Tuple* tuple = dict_find(&s_dict, 3597287859);
+	return tuple ? tuple->value->cstring : "";
+}
+// -----------------------------------------------------
+
+// -----------------------------------------------------
+// Getter for 'message_random_4'
+const char* enamel_get_message_random_4(){
+	Tuple* tuple = dict_find(&s_dict, 3597287860);
+	return tuple ? tuple->value->cstring : "";
+}
+// -----------------------------------------------------
+
+// -----------------------------------------------------
+// Getter for 'message_random_5'
+const char* enamel_get_message_random_5(){
+	Tuple* tuple = dict_find(&s_dict, 3597287861);
+	return tuple ? tuple->value->cstring : "";
+}
+// -----------------------------------------------------
+
+// -----------------------------------------------------
+// Getter for 'message_random_6'
+const char* enamel_get_message_random_6(){
+	Tuple* tuple = dict_find(&s_dict, 3597287862);
+	return tuple ? tuple->value->cstring : "";
+}
+// -----------------------------------------------------
+
+// -----------------------------------------------------
+// Getter for 'message_random_7'
+const char* enamel_get_message_random_7(){
+	Tuple* tuple = dict_find(&s_dict, 3597287863);
+	return tuple ? tuple->value->cstring : "";
+}
+// -----------------------------------------------------
+
+// -----------------------------------------------------
+// Getter for 'message_random_8'
+const char* enamel_get_message_random_8(){
+	Tuple* tuple = dict_find(&s_dict, 3597287864);
+	return tuple ? tuple->value->cstring : "";
+}
+// -----------------------------------------------------
+
+// -----------------------------------------------------
+// Getter for 'message_random_9'
+const char* enamel_get_message_random_9(){
+	Tuple* tuple = dict_find(&s_dict, 3597287865);
 	return tuple ? tuple->value->cstring : "";
 }
 // -----------------------------------------------------
@@ -331,6 +387,13 @@ static uint16_t prv_get_inbound_size() {
 		+ 7 + ENAMEL_MAX_STRING_LENGTH
 		+ 7 + ENAMEL_MAX_STRING_LENGTH
 		+ 7 + ENAMEL_MAX_STRING_LENGTH
+		+ 7 + ENAMEL_MAX_STRING_LENGTH
+		+ 7 + ENAMEL_MAX_STRING_LENGTH
+		+ 7 + ENAMEL_MAX_STRING_LENGTH
+		+ 7 + ENAMEL_MAX_STRING_LENGTH
+		+ 7 + ENAMEL_MAX_STRING_LENGTH
+		+ 7 + ENAMEL_MAX_STRING_LENGTH
+		+ 7 + ENAMEL_MAX_STRING_LENGTH
 ;
 }
 
@@ -358,13 +421,20 @@ static uint32_t prv_map_messagekey(const uint32_t key){
 	if( key == MESSAGE_KEY_sliding_window) return 3755395031;
 	if( key == MESSAGE_KEY_step_threshold) return 1001368360;
 	if( key == MESSAGE_KEY_display_duration) return 1482180045;
-	if( key == MESSAGE_KEY_total_hour) return 3821242441;
+	if( key == MESSAGE_KEY_total_break) return 793029197;
 	if( key == MESSAGE_KEY_group) return 148261412;
 	if( key == MESSAGE_KEY_config_summary) return 1785760913;
 	if( key == MESSAGE_KEY_message_daily_summary) return 3122846783;
 	if( key == MESSAGE_KEY_message_random_0) return 3597287856;
 	if( key == MESSAGE_KEY_message_random_1) return 3597287857;
 	if( key == MESSAGE_KEY_message_random_2) return 3597287858;
+	if( key == MESSAGE_KEY_message_random_3) return 3597287859;
+	if( key == MESSAGE_KEY_message_random_4) return 3597287860;
+	if( key == MESSAGE_KEY_message_random_5) return 3597287861;
+	if( key == MESSAGE_KEY_message_random_6) return 3597287862;
+	if( key == MESSAGE_KEY_message_random_7) return 3597287863;
+	if( key == MESSAGE_KEY_message_random_8) return 3597287864;
+	if( key == MESSAGE_KEY_message_random_9) return 3597287865;
 	if( key == MESSAGE_KEY_version) return 4003360947;
 	if( key == MESSAGE_KEY_watch_alert_text) return 3844772216;
 	if( key == MESSAGE_KEY_watch_pass_text) return 1189123568;

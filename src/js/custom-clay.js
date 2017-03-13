@@ -41,8 +41,10 @@ module.exports = function (minified) {
     'dynamic_wakeup', 'sliding_window', 'display_duration'];
   var hidden_components = [
     'is_consent', 'config_update', 'config_update_interval',
-    'message_daily_summary', //'total_hour', 
-		//'message_random_0', 'message_random_1', 'message_random_2',
+    'message_daily_summary', 'total_break', 'group',
+    'message_random_0', 'message_random_1', 'message_random_2', 'message_random_3', 
+    'message_random_4', 'message_random_5', 'message_random_6', 'message_random_7', 
+    'message_random_8', 'message_random_9',
     'dynamic_wakeup', 'sliding_window', 'display_duration',
     'watch_alert_text', 'watch_pass_text',
     'eligible_4', 'eligible_5', 'eligible_6']; // TODO: hiding some eligible components for now
@@ -219,17 +221,24 @@ module.exports = function (minified) {
     //clayConfig.build();
   }
 
+  // Update the total_break value whenever the value of daily_start_time, daily_end_time,
+  // break_freq, or break_len changed.
   function updateConfigSummary () {
-    var start = parseInt(clayConfig.getItemById('daily_start_time').get());
-    var end = parseInt(clayConfig.getItemById('daily_end_time').get());
-		if (end < start) end += 24;
-    var totalHour = end - start;
+    var start = clayConfig.getItemById('daily_start_time').get().split(':');
+    var end = clayConfig.getItemById('daily_end_time').get().split(':');
+
+    if (end < start) end += 24;
+
+    var breakFreq = parseInt(clayConfig.getItemById('break_freq').get());
     var breakLen = clayConfig.getItemById('break_len').get();
 
-    var message = "Great, that means there will be " + totalHour + 
-      " hours in a day. Let's see if you can take a " + breakLen + 
+    var totalBreak = (end[0]*60+parseInt(end[1])-start[0]*60-parseInt(start[1])) / breakFreq;
+
+    var message = "Great, that means there will be " + totalBreak + 
+      " breaks in a day. Let's see if you can take a " + breakLen + 
       " minute walking break during each of them...";
-    clayConfig.getItemById('total_hour').set(totalHour);
+
+    clayConfig.getItemById('total_break').set(totalBreak);
     clayConfig.getItemById('config_summary').set(message);
   }
 
@@ -250,6 +259,7 @@ module.exports = function (minified) {
 
     clayConfig.getItemById('daily_start_time').on('change', updateConfigSummary);
     clayConfig.getItemById('daily_end_time').on('change', updateConfigSummary);
+    clayConfig.getItemById('break_freq').on('change', updateConfigSummary);
     clayConfig.getItemById('break_len').on('change', updateConfigSummary);
 
     // By default, every component is visible. We only want to display either the
@@ -276,7 +286,7 @@ module.exports = function (minified) {
     disabled_components.forEach(function (c) { clayConfig.getItemById(c).disable(); });
 
     clayConfig.getItemById('watchtoken').set(clayConfig.meta.watchToken);
-    clayConfig.getItemById('version').set('v0.8.1');
+    clayConfig.getItemById('version').set('v0.1.1');
 
     updateConfigSummary.call();
     changeEnableApp.call(activateToggle);
