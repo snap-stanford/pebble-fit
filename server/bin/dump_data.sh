@@ -62,8 +62,9 @@ export_json() {
   chmod 554 ${out_dir}/${output_name}
 }
 
-# Dump the daliy data.
-ts_start=`date +%s -d "-1 day"`000
-ts_end=`date +%s`000
+# Dump the daliy data. This should be scheduled to run after midnight to dump the data
+# collected from the previous day
+ts_start=`date +%s -d " -2 days 23:59:59 "`000
+ts_end=`date +%s -d " yesterday 23:59:59 "`000
 output_name=`date +%Y%m%d-%H:%M:%S`
 export_json ${ts_start} ${ts_end} ${output_name}

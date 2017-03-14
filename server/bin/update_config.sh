@@ -12,6 +12,8 @@ if [[ $# -ne 1 ]]; then
     echo $0: "Usage: update_config.sh configuration_directory"
     exit 1
 fi
+
+# Assume we use the same mb server, so these are hard-coded
 new_config_dir=$1/new_configuration
 storage_dir=$1/old_configuration
 
