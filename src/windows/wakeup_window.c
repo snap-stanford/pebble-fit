@@ -99,8 +99,9 @@ static void prv_update_text() {
 
 /* Get the latest step count and update texts on the watch accordingly. */
 void wakeup_window_breathe() {
-  steps_update();
-  steps_wakeup_window_update();
+  //APP_LOG(APP_LOG_LEVEL_ERROR, "wakeup_window_breathe is disabled.");
+  //steps_update();
+  //steps_wakeup_window_update();
   prv_update_text();
 }
 
@@ -117,8 +118,8 @@ static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
   //text_layer_set_text(s_main_text_layer, "reset timestamp");
   //store_write_upload_time(e_launch_time - 2 * SECONDS_PER_DAY);
 
-  launch_set_random_message();
-  snprintf(s_main_text_buf, sizeof(s_main_text_buf), "%s!", launch_get_random_message());
+  launch_set_random_message(true);
+  snprintf(s_main_text_buf, sizeof(s_main_text_buf), "%s", launch_get_random_message());
   text_layer_set_text(s_main_text_layer, s_main_text_buf);
 
   //back_click_handler(recognizer, context); // TODO
