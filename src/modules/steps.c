@@ -4,7 +4,7 @@ static uint8_t s_step_records[MAX_ENTRIES];
 static int s_num_records;
 static int s_steps;
 static time_t s_start, s_end;
-static int s_inactive_mins;
+//static int s_inactive_mins;
 static char s_start_buf[12];
 static char s_end_buf[12];
 static bool s_is_loaded = false;        // Set this to true to skip prv_load_data()
@@ -43,9 +43,9 @@ static void prv_load_data(time_t *start, time_t *end) {
       } else {
         s_step_records[i] = minute_data[i].steps;
         s_steps += s_step_records[i];
-        //if (s_step_records[i] > 0) {
-        //  APP_LOG(APP_LOG_LEVEL_INFO, "s_step_records %d = %d", (int)i, (int)s_step_records[i]);
-        //}
+        if (s_step_records[i] > 0) {
+          APP_LOG(APP_LOG_LEVEL_INFO, "s_step_records %d = %d", (int)i, (int)s_step_records[i]);
+        }
       }
     }
     s_is_loaded = true;
@@ -54,7 +54,8 @@ static void prv_load_data(time_t *start, time_t *end) {
 
 /* TODO: debugging function to report the nonsed periods. */
 void prv_report_steps(int i) {
-  for (int j = i-enamel_get_break_len()-enamel_get_sliding_window()+1; j<=i; j++) {
+  //for (int j = i-enamel_get_break_len()-enamel_get_sliding_window()+1; j<=i; j++) {
+  for (int j = i-enamel_get_break_len()+1; j<=i; j++) {
     APP_LOG(APP_LOG_LEVEL_INFO, "prv_report_steps: j = %d, steps = %d", j, s_step_records[j]);
   }
 }
@@ -62,21 +63,19 @@ void prv_report_steps(int i) {
  * Update steps count. 
  */
 void steps_update() {
-  int left, right, break_freq, break_len, sliding_window, step_threshold;
-  int nonsed_period = 0;
+  int left, right, start_index, break_freq, break_len, sliding_window, step_threshold;
   
   //if (!s_is_update) { // FIXME: wanted to avoid multiple updates in the same session (i.e. within 1 minute so that step count will not change at all)
     s_pass = false;
-    s_end = time(NULL);
-    s_start = s_end - SECONDS_PER_MINUTE * MAX_ENTRIES; 
 
     // Read recorded step count data from the Pebble Health service.
     s_is_loaded = false; // Force to load new data from Health service.
+    s_end = time(NULL);
+    s_start = s_end - SECONDS_PER_MINUTE * MAX_ENTRIES; 
     APP_LOG(APP_LOG_LEVEL_ERROR, "before prv_load_data");
     prv_load_data(&s_start, &s_end);
 
-    s_inactive_mins = 0;
-    
+    //s_inactive_mins = 0;
     // Force break frequency <= MAX_ENTRIES, and break length <= break frequency.
     break_freq = enamel_get_break_freq() > MAX_ENTRIES? MAX_ENTRIES : enamel_get_break_freq();
     break_len = enamel_get_break_len() > break_freq ?  break_freq : enamel_get_break_len();
@@ -86,11 +85,35 @@ void steps_update() {
     //APP_LOG(APP_LOG_LEVEL_ERROR, "bl=%d, bf=%d, sw=%d, threshold=%d", 
     //  break_len, break_freq, sliding_window, step_threshold);
     
-    // Check whether the goal is met. Update s_pass which is the indicator.
-    // Use the first loop is to initialize.
-    //for (right=MAX_ENTRIES-enamel_get_break_freq(); right<break_len+sliding_window; right++) {
-    int start_index = e_launch_reason == LAUNCH_WAKEUP_NOTIFY? 
+    // Check whether the goal is met. Use s_pass as the indicator.
+    start_index = e_launch_reason == LAUNCH_WAKEUP_NOTIFY? 
      MAX_ENTRIES-enamel_get_break_freq()+2*break_len : MAX_ENTRIES-enamel_get_break_freq();
+    
+    // 1. This is the approach for checking whether step_count > threshold in at least 
+    // "break_len" minutes in the last period of "break_freq" minutes.
+    int step_count = 0;
+    for (right = start_index; right < break_len; right++) {
+      step_count += s_step_records[right];
+    }
+    if (step_count >= step_threshold) {
+      s_pass = true;
+    } else {
+      left = 0;
+      for ( ; right < MAX_ENTRIES; right++, left++) {
+        step_count += s_step_records[right] - s_step_records[left];
+        if (step_count >= step_threshold) {
+          s_pass = true;
+          break;
+        }
+      }
+    }
+
+    // 2. This is the approach for checking whether step_count > threshold in at least
+    // "break_len" minutes within "break_len+sliding_window" minutes in the last period of
+    // "break_freq" minutes. 
+    /*
+    int nonsed_period = 0;
+    // Use the first loop is to initialize.
     for (right = start_index; right < break_len + sliding_window; right++) {
       if (s_step_records[right] >= step_threshold) {
         nonsed_period += 1;
@@ -119,6 +142,7 @@ void steps_update() {
         }
       }
     }
+    */
 
     // Convert to human readable time for the display purpose.
     //APP_LOG(APP_LOG_LEVEL_ERROR, "enamel_get_sleep_minutes=%d", enamel_get_sleep_minutes());
@@ -151,7 +175,8 @@ void steps_update() {
  * This assume steps_update() was called recently.
  */
 void steps_wakeup_window_update() { 
-  wakeup_window_update(s_steps, s_start_buf, s_end_buf, s_inactive_mins);
+  //wakeup_window_update(s_steps, s_start_buf, s_end_buf, s_inactive_mins);
+  wakeup_window_update(s_steps, s_start_buf, s_end_buf, 0);
 }
 
 /** 
@@ -162,9 +187,9 @@ bool steps_get_pass() {
 }
 
 /* Return the inactive minutes. */
-int steps_get_inactive_minutes() {
-  return s_inactive_mins;
-}
+//int steps_get_inactive_minutes() {
+//  return s_inactive_mins;
+//}
 
 /* Write steps array data to dict. */
 static void data_write(DictionaryIterator * out) {
