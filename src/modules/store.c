@@ -35,6 +35,7 @@ void store_write_config_time(time_t time) {
  *   Make sure there is a non-Period Wakup scheduled daily before any Period Wakeup.
  */
 bool store_resend_config_request(time_t t_curr) {
+    return true;
   if (!persist_exists(PERSIST_KEY_CONFIG_TIME)) {
     return true;
   }
@@ -111,8 +112,8 @@ void store_write_launchexit_event(time_t t_launch, time_t t_exit, uint8_t lr, ui
   APP_LOG(APP_LOG_LEVEL_INFO, "Write launch and exit events to persistent storage" \
       ". new records count=%d.", s_launchexit_count);
   APP_LOG(APP_LOG_LEVEL_INFO, "t_launch=%u, t_exit=%u", (unsigned int)t_launch, (unsigned int)t_exit);
-  APP_LOG(APP_LOG_LEVEL_INFO, "msg_id=%s, msg_id_ascii=%08x, t_diff=%u, lr=%d, er=%d", 
-    msg_id, (unsigned int)msg_id_ascii, (unsigned int)t_diff, lr, er);
+  //APP_LOG(APP_LOG_LEVEL_INFO, "msg_id=%s, msg_id_ascii=%08x, t_diff=%u, lr=%d, er=%d", 
+  //  msg_id, (unsigned int)msg_id_ascii, (unsigned int)t_diff, lr, er);
 }
 
 // Deprecated.

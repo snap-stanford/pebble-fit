@@ -29,7 +29,7 @@ module.exports = function (minified) {
   var survey_section = ['survey_heading_0', 'survey_text_0', 'survey_heading_1', 'survey_text_1',
     'survey_age', 'survey_age2', 'survey_gender', 'survey_height', 'survey_height_unit', 
     'survey_weight', 'survey_weight_unit', 'survey_race'];
-  var config_section = ['settings', 'activate', 'vibrate', 'break_freq', 
+  var config_section = ['settings', 'activate', 'vibrate', 'break_freq', 'break_len',
     'dynamic_wakeup', 'sliding_window', 'step_threshold', 'daily_start_time', 
     'daily_end_time', 'display_duration', 'activate_text', 'config_summary',
     'version', 'watchtoken'];
@@ -286,7 +286,7 @@ module.exports = function (minified) {
     disabled_components.forEach(function (c) { clayConfig.getItemById(c).disable(); });
 
     clayConfig.getItemById('watchtoken').set(clayConfig.meta.watchToken);
-    clayConfig.getItemById('version').set('v0.1.1');
+    clayConfig.getItemById('version').set('v1.1.2');
 
     updateConfigSummary.call();
     changeEnableApp.call(activateToggle);

@@ -82,6 +82,9 @@ static WakeupId prv_reschedule_wakeup_event(uint8_t wakeup_i, time_t wakeup_time
  */
 //void wakeup_schedule_events(int inactive_mins) {
 void wakeup_schedule_events() {
+  APP_LOG(APP_LOG_LEVEL_ERROR, "Cancelling all wakeup events! Must be rescheduled.");
+  wakeup_cancel_all();
+  
   time_t t_notify, t_wakeup;
   time_t break_freq_seconds = (time_t)enamel_get_break_freq() * SECONDS_PER_MINUTE;
   time_t break_len_seconds = (time_t)enamel_get_break_len() * SECONDS_PER_MINUTE;

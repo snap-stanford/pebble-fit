@@ -16,8 +16,8 @@ log.set_level(3);
 var SERVER = 'http://pebble-fit.herokuapp.com';
 
 // Local servers (use ifconfig to find out).
-//var SERVER = 'http://11.30.202.74:3000';
-//var SERVER = 'http://10.34.188.67:3000';
+var SERVER = 'http://10.30.202.74:3000';
+//var SERVER = 'http://10.34.188.112:3000';
 //var SERVER = 'http://10.34.145.16:3000';
 
 // Flag to switch off server communication
@@ -75,7 +75,8 @@ function send_data_to_route (route) {
 					clay.setSettings(key, settings[key]);
         }
       }
-      settings['config_update'] = 0; // The first setting in config.json is dummy.
+      settings['config_update'] = 0; // Dummy config to allow enamel automatically parsing.
+      settings['AppKeyServerReceived'] = 1;
       console.log(JSON.stringify(settings));
       Pebble.sendAppMessage(settings, 
 				null,
