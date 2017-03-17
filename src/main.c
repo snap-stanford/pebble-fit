@@ -45,6 +45,8 @@ static void deinit(void) {
   if (enamel_get_activate()) {
     if (e_server_ready) {
       // Send the exit record (the launch record has already been uploaded).
+      // TODO: there is some chance (might be rare) the connection is down suddenly.
+      // Maybe we should always store this info for safe (server receive duplicate packets.
       launch_send_exit_notification(s_exit_time);
     } else {
       // Store launch-exit record if the connection could not be established right now.

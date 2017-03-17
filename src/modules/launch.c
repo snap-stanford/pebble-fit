@@ -117,7 +117,7 @@ const char * launch_get_random_message_id() {
  * Otherwise, it will alert users by vibration and popping up alert window on the watch.
  */
 static void prv_wakeup_vibrate(bool force) {
-  APP_LOG(APP_LOG_LEVEL_ERROR, "in prv_wakeup_vibrate()");
+  APP_LOG(APP_LOG_LEVEL_INFO, "DEBUG: in prv_wakeup_vibrate()");
   HealthActivityMask activity = health_service_peek_current_activities();
 
   if (activity != HealthActivitySleep && activity != HealthActivityRestfulSleep &&
@@ -148,41 +148,55 @@ static void prv_wakeup_vibrate(bool force) {
  * Handle wakeup events.
  */
 void wakeup_handler(WakeupId wakeup_id, int32_t wakeup_cookie) {
-  APP_LOG(APP_LOG_LEVEL_INFO, "wakeup %d , cookie %d", (int)wakeup_id, (int)wakeup_cookie);
+  APP_LOG(APP_LOG_LEVEL_INFO, "DEBUG: wakeup=%d cookie=%d", (int)wakeup_id, (int)wakeup_cookie);
   
-  // wakeup_cookie is the index associated to the wakeup event.
-  e_launch_reason = wakeup_cookie;
+  steps_update();
   
+  // wakeup_cookie is the index associated to the wakeup event. It is also the wakeup type.
   if (wakeup_cookie >= LAUNCH_WAKEUP_PERIOD) {
-    prv_wakeup_vibrate(false);
+    e_launch_reason = wakeup_cookie;
+    prv_wakeup_vibrate(false); // TODO: consider moving into swtich statement.
+
+    // This could happen if we receive wakeup event while the app has been on the foreground.
+    if (s_wakeup_window) {
+      window_stack_remove(s_wakeup_window, false);
+    }
+
+    switch (wakeup_cookie) {
+      case LAUNCH_WAKEUP_ALERT:
+        // Get a random message from the persistent storage. This must happen before
+        // wakeup_window_push() and the first call to init_callback. 
+        APP_LOG(APP_LOG_LEVEL_ERROR, "Make sure this happens before init_callback()!");
+        if (!steps_get_pass()) { // Only push the window if step goal is not met.
+          launch_set_random_message(true);
+          s_wakeup_window = wakeup_window_push();
+        } else {
+          e_exit_reason = EXIT_TIMEOUT; // TODO: or using a new coding for silent-wakeup?
+        }
+        break;
+      case LAUNCH_WAKEUP_PERIOD:
+      case LAUNCH_WAKEUP_DAILY:
+        // TODO: For now, even for period-wakeup and goal is met, we still push window.
+        s_wakeup_window = wakeup_window_push();
+        break;
+      default:
+        APP_LOG(APP_LOG_LEVEL_ERROR, "\nShould NOT reach here!\n");
+    }
   } else {
+    e_launch_reason = -1 * wakeup_cookie; // To distinguish from other normal launch types.
     APP_LOG(APP_LOG_LEVEL_ERROR, "Fallback wakeup! cookie=%d", (int)wakeup_cookie);
   }
   
-  // This could happen if we receive wakeup event while the app has been on the foreground.
-  if (s_wakeup_window) {
-    window_stack_remove(s_wakeup_window, false);
-  }
-
-  // Get a random message from the persistent storage. This must happen before
-  // wakeup_window_push() and the first call to prv_init_callback. 
-  // TODO: no every group needs this. Only wakeup launch needs this.
-  launch_set_random_message(wakeup_cookie == LAUNCH_WAKEUP_NOTIFY);
-
-  // TODO: if this is a notification wakeup and goal is met, should we still push window?
-  if (e_launch_reason != LAUNCH_WAKEUP_NOTIFY || !steps_get_pass()) {
-    s_wakeup_window = wakeup_window_push();
-  }
-
   // Start timer
   tick_second_subscribe(true);
 
   // Always re-schedule wakeup events
   wakeup_schedule_events();
 
-  //TODO: should call prv_init_callback() to upload data
+  //TODO: should call init_callback() to upload data, but how should we prevent interupting
+  // the current data-upload process.
   //if (e_server_ready) {
-  //  prv_init_callback();
+  //  init_callback();
   //}
 }
 
@@ -204,10 +218,11 @@ void launch_handler(bool activate) {
     }
 
     // TODO: Calculate steps only at the scheduled wakeup event? What if user accomplish goal and manually check it before the scheduled wakeup?
+    // This is redundant and for debug only, later on we will only update steps at wakeup launch, and we won't change break_count other than notification/period launch.
     steps_update(); 
 
     // Set the message ID to be pass/fail. This will be overwritten by the true random
-    // message ID if this is a LAUNCH_WAKEUP_NOTIFY event.
+    // message ID if this is a LAUNCH_WAKEUP_ALERT event.
     if (steps_get_pass()) {
       s_msg_id = "pass";
     } else {
@@ -249,10 +264,9 @@ void launch_handler(bool activate) {
     tick_second_subscribe(will_timeout);
   } else {
     s_dialog_window = dialog_window_push();
-    dialog_text_layer_update_proc("You must activate this app from the 'Settings' page on your phone.");
+    dialog_text_layer_update_proc(
+        "You must activate this app from the 'Settings' page on your phone.");
   }
-
-  APP_LOG(APP_LOG_LEVEL_INFO, "pebble-fit launch_reason = %d", e_launch_reason);
 }
 
 /**
@@ -272,7 +286,7 @@ void update_config(void *context) {
     if (s_wakeup_window == NULL) {
       launch_handler(true); // Change from dialog_window to wakeup_window.
     } else {
-      //wakeup_schedule_events(); //TODO
+      wakeup_schedule_events();
 
       // Update the current content of wakeup_window.
       wakeup_window_breathe(); 
@@ -314,15 +328,21 @@ void update_config(void *context) {
 void init_callback(DictionaryIterator *iter, void *context) {
   if (!enamel_get_activate()) return; // Will not response to PebbleKit JS if inactivated.
 
-  // If this message is not coming from the server, it is a Clay setting message, which 
-  // has already been handled by Enamel (simply return here).
-  if (!dict_find(iter, AppKeyServerReceived)) {
+  static int init_stage = 0; // Track data uploading progress.
+
+  if(dict_find(iter, AppKeyJSReady)) {
+    // If is possible to receive multiple ready message if the Pebble app on phone is re-
+    // launched. Reset the stage variable to prevent going further in the data-upload process.
+    e_js_ready = true;
+    init_stage = 0;
+    APP_LOG(APP_LOG_LEVEL_INFO, "Connected to JS!");
+  } else if (!dict_find(iter, AppKeyServerReceived)) {
+    // If this message is NOT coming from the server, it is a Clay setting message, which 
+    // has already been handled by Enamel (simply return here).
     return;
   } else {
     e_server_ready = true;
   }
-
-  static int init_stage = 0;
 
   bool is_finished = false;
 

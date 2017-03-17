@@ -64,8 +64,8 @@ static void top_text_layer_update_proc() {
 
 /* Procedure for how to update s_main_text_layer. */
 static void main_text_layer_update_proc() {
-  if (e_launch_reason == LAUNCH_WAKEUP_NOTIFY) {
-  //if (e_launch_reason == LAUNCH_WAKEUP_NOTIFY || e_launch_reason == LAUNCH_PHONE) {
+  if (e_launch_reason == LAUNCH_WAKEUP_ALERT) {
+  //if (e_launch_reason == LAUNCH_WAKEUP_ALERT || e_launch_reason == LAUNCH_PHONE) { // DEBUG
 
     APP_LOG(APP_LOG_LEVEL_INFO, "launch_set_random_message,content=%s",launch_get_random_message());
     snprintf(s_main_text_buf, sizeof(s_main_text_buf), "%s", launch_get_random_message());

@@ -77,7 +77,7 @@ static WakeupId prv_reschedule_wakeup_event(uint8_t wakeup_i, time_t wakeup_time
  *  1                      | Fallback wakeup: 2 days later 
  *  2                      | Fallback wakeup: 3 days later 
  *  3/LAUNCH_WAKEUP_PERIOD | Next periodic wakeup: rounded to the break_freq minutes. 
- *  4/LAUNCH_WAKEUP_NOTIFY | Notification wakeup: 2 * break_len before the next periodic wakeup. 
+ *  4/LAUNCH_WAKEUP_ALERT | Notification wakeup: 2 * break_len before the next periodic wakeup. 
  *  5/LAUNCH_WAKEUP_DAILY  | Daily wakeup: at the end time of the day. 
  */
 //void wakeup_schedule_events(int inactive_mins) {
@@ -133,7 +133,7 @@ void wakeup_schedule_events() {
     
     // Schedule notification wakeup
     t_notify = t_wakeup - 2 * break_len_seconds;
-    prv_reschedule_wakeup_event(LAUNCH_WAKEUP_NOTIFY, t_notify);
+    prv_reschedule_wakeup_event(LAUNCH_WAKEUP_ALERT, t_notify);
   } else if (strncmp(enamel_get_group(), "daily_message", strlen("daily_message")) == 1) {
     // Schedule end-of-day wakeup only
     prv_reschedule_wakeup_event(LAUNCH_WAKEUP_DAILY, t_end);

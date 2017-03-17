@@ -43,9 +43,9 @@ static void prv_load_data(time_t *start, time_t *end) {
       } else {
         s_step_records[i] = minute_data[i].steps;
         s_steps += s_step_records[i];
-        if (s_step_records[i] > 0) {
-          APP_LOG(APP_LOG_LEVEL_INFO, "s_step_records %d = %d", (int)i, (int)s_step_records[i]);
-        }
+        //if (s_step_records[i] > 0) {
+        //  APP_LOG(APP_LOG_LEVEL_INFO, "s_step_records %d = %d", (int)i, (int)s_step_records[i]);
+        //}
       }
     }
     s_is_loaded = true;
@@ -86,7 +86,7 @@ void steps_update() {
     //  break_len, break_freq, sliding_window, step_threshold);
     
     // Check whether the goal is met. Use s_pass as the indicator.
-    start_index = e_launch_reason == LAUNCH_WAKEUP_NOTIFY? 
+    start_index = e_launch_reason == LAUNCH_WAKEUP_ALERT? 
      MAX_ENTRIES-enamel_get_break_freq()+2*break_len : MAX_ENTRIES-enamel_get_break_freq();
     
     // 1. This is the approach for checking whether step_count > threshold in at least 

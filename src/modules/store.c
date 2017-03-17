@@ -10,15 +10,15 @@ static uint32_t s_launchexit_data[3];
 /* 
  * The format of launch-exit record stored persistently (compact to save space).
  * Total size: 4 bytes
- * 28 bits                  | 2 bits   | 2 bits  
+ * 27 bits                  | 3 bits   | 2 bits  
  * exit (secs after launch) | l reason | e reason
  */
 #define LAUNCHEXIT_DATA_SIZE    12 
 #define LAUNCHEXIT_COUNT_SIZE   1
-#define COMPACT(es, lr, er)     ((es&0x0FFFFFFF)<<4 | (lr&0x3)<<2 | (er&0x3))
-#define GET_SECOND(x)           ((x>>4)  & 0x0FFFFFFF)
-#define GET_LAUNCH_REASON(x)    ((x>>2)  & 0x0003)
-#define GET_EXIT_REASON(x)      (x       & 0x0003)
+#define COMPACT(es, lr, er)     ((es&0x07FFFFFF)<<5 | (lr&0x7)<<2 | (er&0x3))
+#define GET_SECOND(x)           ((x>>5)  & 0x07FFFFFF)
+#define GET_LAUNCH_REASON(x)    ((x>>2)  & 0x00000007)
+#define GET_EXIT_REASON(x)      (x       & 0x00000003)
 
 /**
  * Write into the persistent storage the latest timestamp at which we update configuration.
@@ -35,7 +35,7 @@ void store_write_config_time(time_t time) {
  *   Make sure there is a non-Period Wakup scheduled daily before any Period Wakeup.
  */
 bool store_resend_config_request(time_t t_curr) {
-    return true;
+//    return true;
   if (!persist_exists(PERSIST_KEY_CONFIG_TIME)) {
     return true;
   }
@@ -112,8 +112,8 @@ void store_write_launchexit_event(time_t t_launch, time_t t_exit, uint8_t lr, ui
   APP_LOG(APP_LOG_LEVEL_INFO, "Write launch and exit events to persistent storage" \
       ". new records count=%d.", s_launchexit_count);
   APP_LOG(APP_LOG_LEVEL_INFO, "t_launch=%u, t_exit=%u", (unsigned int)t_launch, (unsigned int)t_exit);
-  //APP_LOG(APP_LOG_LEVEL_INFO, "msg_id=%s, msg_id_ascii=%08x, t_diff=%u, lr=%d, er=%d", 
-  //  msg_id, (unsigned int)msg_id_ascii, (unsigned int)t_diff, lr, er);
+  APP_LOG(APP_LOG_LEVEL_INFO, "msg_id=%s, msg_id_ascii=%08x, t_diff=%u, lr=%d, er=%d", 
+    msg_id, (unsigned int)msg_id_ascii, (unsigned int)t_diff, lr, er);
 }
 
 // Deprecated.
@@ -189,6 +189,12 @@ bool store_resend_launchexit_event() {
 
       // Convert message ID from ascii code back to char (assuming each ID is 4 bytes)
       msg_id_ascii = s_launchexit_data[2];
+      // DEBUG
+      APP_LOG(APP_LOG_LEVEL_INFO, "Resend launch and exit events to the server" \
+          ". new records count=%d.", s_launchexit_count);
+      APP_LOG(APP_LOG_LEVEL_INFO, "t_launch=%u, t_exit=%u, msg_id_ascii=%04x, lr=%d, er=%d", 
+        (unsigned int)t_launch, (unsigned int)t_exit, (unsigned int)msg_id_ascii,
+        (int)lr, (int)er); // DEBUG
       for (int i = 3; i >= 0; i--) {
         msg_id[i] = (char)msg_id_ascii;
         msg_id_ascii >>= 8;
@@ -199,13 +205,6 @@ bool store_resend_launchexit_event() {
 
       persist_delete(key);
       s_launchexit_count--;
-
-      // DEBUG
-      APP_LOG(APP_LOG_LEVEL_INFO, "Resend launch and exit events to the server" \
-          ". new records count=%d.", s_launchexit_count);
-      APP_LOG(APP_LOG_LEVEL_INFO, "t_launch=%u, t_exit=%u, msg_id_ascii=%04x, lr=%d, er=%d", 
-        (unsigned int)t_launch, (unsigned int)t_exit, (unsigned int)msg_id_ascii,
-        (int)lr, (int)er);
     }
 
     persist_write_data(PERSIST_KEY_LAUNCHEXIT_COUNT, &s_launchexit_count, LAUNCHEXIT_COUNT_SIZE);
