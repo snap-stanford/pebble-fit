@@ -1,4 +1,4 @@
-var Group = require('../models/groups');
+var Group = require('../models/group');
 var _ = require('lodash');
 var moment = require('moment');
 
@@ -8,6 +8,7 @@ exports.getConfigFile = function (name, date, force, next) {
         //      select('file').
   //  exec(next);
     
+    /*
   Group.findOne({ 'name': name }).
     exec(function (err, group) {
       if (err) return next(err);
@@ -31,11 +32,12 @@ exports.getConfigFile = function (name, date, force, next) {
         }
       }
     });
+*/
 
   // TODO: debugging force to return config file always
-  //Group.findOne({ 'name': name }).
-  //  select('file').
-  //  exec(next);
+  Group.findOne({ 'name': name }).
+    select('file').
+    exec(next);
 };
 
 exports.random_pick = function (next) {

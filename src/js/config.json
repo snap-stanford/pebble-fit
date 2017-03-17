@@ -466,6 +466,15 @@
     },
     {
       "type": "input",
+      "id": "time_zone",
+      "messageKey": "time_zone",
+      "label": "Time zone",
+      "attributes": {
+        "type": "number"
+      }
+    },
+    {
+      "type": "input",
       "id": "daily_start_time",
       "messageKey": "daily_start_time",
       "defaultValue": "08:00",

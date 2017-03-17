@@ -72,7 +72,7 @@ void steps_update() {
     s_is_loaded = false; // Force to load new data from Health service.
     s_end = time(NULL);
     s_start = s_end - SECONDS_PER_MINUTE * MAX_ENTRIES; 
-    APP_LOG(APP_LOG_LEVEL_ERROR, "before prv_load_data");
+    APP_LOG(APP_LOG_LEVEL_INFO, "DEBUG: steps_update - before prv_load_data.");
     prv_load_data(&s_start, &s_end);
 
     //s_inactive_mins = 0;

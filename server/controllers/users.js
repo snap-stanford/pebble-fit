@@ -1,4 +1,4 @@
-var User = require('../models/users');
+var User = require('../models/user');
 var _ = require('lodash');
 var moment = require('moment');
 var groups = require('./groups');

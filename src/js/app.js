@@ -16,8 +16,8 @@ log.set_level(3);
 var SERVER = 'http://pebble-fit.herokuapp.com';
 
 // Local servers (use ifconfig to find out).
-var SERVER = 'http://10.30.202.74:3000';
-//var SERVER = 'http://10.34.148.32:3000';
+//var SERVER = 'http://10.30.202.74:3000';
+var SERVER = 'http://10.34.171.70:3000';
 //var SERVER = 'http://10.34.145.16:3000';
 
 // Flag to switch off server communication
@@ -30,118 +30,9 @@ Pebble.addEventListener('ready', function () {
   Pebble.sendAppMessage({ 'AppKeyJSReady': 1 });
 })
 
-function send_data_to_route (route) {
-  function send_request (url, type, callback) {
-    var xhr = new XMLHttpRequest()
-    xhr.onload = function () {
-      callback(null, this.status, this.response, this.responseText)
-    }
-    xhr.onerror = function () {
-      callback('Network error. Cannot send to ' + url)
-    }
-    xhr.open(type, url)
-    xhr.send()
-  }
-
-  // Server might response with new configuration settings. If so, we would apply 
-  // them to both the phone app and the watch app.
-  function send_received_message(response) {
-    if (response === undefined) {
-			// TODO: could also use config_update to indicate server connection.
-      Pebble.sendAppMessage({ 'AppKeyServerReceived': 1 })
-    } else {
-      var settings = JSON.parse(response);
-      for (var key in settings) {
-        log.info(key + ":" + settings[key]);
-				if (key === 'messages') {
-					log.info(JSON.stringify(settings[key]));
-					for (var m in settings[key]) {
-        		log.info(m + ":" + settings[key][m]);
-					}
-				} else if (key === 'random_messages') {
-        	log.info(JSON.stringify(settings[key]));
-          //for (var id in settings[key]) {
-          var randomMessages = settings[key];
-          for (var i = 0; i < randomMessages.length; i++) {
-            var messageID = 'message_random_' + i;
-            var messageContent = randomMessages[i]['id'] + ":" + randomMessages[i]['content'];
-        		log.info(messageID);
-        		log.info(messageContent);
-            settings[messageID] = messageContent;
-            clay.setSettings(messageID, messageContent);
-          }
-          delete settings[key];
-        } else {
-					clay.setSettings(key, settings[key]);
-        }
-      }
-      settings['config_update'] = 0; // Dummy config to allow enamel automatically parsing.
-      settings['AppKeyServerReceived'] = 1;
-      console.log(JSON.stringify(settings));
-      Pebble.sendAppMessage(settings, 
-				null,
-				//function () {
-      	//  console.log('Sent config data to Pebble: ' + JSON.stringify(settings));
-      	//}, 
-				function(error) {
-      	  console.log('Failed to send config data!');
-      	  console.log(JSON.stringify(error));
-      	});
-    }
-  }
-
-  if (USE_OFFLINE) {
-    log.info(route);
-    send_request(SERVER + route, 'GET', function(err, status, response, responseText) {
-      if (err || status !== 200) {
-        log.info(err || status)
-      } else {
-        send_received_message(response);
-      }
-    })
-  } else {
-    send_received_message()
-  }
-}
-
-function send_steps_data(data, date) {
-  log.debug('Uploading steps data...')
-  // Convert to string
-  var str = '' + data[0]
-  for (var i = 1; i < data.length; i++) {
-    str += ',' + data[i]
-  }
-  var url = '/steps' +
-  '?date=' + date +
-  '&data=' + str +
-  '&watch=' + Pebble.getWatchToken()
-
-  send_data_to_route(url)
-}
-
-function send_launch_exit_data(configRequest, msgID, launchTime, exitTime, launchReason, exitReason, date) {
-  if (exitReason === undefined) {
-    //log.debug('Uploading launch data only...')
-    var url = '/launch' + '?date=' + date + '&reason=' + launchReason +
-			'&configrequest=' + configRequest + 
-			'&msgid=' + msgID + 
-      '&watch=' + Pebble.getWatchToken();
-  } else if (launchReason === undefined) {
-    //log.debug('Uploading exit data only...')
-    var url = '/exit' + '?date=' + date + '&reason=' + exitReason +
-      '&watch=' + Pebble.getWatchToken();
-  } else {
-    //log.debug('Uploading launch & exit data ...')
-    var url = '/launchexit' + '?date=' + date +
-      '&launchtime=' + launchTime + '&launchreason=' + launchReason +
-      '&exittime=' + exitTime + '&exitreason=' + exitReason +
-			'&msgid=' + msgID + 
-      '&watch=' + Pebble.getWatchToken();
-  }
-
-  send_data_to_route(url);
-}
-
+/**
+ * Receive App message from the watch.
+ */
 Pebble.addEventListener('appmessage', function (dict) {
   log.debug('Got appmessage: ' + JSON.stringify(dict.payload));
   var date;
@@ -166,48 +57,204 @@ Pebble.addEventListener('appmessage', function (dict) {
   if (dict.payload['AppKeyStepsData'] !== undefined) {
     var data = load_data_array()
     log.debug('Data: ' + data);
-    send_steps_data(data, date);
+    sendStepData(data, date);
   }
 
   // Data related to launch and/or exit events.
   if (dict.payload['AppKeyLaunchReason'] !== undefined || 
       dict.payload['AppKeyExitReason'] !== undefined) {
-		var configRequest = dict.payload['AppKeyConfigRequest'];
-		var msgID = dict.payload['AppKeyMessageID'];
+    var configRequest = dict.payload['AppKeyConfigRequest'];
+    var msgID = dict.payload['AppKeyMessageID'];
     var launchTime = dict.payload['AppKeyLaunchTime'];
     var launchReason = dict.payload['AppKeyLaunchReason'];
     var exitTime = dict.payload['AppKeyExitTime'];
     var exitReason = dict.payload['AppKeyExitReason'];
-    send_launch_exit_data(configRequest, msgID, launchTime, 
-													exitTime, launchReason, exitReason, date);
+    sendLaunchExitData(configRequest, msgID, launchTime, 
+                       exitTime, launchReason, exitReason, date);
+  }
+});
+
+/**
+ * Override Clay settings Save event. Send information to both the server and the watch.
+ */
+Pebble.addEventListener('webviewclosed', function(e) {
+  if (e && !e.response) {
+    console.log('Error: empty response!');
+    return;
   }
 
-  /*
-  if (dict.payload['AppKeyTest0'] !== undefined) {
-    console.log("Received AppKeyTest0=" + dict.payload['AppKeyTest0']);
-    testmode = dict.payload['AppKeyTest0'];
-    if (testmode === 0) {
-      clay.setSettings('watch_alert_text', 'Alert');
-      clay.setSettings('watch_pass_text', 'Pass');
-      var temp = {'watch_alert_text': 'Alert', 'watch_pass_text': 'Pass'};
-    } else if (testmode === 1) {
-      clay.setSettings('watch_alert_text', 'Let\'s Move');
-      clay.setSettings('watch_pass_text', 'Keep Up');
-      var temp = {'watch_alert_text': 'Let\'s Move', 'watch_pass_text': 'Keep Up'};
+  // Get the keys and values from each config item.
+  var dict = clay.getSettings(e.response);
+
+  // Prepare URL.
+  var date = Math.floor(new Date().getTime() / 1000)
+  //console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+  //console.log(JSON.stringify(dict));
+  //console.log(dict[messageKeys.time_zone]);
+  //console.log(dict[messageKeys.daily_start_time]);
+  //console.log(dict[messageKeys.daily_end_time]);
+  //console.log(dict[messageKeys.step_threshold]);
+  //console.log(dict[messageKeys.consent_name]);
+  //console.log(dict[messageKeys.consent_email]);
+  //console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+  var url = '/config' + '?date=' + date + 
+    '&timezone=' + dict[messageKeys.time_zone] + 
+    '&starttime=' + dict[messageKeys.daily_start_time] + 
+    '&endtime=' + dict[messageKeys.daily_end_time] + 
+    '&threshold=' + dict[messageKeys.step_threshold] + 
+    '&name=' + dict[messageKeys.consent_name] + 
+    '&email=' + dict[messageKeys.consent_email] + 
+    '&watch=' + Pebble.getWatchToken();
+
+  // Send to the server first and then to the watch.
+  sendToServer(url, function receiveServerACK (err, status, response, responseText) {
+    if (err || status !== 200) {
+      log.info(err || status)
+    } else {
+      // Do not expect a response from the server.
+      if (response) log.info("Got server response: " + JSON.stringify(response));
     }
-    // Send settings to Pebble watchapp
-    console.log("AAAAAAAAAAAAAAAAAAAAAAA");
-    settings = { 'enamel_key': 0 };
-    for (var s in temp) {
-      settings[messageKeys[s]] = temp[s];
-    }
-    console.log(JSON.stringify(settings));
-    Pebble.sendAppMessage(settings, function() {
-      console.log('Sent config data to Pebble');
-    }, function(error) {
+    log.info("Before sending config data to Pebble!");
+    
+    // Have to save Clay settings to the watch regardless whether the server receive it or not.
+    // TODO: If the server do not ACK, might need to set a flag to re-send it next time.
+    Pebble.sendAppMessage(dict, function(e) {
+      console.log('Sent config data to Pebble.');
+    }, function(e) {
       console.log('Failed to send config data!');
-      console.log(JSON.stringify(error));
-    });
-  }
-  */
+      console.log(JSON.stringify(e));
+    }); 
+  });
 });
+
+/** 
+ * Server might response with new configuration settings. If so, we would apply 
+ * them to both the phone app and the watch app.
+ * @param {Objest} response
+ */
+function receiveServerConfigACK (err, status, response, responseText) {
+  if (err || status !== 200) {
+    log.info(err || status)
+  } else if (!response) {
+    // No new configuration from the server, simply send ACK to the watch.
+    // TODO: could also use config_update to indicate server connection.
+    console.log('Server response with a null.');
+    Pebble.sendAppMessage({ 'AppKeyServerReceived': 1 })
+  } else {
+    // Parse the new configuration from the server, and then send to the watch.
+    var settings = JSON.parse(response);
+    for (var key in settings) {
+      log.info(key + ":" + settings[key]);
+      if (key === 'messages') {
+        log.info(JSON.stringify(settings[key]));
+        for (var m in settings[key]) {
+          log.info(m + ":" + settings[key][m]);
+        }
+      } else if (key === 'random_messages') {
+        log.info(JSON.stringify(settings[key]));
+        //for (var id in settings[key]) {
+        var randomMessages = settings[key];
+        for (var i = 0; i < randomMessages.length; i++) {
+          var messageID = 'message_random_' + i;
+          var messageContent = randomMessages[i]['id'] + ":" + randomMessages[i]['content'];
+          log.info(messageID);
+          log.info(messageContent);
+          settings[messageID] = messageContent;
+          clay.setSettings(messageID, messageContent);
+        }
+        delete settings[key];
+      } else {
+        clay.setSettings(key, settings[key]);
+      }
+    }
+    settings['config_update'] = 0; // Dummy config to allow enamel automatically parsing.
+    settings['AppKeyServerReceived'] = 1;
+    console.log(JSON.stringify(settings));
+    Pebble.sendAppMessage(settings, 
+      null,
+      //function () {
+      //  console.log('Sent config data to Pebble: ' + JSON.stringify(settings));
+      //}, 
+      function(error) {
+        console.log('Failed to send config data!');
+        console.log(JSON.stringify(error));
+      });
+  }
+}
+
+/**
+ * Send data to the server.
+ * @param {String} route
+ * @param {Function} callback Callback function will take 4 parameters: 
+ *        err, status, response, responseText. It should handle err propoerly.
+ */
+//function sendToServer (route, responseHandler) {
+function sendToServer (route, callback) {
+  function send_request (url, type, callback) {
+    var xhr = new XMLHttpRequest()
+    xhr.onload = function () {
+      callback(null, this.status, this.response, this.responseText)
+    }
+    xhr.onerror = function () {
+      callback('Network error. Cannot send to ' + url)
+    }
+    xhr.open(type, url)
+    xhr.send()
+  }
+
+  // TODO: The meaning of USE_OFFLINE seems to be opposite. And we might not need it.
+  if (USE_OFFLINE) {
+    log.info(route);
+    send_request(SERVER + route, 'GET', callback);
+    //send_request(SERVER + route, 'GET', function(err, status, response, responseText) {
+    //  if (err || status !== 200) {
+    //    log.info(err || status)
+    //  } else {
+    //    responseHandler(response);
+    //  }
+    //})
+  } else {
+    callback();
+  }
+}
+
+function sendStepData(data, date) {
+  log.debug('Uploading steps data...');
+  // Convert to string
+  var str = '' + data[0];
+  for (var i = 1; i < data.length; i++) {
+    str += ',' + data[i];
+  }
+  var url = '/steps' +
+  '?date=' + date +
+  '&data=' + str +
+  '&watch=' + Pebble.getWatchToken();
+
+  sendToServer(url, receiveServerConfigACK);
+}
+
+function sendLaunchExitData(configRequest, msgID, launchTime, exitTime, 
+                            launchReason, exitReason, date) {
+  if (exitReason === undefined) {
+    //log.debug('Uploading launch data only...')
+    var url = '/launch' + '?date=' + date + '&reason=' + launchReason +
+      '&configrequest=' + configRequest + 
+      '&msgid=' + msgID + 
+      '&watch=' + Pebble.getWatchToken();
+  } else if (launchReason === undefined) {
+    //log.debug('Uploading exit data only...')
+    var url = '/exit' + '?date=' + date + '&reason=' + exitReason +
+      '&watch=' + Pebble.getWatchToken();
+  } else {
+    //log.debug('Uploading launch & exit data ...')
+    var url = '/launchexit' + '?date=' + date +
+      '&launchtime=' + launchTime + '&launchreason=' + launchReason +
+      '&exittime=' + exitTime + '&exitreason=' + exitReason +
+      '&msgid=' + msgID + 
+      '&watch=' + Pebble.getWatchToken();
+  }
+
+  sendToServer(url, receiveServerConfigACK);
+}
+
+

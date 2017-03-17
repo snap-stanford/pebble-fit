@@ -33,7 +33,7 @@ module.exports = function (minified) {
     'dynamic_wakeup', 'sliding_window', 'step_threshold', 'daily_start_time', 
     'daily_end_time', 'display_duration', 'activate_text', 'config_summary',
     'version', 'watchtoken'];
-  var sub_config_section = ['vibrate', 'break_freq', 'break_len', 
+  var sub_config_section = ['vibrate', 'break_freq', 'break_len', 'config_summary',
     'daily_start_time', 'daily_end_time', 'activate_text'];
 
   // Components that should always be hidden.
@@ -285,15 +285,13 @@ module.exports = function (minified) {
     // Disable certain sections so that users will not be able to edit those.
     disabled_components.forEach(function (c) { clayConfig.getItemById(c).disable(); });
 
+    clayConfig.getItemById('time_zone').set(new Date().getTimezoneOffset());
+
     clayConfig.getItemById('watchtoken').set(clayConfig.meta.watchToken);
-    clayConfig.getItemById('version').set('v1.1.2');
+    clayConfig.getItemById('version').set('v1.1.3');
 
     updateConfigSummary.call();
     changeEnableApp.call(activateToggle);
   });
 
 };
-
-module.exports.foo = function () {
-  return _clayConfig;
-}

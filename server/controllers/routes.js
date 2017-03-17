@@ -10,13 +10,33 @@ var query = require('./query')
 var main = require('./main')
 var users = require('./users')
 var groups = require('./groups')
+var configs = require('./configs')
 var activities = require('./activities')
 var events = require('./events')
 var messages = require('./messages')
 
 const configDir = './config/';
 
-// Insert a new entry to Events and send a response back.
+router.get(['/config'],
+  query.requireParam('query', ['watch', 'timezone', 'starttime', 'endtime', 'threshold',
+    'name', 'email',]),
+  function (req, res, next) {
+    configs.save(
+      req.query.watch,
+      req.query.name,
+      req.query.email,
+      req.query.timezone,
+      req.query.starttime,
+      req.query.endtime,
+      function (err) {
+        if (err) return next(err);
+        res.status(200).end();
+      });
+  });
+
+/** 
+ * Insert a new entry to Events and send a response back.
+ */
 function saveEvent(req, res, config, next) {
   events.save(
     req.path.substr(1),

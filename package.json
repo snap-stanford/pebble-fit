@@ -67,6 +67,7 @@
       "total_break": 3011,
       "group": 3012,
       "config_summary": 3013,
+      "time_zone": 3014,
       "message_daily_summary": 4001,
       "message_random_0": 4010,
       "message_random_1": 4011,
