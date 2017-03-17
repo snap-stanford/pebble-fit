@@ -7,12 +7,14 @@ var input = [actionMessages, outcomeMessages, healthMessages];
 var messages = [];
 //for (var m in [actionMessages, outcomeMessages, healthMessages]) {
 input.forEach(function (m) {
+  //messages = messages.concat(m); // For the new message JSON files that converted from text file.
   for (var key in m) {
     if (m.hasOwnProperty(key)) {
         messages.push({"id": key, "content": m[key]});
     }
   }
 });
+//console.log(messages);
 
 exports.getRandomMessages = function (count) {
   var res = []

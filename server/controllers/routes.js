@@ -18,16 +18,19 @@ var messages = require('./messages')
 const configDir = './config/';
 
 router.get(['/config'],
-  query.requireParam('query', ['watch', 'timezone', 'starttime', 'endtime', 'threshold',
-    'name', 'email',]),
+  query.requireParam('query', ['watch', 'timezone', 'starttime', 'endtime',
+    'breakfreq', 'breaklen', 'threshold', 'name', 'email']),
   function (req, res, next) {
     configs.save(
       req.query.watch,
-      req.query.name,
-      req.query.email,
       req.query.timezone,
       req.query.starttime,
       req.query.endtime,
+      req.query.breakfreq,
+      req.query.breaklen,
+      req.query.threshold,
+      req.query.name,
+      req.query.email,
       function (err) {
         if (err) return next(err);
         res.status(200).end();

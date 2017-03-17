@@ -18,7 +18,7 @@ var SERVER = 'http://pebble-fit.herokuapp.com';
 // Local servers (use ifconfig to find out).
 //var SERVER = 'http://10.30.202.74:3000';
 //var SERVER = 'http://10.34.171.70:3000';
-//var SERVER = 'http://10.34.145.16:3000';
+//var SERVER = 'http://10.34.241.119:3000';
 
 // Flag to switch off server communication
 var USE_OFFLINE = true;
@@ -99,13 +99,15 @@ Pebble.addEventListener('webviewclosed', function(e) {
   //console.log(dict[messageKeys.consent_email]);
   //console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
   var url = '/config' + '?date=' + date + 
+    '&watch=' + Pebble.getWatchToken() + 
     '&timezone=' + dict[messageKeys.time_zone] + 
     '&starttime=' + dict[messageKeys.daily_start_time] + 
     '&endtime=' + dict[messageKeys.daily_end_time] + 
+    '&breakfreq=' + dict[messageKeys.break_freq] + 
+    '&breaklen=' + dict[messageKeys.break_len] + 
     '&threshold=' + dict[messageKeys.step_threshold] + 
     '&name=' + dict[messageKeys.consent_name] + 
-    '&email=' + dict[messageKeys.consent_email] + 
-    '&watch=' + Pebble.getWatchToken();
+    '&email=' + dict[messageKeys.consent_email];
 
   // Send to the server first and then to the watch.
   sendToServer(url, function receiveServerACK (err, status, response, responseText) {
