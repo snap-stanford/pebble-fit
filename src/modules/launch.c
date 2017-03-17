@@ -14,7 +14,7 @@ static char random_message[RANDOM_MSG_SIZE_MAX];
 
 // For resend functions.
 static time_t s_t_launch, s_t_exit, s_curr_time;
-static uint8_t s_lr, s_er;
+static uint8_t s_br, s_lr, s_er;
 static const char *s_msg_id;
 
 /* Add launch reason and date to out dict. */
@@ -23,6 +23,7 @@ static void prv_launch_data_write(DictionaryIterator * out) {
   dict_write_int(out, AppKeyDate, &e_launch_time, sizeof(int), true);
   dict_write_int(out, AppKeyLaunchReason, &e_launch_reason, sizeof(int), true);
   dict_write_int(out, AppKeyConfigRequest, &s_config_request, sizeof(int), true);
+  dict_write_uint8(out, AppKeyBreakCount, s_br);
   dict_write_cstring(out, AppKeyMessageID, s_msg_id);
 }
 /* Add exit reason and date to out dict. */
@@ -37,6 +38,7 @@ static void prv_launch_exit_data_write(DictionaryIterator * out) {
   dict_write_int(out, AppKeyDate, &s_curr_time, sizeof(int), true);
   dict_write_int(out, AppKeyLaunchTime, &s_t_launch, sizeof(int), true);
   dict_write_int(out, AppKeyExitTime, &s_t_exit, sizeof(int), true);
+  dict_write_uint8(out, AppKeyBreakCount, s_br);
   dict_write_uint8(out, AppKeyLaunchReason, s_lr);
   dict_write_uint8(out, AppKeyExitReason, s_er);
   dict_write_cstring(out, AppKeyMessageID, s_msg_id);
@@ -47,6 +49,7 @@ static void prv_launch_exit_data_write(DictionaryIterator * out) {
  */
 void launch_send_launch_notification() {
   s_config_request = store_resend_config_request(e_launch_time)? 1 : 0;
+	s_br = store_read_break_count();
 
   comm_send_data(prv_launch_data_write, comm_sent_handler, comm_server_received_handler);
 }
@@ -60,12 +63,13 @@ void launch_send_exit_notification(time_t time) {
 /**
  * Resend the previous launch and exit events.
  */
-void launch_resend(time_t t_launch, time_t t_exit, char *msg_id, uint8_t lr, uint8_t er) {
+void launch_resend(time_t t_launch, time_t t_exit, char *msg_id, uint8_t br, uint8_t lr, uint8_t er) {
   // The current launch record has been uploaded and the current exit reason has 
   // not yet been collected, so it is safe to modify these two varaibles here.
   s_t_launch = t_launch;
   s_t_exit = t_exit;
   s_msg_id = msg_id;
+	s_br = br;
   s_lr = lr;
   s_er = er;
 

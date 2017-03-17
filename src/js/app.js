@@ -17,7 +17,7 @@ var SERVER = 'http://pebble-fit.herokuapp.com';
 
 // Local servers (use ifconfig to find out).
 //var SERVER = 'http://10.30.202.74:3000';
-var SERVER = 'http://10.34.171.70:3000';
+//var SERVER = 'http://10.34.171.70:3000';
 //var SERVER = 'http://10.34.145.16:3000';
 
 // Flag to switch off server communication
@@ -66,11 +66,12 @@ Pebble.addEventListener('appmessage', function (dict) {
     var configRequest = dict.payload['AppKeyConfigRequest'];
     var msgID = dict.payload['AppKeyMessageID'];
     var launchTime = dict.payload['AppKeyLaunchTime'];
-    var launchReason = dict.payload['AppKeyLaunchReason'];
     var exitTime = dict.payload['AppKeyExitTime'];
+    var breakCount = dict.payload['AppKeyBreakCount'];
+    var launchReason = dict.payload['AppKeyLaunchReason'];
     var exitReason = dict.payload['AppKeyExitReason'];
-    sendLaunchExitData(configRequest, msgID, launchTime, 
-                       exitTime, launchReason, exitReason, date);
+    sendLaunchExitData(configRequest, msgID, launchTime, exitTime, breakCount, 
+                       launchReason, exitReason, date);
   }
 });
 
@@ -233,13 +234,14 @@ function sendStepData(data, date) {
   sendToServer(url, receiveServerConfigACK);
 }
 
-function sendLaunchExitData(configRequest, msgID, launchTime, exitTime, 
+function sendLaunchExitData(configRequest, msgID, launchTime, exitTime, breakCount,
                             launchReason, exitReason, date) {
   if (exitReason === undefined) {
     //log.debug('Uploading launch data only...')
     var url = '/launch' + '?date=' + date + '&reason=' + launchReason +
       '&configrequest=' + configRequest + 
       '&msgid=' + msgID + 
+      '&breakcount=' + breakCount + 
       '&watch=' + Pebble.getWatchToken();
   } else if (launchReason === undefined) {
     //log.debug('Uploading exit data only...')
@@ -248,8 +250,11 @@ function sendLaunchExitData(configRequest, msgID, launchTime, exitTime,
   } else {
     //log.debug('Uploading launch & exit data ...')
     var url = '/launchexit' + '?date=' + date +
-      '&launchtime=' + launchTime + '&launchreason=' + launchReason +
-      '&exittime=' + exitTime + '&exitreason=' + exitReason +
+      '&launchtime=' + launchTime +
+      '&exittime=' + exitTime +
+      '&breakcount=' + breakCount + 
+      '&launchreason=' + launchReason +
+      '&exitreason=' + exitReason +
       '&msgid=' + msgID + 
       '&watch=' + Pebble.getWatchToken();
   }

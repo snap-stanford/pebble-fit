@@ -10,13 +10,14 @@ static uint32_t s_launchexit_data[3];
 /* 
  * The format of launch-exit record stored persistently (compact to save space).
  * Total size: 4 bytes
- * 27 bits                  | 3 bits   | 2 bits  
- * exit (secs after launch) | l reason | e reason
+ * 19 bits                  | 8 bits      | 3 bits   | 2 bits  
+ * exit (secs after launch) | break count | l reason | e reason
  */
 #define LAUNCHEXIT_DATA_SIZE    12 
 #define LAUNCHEXIT_COUNT_SIZE   1
-#define COMPACT(es, lr, er)     ((es&0x07FFFFFF)<<5 | (lr&0x7)<<2 | (er&0x3))
-#define GET_SECOND(x)           ((x>>5)  & 0x07FFFFFF)
+#define COMPACT(es, br, lr, er) ((es&0x0007FFFF)<<13 | (br&0xFF)<<5 | (lr&0x7)<<2 | (er&0x3))
+#define GET_SECOND(x)           ((x>>13) & 0x0007FFFF)
+#define GET_BREAK_COUNT(x)      ((x>>5)  & 0x000000FF)
 #define GET_LAUNCH_REASON(x)    ((x>>2)  & 0x00000007)
 #define GET_EXIT_REASON(x)      (x       & 0x00000003)
 
@@ -47,7 +48,7 @@ bool store_resend_config_request(time_t t_curr) {
 
   // TODO
   if (store_read_break_count() == 0 && 
-			t_curr-t_last_config_time > atoi(enamel_get_config_update_interval()) * SECONDS_PER_DAY) {
+      t_curr-t_last_config_time > atoi(enamel_get_config_update_interval()) * SECONDS_PER_DAY) {
     return true;
   } else {
     return false;
@@ -79,6 +80,8 @@ time_t store_read_upload_time() {
 void store_write_launchexit_event(time_t t_launch, time_t t_exit, uint8_t lr, uint8_t er) {
   time_t t_diff = t_exit - t_launch; 
 
+  int br = store_read_break_count();
+
   // Convert message ID to ascii code (assuming each ID is 4 bytes)
   const char *msg_id = launch_get_random_message_id();
   uint32_t msg_id_ascii = 0;
@@ -99,7 +102,7 @@ void store_write_launchexit_event(time_t t_launch, time_t t_exit, uint8_t lr, ui
     s_launchexit_count = 0;
   }
   s_launchexit_data[0] = t_launch;
-  s_launchexit_data[1] = COMPACT(t_diff, lr, er);
+  s_launchexit_data[1] = COMPACT(t_diff, br, lr, er);
   s_launchexit_data[2] = msg_id_ascii;
   s_launchexit_count++;
 
@@ -112,8 +115,8 @@ void store_write_launchexit_event(time_t t_launch, time_t t_exit, uint8_t lr, ui
   APP_LOG(APP_LOG_LEVEL_INFO, "Write launch and exit events to persistent storage" \
       ". new records count=%d.", s_launchexit_count);
   APP_LOG(APP_LOG_LEVEL_INFO, "t_launch=%u, t_exit=%u", (unsigned int)t_launch, (unsigned int)t_exit);
-  APP_LOG(APP_LOG_LEVEL_INFO, "msg_id=%s, msg_id_ascii=%08x, t_diff=%u, lr=%d, er=%d", 
-    msg_id, (unsigned int)msg_id_ascii, (unsigned int)t_diff, lr, er);
+  APP_LOG(APP_LOG_LEVEL_INFO, "msg_id=%s, msg_id_ascii=%08x, t_diff=%u, br=%d lr=%d, er=%d", 
+    msg_id, (unsigned int)msg_id_ascii, (unsigned int)t_diff, br, lr, er);
 }
 
 // Deprecated.
@@ -161,7 +164,7 @@ bool store_resend_launchexit_event() {
   // FIXME: consider using a single key and sequential storage location
   uint32_t key, msg_id_ascii;
   time_t t_launch, t_exit;
-  uint8_t lr, er;
+  uint8_t br, lr, er;
   char msg_id[5];
 
   if (persist_exists(PERSIST_KEY_LAUNCHEXIT_COUNT)) {
@@ -183,6 +186,7 @@ bool store_resend_launchexit_event() {
       t_launch = s_launchexit_data[0];
 
       t_exit = s_launchexit_data[1];
+      br = GET_BREAK_COUNT(t_exit);
       lr = GET_LAUNCH_REASON(t_exit);
       er = GET_EXIT_REASON(t_exit);
       t_exit = t_launch + GET_SECOND(t_exit);
@@ -192,16 +196,16 @@ bool store_resend_launchexit_event() {
       // DEBUG
       APP_LOG(APP_LOG_LEVEL_INFO, "Resend launch and exit events to the server" \
           ". new records count=%d.", s_launchexit_count);
-      APP_LOG(APP_LOG_LEVEL_INFO, "t_launch=%u, t_exit=%u, msg_id_ascii=%04x, lr=%d, er=%d", 
-        (unsigned int)t_launch, (unsigned int)t_exit, (unsigned int)msg_id_ascii,
-        (int)lr, (int)er); // DEBUG
+      APP_LOG(APP_LOG_LEVEL_INFO, "t_launch=%u, t_exit=%u, msg_id_ascii=%04x, br=%d, lr=%d, er=%d"
+        , (unsigned int)t_launch, (unsigned int)t_exit, (unsigned int)msg_id_ascii,
+        (int)br, (int)lr, (int)er); // DEBUG
       for (int i = 3; i >= 0; i--) {
         msg_id[i] = (char)msg_id_ascii;
         msg_id_ascii >>= 8;
       }
       msg_id[4] = '\0';
 
-      launch_resend(t_launch, t_exit, msg_id, lr, er);
+      launch_resend(t_launch, t_exit, msg_id, br, lr, er);
 
       persist_delete(key);
       s_launchexit_count--;
