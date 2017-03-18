@@ -2,9 +2,6 @@ var express = require('express')
 var router = express.Router()
 var fs = require('fs')
 
-// Configurations
-var messages = require('../config/messages');
-
 // Controllers
 var query = require('./query')
 var main = require('./main')
@@ -19,7 +16,7 @@ const configDir = './config/';
 
 router.get(['/config'],
   query.requireParam('query', ['watch', 'timezone', 'starttime', 'endtime',
-    'breakfreq', 'breaklen', 'threshold', 'name', 'email']),
+    'breakfreq', 'breaklen', 'group', 'threshold', 'name', 'email']),
   function (req, res, next) {
     configs.save(
       req.query.watch,
@@ -29,6 +26,7 @@ router.get(['/config'],
       req.query.breakfreq,
       req.query.breaklen,
       req.query.threshold,
+      req.query.group,
       req.query.name,
       req.query.email,
       function (err) {
@@ -78,13 +76,20 @@ router.get(['/launch'],
                 config.messages[m] = messages[config.messages[m]];
               } 
 
-              // Read the random messages.
+              // Read the random messages. FIXME: should generate new random messages even config not change.
               if (config.hasOwnProperty('random_messages')) {
                 var messagesCount = config['random_messages'];
                 config['random_messages'] = messages.getRandomMessages(messagesCount);
               }
               //console.log(config);
-              saveEvent(req, res, config, next);
+                 
+              // Record the random messages before sending.
+              messages.save(req.query.watch, config['random_messages'], function (err) {
+                if (err) return next(err);
+
+                // Finally, save the launch event and send the new config to the user.
+                saveEvent(req, res, config, next);
+              });
             });
           } else { // No update available.
             //console.log("DEBUG: no new update available.");

@@ -338,7 +338,7 @@ void init_callback(DictionaryIterator *iter, void *context) {
     // If is possible to receive multiple ready message if the Pebble app on phone is re-
     // launched. Reset the stage variable to prevent going further in the data-upload process.
     e_js_ready = true;
-    init_stage = 0;
+    //init_stage = 0; // FIXME: somehow this will enter multiple time?
     APP_LOG(APP_LOG_LEVEL_INFO, "Connected to JS!");
   } else if (!dict_find(iter, AppKeyServerReceived)) {
     // If this message is NOT coming from the server, it is a Clay setting message, which 

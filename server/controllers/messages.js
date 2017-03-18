@@ -1,3 +1,5 @@
+var Message = require('../models/message');
+
 var actionMessages = require('../config/action_messages.json');
 var healthMessages = require('../config/health_messages.json');
 //var outcomeMessages = require('../config/outcome_messages.json'); // TODO: taken out for now.
@@ -24,4 +26,13 @@ exports.getRandomMessages = function (count) {
   return res;
 };
 
+/**
+ * Save the messages that are sent to the user.
+ */
+exports.save = function (watch, messages, next) {
+  //console.log(JSON.stringify(messages));
+  var obj = {watch: watch, messages: messages};
 
+  var message = new Message(obj);
+  message.save(next);
+};

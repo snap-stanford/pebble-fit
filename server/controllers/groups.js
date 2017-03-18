@@ -34,7 +34,7 @@ exports.getConfigFile = function (name, date, force, next) {
     });
 */
 
-  // TODO: debugging force to return config file always
+  // FIXME force to return config file always since we want to send new random messages.
   Group.findOne({ 'name': name }).
     select('file').
     exec(next);

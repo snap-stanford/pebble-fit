@@ -106,6 +106,7 @@ Pebble.addEventListener('webviewclosed', function(e) {
     '&breakfreq=' + dict[messageKeys.break_freq] + 
     '&breaklen=' + dict[messageKeys.break_len] + 
     '&threshold=' + dict[messageKeys.step_threshold] + 
+    '&group=' + dict[messageKeys.group] + 
     '&name=' + dict[messageKeys.consent_name] + 
     '&email=' + dict[messageKeys.consent_email];
 

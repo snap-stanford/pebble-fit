@@ -37,6 +37,7 @@ void store_write_config_time(time_t time) {
  */
 bool store_resend_config_request(time_t t_curr) {
 //    return true;
+
   if (!persist_exists(PERSIST_KEY_CONFIG_TIME)) {
     return true;
   }

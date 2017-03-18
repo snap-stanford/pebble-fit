@@ -1,4 +1,5 @@
 var _clayConfig;
+module.exports.test = 0;
 
 module.exports = function (minified) {
   var clayConfig = this;
@@ -41,7 +42,7 @@ module.exports = function (minified) {
     'dynamic_wakeup', 'sliding_window', 'display_duration'];
   var hidden_components = [
     'is_consent', 'config_update', 'config_update_interval',
-    'message_daily_summary', 'total_break', 'group',
+    'message_daily_summary', 'total_break', 'group', 'time_zone',
     'message_random_0', 'message_random_1', 'message_random_2', 'message_random_3', 
     'message_random_4', 'message_random_5', 'message_random_6', 'message_random_7', 
     'message_random_8', 'message_random_9',
@@ -294,4 +295,10 @@ module.exports = function (minified) {
     changeEnableApp.call(activateToggle);
   });
 
+ 	test = "ABSZ";
 };
+
+
+module.exports.foo = function () {
+	module.exports.test = 1;
+}

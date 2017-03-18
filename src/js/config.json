@@ -582,7 +582,7 @@
       "type": "input",
       "id": "group",
       "messageKey": "group",
-      "defaultValue": "passive_tracking"
+      "defaultValue": "real_time_random"
     },
     {
       "type": "text",
