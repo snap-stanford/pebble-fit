@@ -5,12 +5,12 @@
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 # The list of collections that exist in the DB and of whom the data would be dumped.
-collections=( events activities users groups )
+collections=( events activities configs users groups messages )
 
 # Database information 
 HOST=ds111748.mlab.com:11748
 DB=heroku_0cbvznft
-u=user
+username=user
 PASSWD=${DIR}/password.txt
 
 # Input arguments check.
@@ -43,13 +43,18 @@ export_json() {
     echo; echo "Try dumping database \"${DB}\", collection \"${collection}\" to ${out_dir}......"
     
     out_file=${out_dir}/${output_name}/${collection}.json
-    if [[ ${collection} == 'events' || ${collection} == 'activities' ]]; then
+    if [[ ${collection} == 'events' || ${collection} == 'activities' || \
+          ${collection} == 'configs' || ${collection} == 'messages' ]]; then
+      # Will only dump the data that has been uploaded within the specified range time.
       query="--query \"{\\\"created\\\":{\\\$gt:new Date(${ts_start}),\\\$lte:new Date(${ts_end})}}\""
-    else # groups and users collection
-      query="--query \"{\\\"configUpdatedAt\\\":{\\\$gt:new Date(${ts_start}),\\\$lte:new Date(${ts_end})}}\""
+    else # groups and users collections
+      # Will dump every user and group in the DB currently.
+      #query="--query \"{\\\"configUpdatedAt\\\":{\\\$gt:new Date(${ts_start}),\\\$lte:new Date(${ts_end})}}\""
+      query=""
     fi
   
-    cmd_final=${cmd}" -h ${HOST} -d ${DB} -u ${u} -c ${collection} -o ${out_file} ${query} < ${PASSWD}"
+    cmd_final=${cmd}" -h ${HOST} -d ${DB} -u ${username} -c ${collection} \
+      -o ${out_file} ${query} < ${PASSWD}"
 
     echo ${cmd_final}
     eval ${cmd_final}
