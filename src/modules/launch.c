@@ -219,7 +219,8 @@ void launch_handler(bool activate) {
     //   re-calculate the steps upon the first wakeup event, it is safe to reset multiple times)
     //   time_t t_start = time_start_of_today() + enamel_get_daily_start_time();
          //if (e_launch_time < t_start + SECONDS_PER_HOUR + 5 * SECONDS_PER_MINUTE) { 
-    if (store_read_break_count_time() < time_start_of_today() + enamel_get_daily_start_time()) { 
+    if (store_read_break_count_time() < 
+        time_start_of_today() + (time_t)enamel_get_daily_start_time()) { 
       store_reset_break_count();
     }
 

@@ -73,12 +73,13 @@ static WakeupId prv_reschedule_wakeup_event(uint8_t wakeup_i, time_t wakeup_time
  * Try to set fallback wakeups also be within the start and end time
  * There are in total 4 wakeup events being scheduled.
  *  Cookie / Index         | Description
- *  0                      | Fallback wakeup: 1 days later 
- *  1                      | Fallback wakeup: 2 days later 
- *  2                      | Fallback wakeup: 3 days later 
- *  3/LAUNCH_WAKEUP_PERIOD | Next periodic wakeup: rounded to the break_freq minutes. 
- *  4/LAUNCH_WAKEUP_ALERT | Notification wakeup: 2 * break_len before the next periodic wakeup. 
- *  5/LAUNCH_WAKEUP_DAILY  | Daily wakeup: at the end time of the day. 
+ *  0                      | Fallback wakeup: break_freq after the next Type 3 wakeup for the
+ *                         | real_time group; daily_start_time of 1 day later for other groups. 
+ *  1                      | Fallback wakeup: daily_start_time of 2 days later.
+ *  2                      | Fallback wakeup: daily_start_time of 3 days later.
+ *  3/LAUNCH_WAKEUP_PERIOD | Type 3 - Next periodic wakeup: rounded to the break_freq minutes. 
+ *  4/LAUNCH_WAKEUP_ALERT  | Type 4 - Notification wakeup: 2 * break_len before Type 3 wakeup. 
+ *  5/LAUNCH_WAKEUP_DAILY  | Type 5 - Daily/End-of-day wakeup: at the end time of the day. 
  */
 //void wakeup_schedule_events(int inactive_mins) {
 void wakeup_schedule_events() {
@@ -134,13 +135,21 @@ void wakeup_schedule_events() {
     // Schedule notification wakeup
     t_notify = t_wakeup - 2 * break_len_seconds;
     prv_reschedule_wakeup_event(LAUNCH_WAKEUP_ALERT, t_notify);
-  } else if (strncmp(enamel_get_group(), "daily_message", strlen("daily_message")) == 1) {
-    // Schedule end-of-day wakeup only
-    prv_reschedule_wakeup_event(LAUNCH_WAKEUP_DAILY, t_end);
+
+    // Schedule the fallback wakeup events
+    prv_reschedule_wakeup_event(0, t_wakeup + break_freq_seconds);
+  } else {
+    if (strncmp(enamel_get_group(), "daily_message", strlen("daily_message")) == 1) {
+      // Schedule end-of-day wakeup only
+      // TODO: Should we have this for real_time group as well?
+      prv_reschedule_wakeup_event(LAUNCH_WAKEUP_DAILY, t_end);
+    }
+
+    // Schedule the fallback wakeup events
+    prv_reschedule_wakeup_event(0, t_start + SECONDS_PER_DAY);
   } // else the group must be "passive_tracking, so no normal wakeup scheduled.
 
   // Schedule the fallback wakeup events
-  prv_reschedule_wakeup_event(0, t_start + SECONDS_PER_DAY);
   prv_reschedule_wakeup_event(1, t_start + 2 * SECONDS_PER_DAY);
   prv_reschedule_wakeup_event(2, t_start + 3 * SECONDS_PER_DAY);
 }
