@@ -214,10 +214,12 @@ void launch_handler(bool activate) {
     bool will_timeout = false;
     int lr = launch_reason();
 
-    // Reset break count to 0 if it is the first launch in the day (since we will re-calculate
-    // the steps upon the first wakeup event, it is safe to reset multiple times)
-    time_t start_time = time_start_of_today() + enamel_get_daily_start_time();
-    if (e_launch_time < start_time + SECONDS_PER_HOUR + 5 * SECONDS_PER_MINUTE) { 
+    // Reset the score/break_count to 0 at the first launch of the day.
+    //   Previosuly: reset break count to 0 if it is the first launch in the day (since we will 
+    //   re-calculate the steps upon the first wakeup event, it is safe to reset multiple times)
+    //   time_t t_start = time_start_of_today() + enamel_get_daily_start_time();
+         //if (e_launch_time < t_start + SECONDS_PER_HOUR + 5 * SECONDS_PER_MINUTE) { 
+    if (store_read_break_count_time() < time_start_of_today() + enamel_get_daily_start_time()) { 
       store_reset_break_count();
     }
 
@@ -311,11 +313,15 @@ void update_config(void *context) {
     window_stack_remove(s_wakeup_window, false);
     s_wakeup_window = NULL;
   }
+
+  // Update the configuration update time to be the current launch time.
   store_write_config_time(e_launch_time);
 
+  // Reset the current progress to eliminate any inconsistency after config change.
   store_reset_break_count();
 
-  tick_second_subscribe(true); // Will timeout
+  // Force it to timeout.
+  tick_second_subscribe(true);
 }
 
 /* Received message from the Pebble phone app (i.e. PebbleKit JS). 
