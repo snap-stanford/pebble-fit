@@ -16,9 +16,9 @@ void store_write_upload_time(time_t time);
 time_t store_read_upload_time();
 bool store_resend_steps();
 
-void store_reset_break_count();
-void store_increment_break_count();
-time_t store_read_break_count_time();
-int store_read_break_count();
+void store_reset_curr_score();
+void store_increment_curr_score();
+time_t store_read_curr_score_time();
+int store_read_curr_score();
 
 const char* store_read_random_message();

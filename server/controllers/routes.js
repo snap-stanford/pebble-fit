@@ -45,7 +45,7 @@ function saveEvent(req, res, config, next) {
     req.query.date,
     req.query.watch,
     req.query.msgid,
-    req.query.breakcount,
+    req.query.score,
     function (err) {
       if (err) return next(err);
       if (config) res.status(200).json(config).end();
@@ -54,7 +54,7 @@ function saveEvent(req, res, config, next) {
 }
 
 router.get(['/launch'],
-  //query.requireParam('query', ['watch', 'reason', 'msgid', 'date', 'breakcount']),
+  //query.requireParam('query', ['watch', 'reason', 'msgid', 'date', 'score']),
   query.requireParam('query', ['watch', 'reason', 'msgid', 'date']),
   function (req, res, next) {
     if (req.query.configrequest && req.query.configrequest === '1') {
@@ -126,12 +126,12 @@ router.get('/steps',
  * Params: launchTime, exitTime, launchReason, exitReason, messageID, watchToken
  */
 router.get(['/launchexit'],
-  //query.requireParam('query', ['watch', 'launchtime', 'exittime', 'breakcount', 
+  //query.requireParam('query', ['watch', 'launchtime', 'exittime', 'score', 
   query.requireParam('query', ['watch', 'launchtime', 'exittime', 
     'launchreason', 'exitreason']),
   function (req, res, next) {
     events.save('launch', req.query.launchreason, req.query.launchtime, 
-      req.query.watch, req.query.msgid, req.query.breakcount,
+      req.query.watch, req.query.msgid, req.query.score,
       function (err) {
         if (err) return next(err);
 

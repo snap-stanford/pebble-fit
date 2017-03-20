@@ -5,7 +5,7 @@ var eventSchema = new mongoose.Schema({
   time: {type: Date, required: true},
   watch: {type: String, required: true},
   msgid: {type: String, required: false},
-  breakCount: {type: Number, required: false},
+  score: {type: Number, required: false},
   created: {type: Date, default: Date.now},
   // additional data
   data: {type: Number}

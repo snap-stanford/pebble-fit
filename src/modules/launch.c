@@ -49,7 +49,7 @@ static void prv_launch_exit_data_write(DictionaryIterator * out) {
  */
 void launch_send_launch_notification() {
   s_config_request = store_resend_config_request(e_launch_time)? 1 : 0;
-	s_br = store_read_break_count();
+	s_br = store_read_curr_score();
 
   comm_send_data(prv_launch_data_write, comm_sent_handler, comm_server_received_handler);
 }
@@ -214,18 +214,18 @@ void launch_handler(bool activate) {
     bool will_timeout = false;
     int lr = launch_reason();
 
-    // Reset the score/break_count to 0 at the first launch of the day.
+    // Reset the score to 0 at the first launch of the day.
     //   Previosuly: reset break count to 0 if it is the first launch in the day (since we will 
     //   re-calculate the steps upon the first wakeup event, it is safe to reset multiple times)
     //   time_t t_start = time_start_of_today() + enamel_get_daily_start_time();
          //if (e_launch_time < t_start + SECONDS_PER_HOUR + 5 * SECONDS_PER_MINUTE) { 
-    if (store_read_break_count_time() < 
+    if (store_read_curr_score_time() < 
         time_start_of_today() + (time_t)enamel_get_daily_start_time()) { 
-      store_reset_break_count();
+      store_reset_curr_score();
     }
 
     // TODO: Calculate steps only at the scheduled wakeup event? What if user accomplish goal and manually check it before the scheduled wakeup?
-    // This is redundant and for debug only, later on we will only update steps at wakeup launch, and we won't change break_count other than notification/period launch.
+    // This is redundant and for debug only, later on we will only update steps at wakeup launch, and we won't change curr_score other than notification/period launch.
     steps_update(); 
 
     // Set the message ID to be pass/fail. This will be overwritten by the true random
@@ -319,7 +319,7 @@ void update_config(void *context) {
   store_write_config_time(e_launch_time);
 
   // Reset the current progress to eliminate any inconsistency after config change.
-  store_reset_break_count();
+  store_reset_curr_score();
 
   // Force it to timeout.
   tick_second_subscribe(true);

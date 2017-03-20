@@ -17,7 +17,7 @@ static uint32_t s_launchexit_data[3];
 #define LAUNCHEXIT_COUNT_SIZE   1
 #define COMPACT(es, br, lr, er) ((es&0x0007FFFF)<<13 | (br&0xFF)<<5 | (lr&0x7)<<2 | (er&0x3))
 #define GET_SECOND(x)           ((x>>13) & 0x0007FFFF)
-#define GET_BREAK_COUNT(x)      ((x>>5)  & 0x000000FF)
+#define GET_SCORE(x)            ((x>>5)  & 0x000000FF)
 #define GET_LAUNCH_REASON(x)    ((x>>2)  & 0x00000007)
 #define GET_EXIT_REASON(x)      (x       & 0x00000003)
 
@@ -31,7 +31,7 @@ void store_write_config_time(time_t time) {
 
 /**
  * Return true if we need to send new configuration request to the server, otherwise false.
- * Note: Since currently we will reset the daily step status (store_read_break_count()), we 
+ * Note: Since currently we will reset the daily step status (store_read_curr_score()), we 
  *   must avoid sending config_request if the user has accomplished any daily break goal.
  *   Make sure there is a non-Period Wakup scheduled daily before any Period Wakeup.
  */
@@ -48,7 +48,7 @@ bool store_resend_config_request(time_t t_curr) {
   APP_LOG(APP_LOG_LEVEL_ERROR, "t_config_time=%u", (unsigned) t_last_config_time);
 
   // TODO
-  if (store_read_break_count() == 0 && 
+  if (store_read_curr_score() == 0 && 
       t_curr-t_last_config_time > atoi(enamel_get_config_update_interval()) * SECONDS_PER_DAY) {
     return true;
   } else {
@@ -81,7 +81,7 @@ time_t store_read_upload_time() {
 void store_write_launchexit_event(time_t t_launch, time_t t_exit, uint8_t lr, uint8_t er) {
   time_t t_diff = t_exit - t_launch; 
 
-  int br = store_read_break_count();
+  int br = store_read_curr_score();
 
   // Convert message ID to ascii code (assuming each ID is 4 bytes)
   const char *msg_id = launch_get_random_message_id();
@@ -187,7 +187,7 @@ bool store_resend_launchexit_event() {
       t_launch = s_launchexit_data[0];
 
       t_exit = s_launchexit_data[1];
-      br = GET_BREAK_COUNT(t_exit);
+      br = GET_SCORE(t_exit);
       lr = GET_LAUNCH_REASON(t_exit);
       er = GET_EXIT_REASON(t_exit);
       t_exit = t_launch + GET_SECOND(t_exit);
@@ -254,39 +254,39 @@ bool store_resend_steps(time_t t_curr) {
 /**
  * Reset the break count to 0. This should be performed in the first wakeup daily.
  */
-void store_reset_break_count() {
+void store_reset_curr_score() {
   APP_LOG(APP_LOG_LEVEL_ERROR, "RESET break count");
-  persist_write_int(PERSIST_KEY_BREAK_COUNT, 0); 
+  persist_write_int(PERSIST_KEY_CURR_SCORE, 0); 
 }
 
 /**
  * Increment the break count by 1. If it has not existed, set it to 1.
  * Also record the current time associated with this break count increment.
  */
-void store_increment_break_count() {
-  if (!persist_exists(PERSIST_KEY_BREAK_COUNT)) {
-    persist_write_int(PERSIST_KEY_BREAK_COUNT, 1); 
+void store_increment_curr_score() {
+  if (!persist_exists(PERSIST_KEY_CURR_SCORE)) {
+    persist_write_int(PERSIST_KEY_CURR_SCORE, 1); 
   } else {
-    persist_write_int(PERSIST_KEY_BREAK_COUNT, persist_read_int(PERSIST_KEY_BREAK_COUNT)+1); 
+    persist_write_int(PERSIST_KEY_CURR_SCORE, persist_read_int(PERSIST_KEY_CURR_SCORE)+1); 
   }
   time_t t_curr = time(NULL);
-  persist_write_data(PERSIST_KEY_BREAK_COUNT_TIME, &t_curr, sizeof(time_t));
+  persist_write_data(PERSIST_KEY_CURR_SCORE_TIME, &t_curr, sizeof(time_t));
 }
 
 /**
  * Return the timestamp associated with the last break count increment.
  */
-time_t store_read_break_count_time() {
+time_t store_read_curr_score_time() {
   time_t t_last;
-  persist_read_data(PERSIST_KEY_BREAK_COUNT_TIME, &t_last, sizeof(time_t));
+  persist_read_data(PERSIST_KEY_CURR_SCORE_TIME, &t_last, sizeof(time_t));
   return t_last;
 }
 
 /**
- * Return the value stored with the key PERSIST_KEY_BREAK_COUNT.
+ * Return the value stored with the key PERSIST_KEY_CURR_SCORE.
  */
-int store_read_break_count() {
-  return persist_read_int(PERSIST_KEY_BREAK_COUNT);
+int store_read_curr_score() {
+  return persist_read_int(PERSIST_KEY_CURR_SCORE);
 }
 
 /**

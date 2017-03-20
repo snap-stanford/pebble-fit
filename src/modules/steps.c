@@ -153,10 +153,10 @@ void steps_update() {
       // If the step goal had been achieved in this period, there is no need to calculate steps 
       // again, since we only increment break count once per period.
       // FIXME: could optimiza by moving to the front of this function to save time.
-      time_t t_last = store_read_break_count_time();
+      time_t t_last = store_read_curr_score_time();
       time_t break_freq_seconds = (time_t)enamel_get_break_freq() * SECONDS_PER_MINUTE;
       if (t_last < e_launch_time / break_freq_seconds * break_freq_seconds) 
-        store_increment_break_count();
+        store_increment_curr_score();
 
       s_end = s_start + right * SECONDS_PER_MINUTE;
       s_start = s_end - (break_len + sliding_window - 1) * SECONDS_PER_MINUTE;

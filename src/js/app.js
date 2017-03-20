@@ -16,7 +16,7 @@ log.set_level(3);
 var SERVER = 'http://pebble-fit.herokuapp.com';
 
 // Local servers (use ifconfig to find out).
-//var SERVER = 'http://10.30.202.74:3000';
+var SERVER = 'http://10.30.202.74:3000';
 //var SERVER = 'http://10.34.171.70:3000';
 //var SERVER = 'http://10.34.241.119:3000';
 
@@ -67,10 +67,10 @@ Pebble.addEventListener('appmessage', function (dict) {
     var msgID = dict.payload['AppKeyMessageID'];
     var launchTime = dict.payload['AppKeyLaunchTime'];
     var exitTime = dict.payload['AppKeyExitTime'];
-    var breakCount = dict.payload['AppKeyBreakCount'];
+    var score = dict.payload['AppKeyBreakCount'];
     var launchReason = dict.payload['AppKeyLaunchReason'];
     var exitReason = dict.payload['AppKeyExitReason'];
-    sendLaunchExitData(configRequest, msgID, launchTime, exitTime, breakCount, 
+    sendLaunchExitData(configRequest, msgID, launchTime, exitTime, score, 
                        launchReason, exitReason, date);
   }
 });
@@ -237,14 +237,14 @@ function sendStepData(data, date) {
   sendToServer(url, receiveServerConfigACK);
 }
 
-function sendLaunchExitData(configRequest, msgID, launchTime, exitTime, breakCount,
+function sendLaunchExitData(configRequest, msgID, launchTime, exitTime, score,
                             launchReason, exitReason, date) {
   if (exitReason === undefined) {
     //log.debug('Uploading launch data only...')
     var url = '/launch' + '?date=' + date + '&reason=' + launchReason +
       '&configrequest=' + configRequest + 
       '&msgid=' + msgID + 
-      '&breakcount=' + breakCount + 
+      '&score=' + score + 
       '&watch=' + Pebble.getWatchToken();
   } else if (launchReason === undefined) {
     //log.debug('Uploading exit data only...')
@@ -255,7 +255,7 @@ function sendLaunchExitData(configRequest, msgID, launchTime, exitTime, breakCou
     var url = '/launchexit' + '?date=' + date +
       '&launchtime=' + launchTime +
       '&exittime=' + exitTime +
-      '&breakcount=' + breakCount + 
+      '&score=' + score + 
       '&launchreason=' + launchReason +
       '&exitreason=' + exitReason +
       '&msgid=' + msgID + 
