@@ -149,14 +149,13 @@ void steps_update() {
     APP_LOG(APP_LOG_LEVEL_ERROR, "step_threshold=%d", step_threshold);
     if (s_pass) {
       prv_report_steps(right);
-
-      // If the step goal had been achieved in this period, there is no need to calculate steps 
-      // again, since we only increment break count once per period.
+      
+      // Only increment score if this is a period-wakeup.
+      // TODO: We might only want to check steps at period-wakeup in final version.
       // FIXME: could optimiza by moving to the front of this function to save time.
-      time_t t_last = store_read_curr_score_time();
-      time_t break_freq_seconds = (time_t)enamel_get_break_freq() * SECONDS_PER_MINUTE;
-      if (t_last < e_launch_time / break_freq_seconds * break_freq_seconds) 
+      if (e_launch_reason == LAUNCH_WAKEUP_PERIOD) {
         store_increment_curr_score();
+      }
 
       s_end = s_start + right * SECONDS_PER_MINUTE;
       s_start = s_end - (break_len + sliding_window - 1) * SECONDS_PER_MINUTE;
