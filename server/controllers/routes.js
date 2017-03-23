@@ -10,9 +10,28 @@ var groups = require('./groups')
 var configs = require('./configs')
 var activities = require('./activities')
 var events = require('./events')
-var messages = require('./messages')
 
 const configDir = './config/';
+
+/** 
+ * Insert a new entry to Events and send a response containing the new configuration back.
+ */
+function saveEvent(req, res, config, next) {
+  events.save(
+    req.path.substr(1),
+    req.query.reason,
+    req.query.date,
+    req.query.watch,
+    req.query.msgid,
+    req.query.score,
+    function (err) {
+      if (err) return next(err);
+      if (config) res.status(200).json(config).end();
+      res.status(200).end();
+    });
+}
+
+
 
 router.get(['/config'],
   query.requireParam('query', ['watch', 'timezone', 'starttime', 'endtime',
@@ -35,66 +54,34 @@ router.get(['/config'],
       });
   });
 
-/** 
- * Insert a new entry to Events and send a response back.
- */
-function saveEvent(req, res, config, next) {
-  events.save(
-    req.path.substr(1),
-    req.query.reason,
-    req.query.date,
-    req.query.watch,
-    req.query.msgid,
-    req.query.score,
-    function (err) {
-      if (err) return next(err);
-      if (config) res.status(200).json(config).end();
-      res.status(200).end();
-    });
-}
-
 router.get(['/launch'],
   //query.requireParam('query', ['watch', 'reason', 'msgid', 'date', 'score']),
   query.requireParam('query', ['watch', 'reason', 'msgid', 'date']),
   function (req, res, next) {
     if (req.query.configrequest && req.query.configrequest === '1') {
       //console.log("DEBUG: user is requesting for new update.");
+      /*
       users.getConfigFile(
         req.query.watch,
         function (err, file) {
           if (err) return next(err);
 
-          if (file) { // New update available.
-
-            // Read the corresponding configuration file.
-            fs.readFile(configDir + file, 'utf8', function (err, data) {
-              if (err) throw err;
-              var config = JSON.parse(data);
-
-              // Read the messages.
-              for (var m in config.messages) {
-                config.messages[m] = messages[config.messages[m]];
-              } 
-
-              // Read the random messages. FIXME: should generate new random messages even config not change.
-              if (config.hasOwnProperty('random_messages')) {
-                var messagesCount = config['random_messages'];
-                config['random_messages'] = messages.getRandomMessages(messagesCount);
-              }
-              //console.log(config);
-                 
-              // Record the random messages before sending.
-              messages.save(req.query.watch, config['random_messages'], function (err) {
-                if (err) return next(err);
-
-                // Finally, save the launch event and send the new config to the user.
-                saveEvent(req, res, config, next);
-              });
-            });
-          } else { // No update available.
-            //console.log("DEBUG: no new update available.");
+          if (file) { 
+            // New update available. Construct the new configuration and then send.
+            fetchConfig(req, res, file, next);
+          } else { 
+            // No new update available. 
             saveEvent(req, res, null, next);
-          }
+          } 
+        });
+      */
+      users.getConfig(
+        req.query.watch,
+        function (err, config) {
+          if (err) return next(err);
+
+          console.log("Before save&send: config == " + JSON.stringify(config));
+          saveEvent(req, res, config, next);
         });
     } else { // If user not requesting new update.
       //console.log("DEBUG: user is NOT requesting for new update.");

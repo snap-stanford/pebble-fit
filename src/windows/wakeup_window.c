@@ -67,7 +67,7 @@ static void main_text_layer_update_proc() {
   if (e_launch_reason == LAUNCH_WAKEUP_ALERT) {
   //if (e_launch_reason == LAUNCH_WAKEUP_ALERT || e_launch_reason == LAUNCH_PHONE) { // DEBUG
 
-    APP_LOG(APP_LOG_LEVEL_INFO, "launch_set_random_message,content=%s",launch_get_random_message());
+    APP_LOG(APP_LOG_LEVEL_INFO, "random_message,content=%s",launch_get_random_message());
     snprintf(s_main_text_buf, sizeof(s_main_text_buf), "%s", launch_get_random_message());
   } else {
     const char *daily_summary = enamel_get_message_daily_summary();

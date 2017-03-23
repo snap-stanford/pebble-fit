@@ -1,20 +1,22 @@
 var Message = require('../models/message');
 
+// TODO: taken out for now.
 var actionMessages = require('../config/action_messages.json');
 var healthMessages = require('../config/health_messages.json');
-//var outcomeMessages = require('../config/outcome_messages.json'); // TODO: taken out for now.
-var outcomeMessages = [];
+//var actionMessages = [];
+//var healthMessages = [];
+var outcomeMessages = require('../config/outcome_messages.json');
 
 var input = [actionMessages, outcomeMessages, healthMessages];
 var messages = [];
 //for (var m in [actionMessages, outcomeMessages, healthMessages]) {
 input.forEach(function (m) {
-  //messages = messages.concat(m); // For the new message JSON files that converted from text file.
-  for (var key in m) {
-    if (m.hasOwnProperty(key)) {
-        messages.push({"id": key, "content": m[key]});
-    }
-  }
+  messages = messages.concat(m); // For the new message JSON files that converted from text file.
+  //for (var key in m) {
+  //  if (m.hasOwnProperty(key)) {
+  //      messages.push({"id": key, "content": m[key]});
+  //  }
+  //}
 });
 //console.log(messages);
 

@@ -585,6 +585,11 @@
       "defaultValue": "real_time_random"
     },
     {
+      "type": "input",
+      "id": "ref_scores",
+      "messageKey": "ref_scores"
+    },
+    {
       "type": "text",
       "id": "config_summary",
       "messageKey": "config_summary",

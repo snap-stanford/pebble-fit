@@ -1,7 +1,1 @@
-{
-  "am1":        "Get up and move!",
-  "am2":        "Take a short walk!",
-  "am3":        "Nice outside? Talk a stroll.",
-  "am4":        "Friend or colleague around? Walk and chat.",
-  "am5":        "Need a snack or water? Take a walk."
-}
+[{"content": "Get up and move!", "id": "am1"}, {"content": "Take a short walk!", "id": "am2"}, {"content": "Nice outside? Talk a stroll.", "id": "am3"}, {"content": "Friend or colleague around? Walk and chat.", "id": "am4"}, {"content": "Need a snack or water? Take a walk.", "id": "am5"}]

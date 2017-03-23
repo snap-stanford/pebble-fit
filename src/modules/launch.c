@@ -285,7 +285,7 @@ void launch_handler(bool activate) {
 void update_config(void *context) {
   APP_LOG(APP_LOG_LEVEL_INFO, "in update_config. %d", enamel_get_activate());
   APP_LOG(APP_LOG_LEVEL_INFO, "%s, %d, %d", enamel_get_watch_alert_text(), enamel_get_is_consent(), enamel_get_break_freq());
-  // TODO 2/24: this seems to cause the scroll window not properly response to the up/down buttons.
+  // FIXME: this seems to cause the scroll window not properly response to the up/down buttons.
   
   // Assuming only two states/windows (activated/non-activated)
   if (enamel_get_activate()) {

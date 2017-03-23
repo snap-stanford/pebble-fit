@@ -42,7 +42,7 @@ module.exports = function (minified) {
     'dynamic_wakeup', 'sliding_window', 'display_duration'];
   var hidden_components = [
     'is_consent', 'config_update', 'config_update_interval',
-    'message_daily_summary', 'total_break', 'group', 'time_zone',
+    'message_daily_summary', 'total_break', 'group', 'ref_scores', 'time_zone',
     'message_random_0', 'message_random_1', 'message_random_2', 'message_random_3', 
     'message_random_4', 'message_random_5', 'message_random_6', 'message_random_7', 
     'message_random_8', 'message_random_9',
@@ -65,7 +65,7 @@ module.exports = function (minified) {
    * or getItemById('config_section').show(). We have do it for each element since
    * from Clay GitHub page: "currently no way to disable or hide an entire section. 
    * You must disable/hide each item in the section to achieve this effect."
-   * FIXME: this function is error prone. Put this function at the end of event handler
+   * WARN: this function is error prone. Put this function at the end of event handler
    * for safety.
    */
   function showSection (section) {
@@ -109,7 +109,8 @@ module.exports = function (minified) {
     }
   }
 
-  /* Check if the user is eligible to participate.
+  /**
+   * Check if the user is eligible to participate.
    * Participants are eligible if they answer yes to questions 1-2 and no to questions 3-9.
    */
   function eligibleButtonClick () {
