@@ -18,7 +18,7 @@ var SERVER = 'http://pebble-fit.herokuapp.com';
 // Local servers (use ifconfig to find out).
 //var SERVER = 'http://10.30.202.74:3000';
 //var SERVER = 'http://10.34.171.70:3000';
-var SERVER = 'http://10.34.103.102:3000';
+var SERVER = 'http://10.34.153.127:3000';
 
 // Flag to switch off server communication
 var USE_OFFLINE = true;
@@ -79,13 +79,22 @@ Pebble.addEventListener('appmessage', function (dict) {
  * Override Clay settings Save event. Send information to both the server and the watch.
  */
 Pebble.addEventListener('webviewclosed', function(e) {
-  if (e && !e.response) {
-    console.log('Error: empty response!');
+  if (!e) {
+    log.debug("Do not obtain Clay settings properly.");
+  }
+
+  if (!e.response) {
+    log.info("User exit settings page without save.");
     return;
   }
 
   // Get the keys and values from each config item.
   var dict = clay.getSettings(e.response);
+
+  if (!dict[messageKeys.is_consent]) {
+    log.info("User did not provide the consent to continue the study.");
+    return;
+  }
 
   // Prepare URL.
   var date = Math.floor(new Date().getTime() / 1000)
