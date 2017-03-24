@@ -656,8 +656,13 @@
     },
     {
       "type": "input",
-      "id": "ref_scores",
-      "messageKey": "ref_scores"
+      "id": "ref_average",
+      "messageKey": "ref_average"
+    },
+    {
+      "type": "input",
+      "id": "ref_best",
+      "messageKey": "ref_best"
     },
     {
       "type": "input",

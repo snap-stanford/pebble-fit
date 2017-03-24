@@ -359,7 +359,11 @@ void init_callback(DictionaryIterator *iter, void *context) {
 
   APP_LOG(APP_LOG_LEVEL_INFO, "Init stage %d", init_stage);
 
-	//Tuple* tuple = dict_find(iter, MESSAGE_KEY_config_update_by_server);
+  // Reset the timer so that app will not timeout and exit while data is transferring (assume
+  // the round trip time is less than the timeout limit).
+  tick_reset_count();
+  
+  //Tuple* tuple = dict_find(iter, MESSAGE_KEY_config_update_by_server);
   //if (tuple) {
   //  APP_LOG(APP_LOG_LEVEL_ERROR, "config_update_by_server=%d", (int)tuple->value->int32);
   //} else {

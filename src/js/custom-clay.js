@@ -50,7 +50,7 @@ module.exports = function (minified) {
     'dynamic_wakeup', 'sliding_window', 'display_duration'];
   var hidden_components = [
     'is_consent', 'config_update', 'config_update_interval', 'time_warn_text',
-    'message_daily_summary', 'total_break', 'group', 'ref_scores', 'time_zone',
+    'message_daily_summary', 'total_break', 'group', 'ref_average', 'ref_best', 'time_zone',
     'message_random_0', 'message_random_1', 'message_random_2', 'message_random_3', 
     'message_random_4', 'message_random_5', 'message_random_6', 'message_random_7', 
     'message_random_8', 'message_random_9',
@@ -201,6 +201,7 @@ module.exports = function (minified) {
     // FIXME: consent_email input field does not verify if input format is valid
 
     clayConfig.getItemByMessageKey('is_consent').set(true);
+    clayConfig.getItemByMessageKey('activate').set(true);
 
     hideSection(consent_review_section);
     showSection(consent_result_section);

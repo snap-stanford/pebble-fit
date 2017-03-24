@@ -16,9 +16,9 @@ log.set_level(3);
 var SERVER = 'http://pebble-fit.herokuapp.com';
 
 // Local servers (use ifconfig to find out).
-//var SERVER = 'http://10.30.202.74:3000';
+var SERVER = 'http://10.30.202.74:3000';
 //var SERVER = 'http://10.34.171.70:3000';
-var SERVER = 'http://10.34.153.127:3000';
+//var SERVER = 'http://10.34.153.127:3000';
 
 // Flag to switch off server communication
 var USE_OFFLINE = true;
@@ -79,6 +79,7 @@ Pebble.addEventListener('appmessage', function (dict) {
  * Override Clay settings Save event. Send information to both the server and the watch.
  */
 Pebble.addEventListener('webviewclosed', function(e) {
+  log.info("in webviewclosed!!!!!!!!!!!!!!!!!!!!!!");
   if (!e) {
     log.debug("Do not obtain Clay settings properly.");
   }

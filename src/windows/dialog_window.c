@@ -14,7 +14,6 @@ void dialog_text_layer_update_proc(char *text) {
 
   // Set up ScrollLayer according to the text size (assuming top_text_layer_update_proc done).
   GSize text_size = text_layer_get_content_size(s_text_layer);
-  APP_LOG(APP_LOG_LEVEL_ERROR, "Gsize height = %d", text_size.h);
 
   scroll_layer_set_content_size(s_scroll_layer, text_size);
 }
@@ -27,7 +26,6 @@ static void window_load(Window *window) {
 
   GRect bounds = layer_get_bounds(window_layer);
 
-  APP_LOG(APP_LOG_LEVEL_ERROR, "bound height = %d", bounds.size.h);
   int text_layer_height = 400;
   float center = bounds.size.h / 2;
   int padding = 10;

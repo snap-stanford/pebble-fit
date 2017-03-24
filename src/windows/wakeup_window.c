@@ -75,7 +75,7 @@ static void main_text_layer_update_proc() {
     snprintf(s_main_text_buf, sizeof(s_main_text_buf), daily_summary, 
       store_read_curr_score(), atoi(enamel_get_total_break()));
 
-    strcat(s_main_text_buf, "\n\n\n");
+    strcat(s_main_text_buf, "\n\n\n"); //TODO: workaround for scrolling issue for some long text.
   }
     
   text_layer_set_text(s_main_text_layer, s_main_text_buf);
@@ -85,6 +85,7 @@ static void main_text_layer_update_proc() {
   GSize main_text_size = text_layer_get_content_size(s_main_text_layer);
   main_text_size.w += top_text_size.w;
   main_text_size.h += top_text_size.h;
+  APP_LOG(APP_LOG_LEVEL_ERROR, "Gsize height = %d", main_text_size.h);
 
   scroll_layer_set_content_size(s_scroll_layer, main_text_size);
 }
@@ -118,9 +119,9 @@ static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
   //text_layer_set_text(s_main_text_layer, "reset timestamp");
   //store_write_upload_time(e_launch_time - 2 * SECONDS_PER_DAY);
 
-  launch_set_random_message(true);
-  snprintf(s_main_text_buf, sizeof(s_main_text_buf), "%s", launch_get_random_message());
-  text_layer_set_text(s_main_text_layer, s_main_text_buf);
+  //launch_set_random_message(true);
+  //snprintf(s_main_text_buf, sizeof(s_main_text_buf), "%s", launch_get_random_message());
+  //text_layer_set_text(s_main_text_layer, s_main_text_buf);
 
   back_click_handler(recognizer, context); // TODO: this is the final implementation.
 
@@ -129,7 +130,7 @@ static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
   // Reset last update timestamp to 2 hour ago
   //store_write_config_time(time(NULL) - 2 * SECONDS_PER_DAY);
 
-  //steps_get_prior_week();
+  steps_get_prior_week();
 }
 
 /* Deprecated. Set click event handlers. */
@@ -141,6 +142,7 @@ static void click_config_provider(void *context) {
 static void window_load(Window *window) {
   Layer *window_layer = window_get_root_layer(window);
   GRect bounds = layer_get_bounds(window_layer);
+  APP_LOG(APP_LOG_LEVEL_ERROR, "bound height = %d", bounds.size.h);
 
   //int padding = PBL_IF_ROUND_ELSE(10, 0);
   int padding = 10;
