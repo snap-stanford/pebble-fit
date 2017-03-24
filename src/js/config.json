@@ -402,11 +402,94 @@
         { "label": "Asian or Pacific Islander",           "value": "Asian"},
         { "label": "Black or African American",           "value": "Black"},
         { "label": "Hispanic or Latino",                  "value": "Hispanic"},
-        { "label": "Native American or American Indian",  "value": "Native"},
+        { "label": "Native American or American Indian",  "value": "Native American"},
         { "label": "White",                               "value": "White"},
         { "label": "Other",                               "value": "Other"},
-        { "label": "Choose not to answer",                "value": "NA"}
+        { "label": "Choose not to answer",                "value": "Not to answer"}
       ]
+    },
+    {
+      "type": "select",
+      "id": "survey_school",
+      "messageKey": "survey_school",
+      "label": "6. What is the highest degree or level of school you have completed?",
+      "options": [
+        { "label": "Select",                              "value": "null" },
+        { "label": "No schooling completed",              "value": "No school"},
+        { "label": "Nursery school to 8th grade",         "value": "Nursery"},
+        { "label": "Some high school, no diploma",        "value": "Some high school"},
+        { "label": "High school graduate, diploma or the equivalent (for example: GED)",        
+          "value": "High School"},
+        { "label": "Some college credit, no degree",      "value": "Some college"},
+        { "label": "Trade/technical/vocational training", "value": "Trade"},
+        { "label": "Associate degree",                    "value": "Associate"},
+        { "label": "Bachelor’s degree",                   "value": "Bachelor's"},
+        { "label": "Master’s degree",                     "value": "Master's"},
+        { "label": "Professional degree",                 "value": "Professional"},
+        { "label": "Doctorate degree",                    "value": "Doctorate"},
+        { "label": "Choose not to answer",                "value": "Not to answer"}
+      ]
+    },
+    {
+      "type": "text",
+      "id": "survey_occupation_text",
+      "defaultValue": "7.What is your occupation? (i.e. clerk, sales manager, physician, carpenter, caregiver)"
+    },
+    {
+      "type": "input",
+      "id": "survey_occupation",
+      "messageKey": "survey_occupation",
+      "defaultValue": ""
+    },
+    {
+      "type": "select",
+      "id": "survey_deskwork",
+      "messageKey": "survey_deskwork",
+      "label": "8. How much desk work does your occupation entail?",
+      "options": [
+        { "label": "Select",                  "value": "null" },
+        { "label": "All deskwork",            "value": "All"},
+        { "label": "Mostly desk work",        "value": "Mostly"},
+        { "label": "Some desk work",          "value": "Some"},
+        { "label": "Little desk work",        "value": "Little"},
+        { "label": "No desk work",            "value": "No"}
+      ]
+    },
+    {
+      "type": "select",
+      "id": "survey_income",
+      "messageKey": "survey_income",
+      "label": "9. Roughly how much income from all sources (including earnings, pensions, investments, etc.) did your household have last year (before taxes)?",
+      "options": [
+        { "label": "Select",                              "value": "null" },
+        { "label": "Less than $20,000 US",                "value": "Less than 20k"},
+        { "label": "$20,000 - $50,000 US",                "value": "20k to 50k"},
+        { "label": "$50,000 - $100,000 US",               "value": "50k to 100k"},
+        { "label": "$100,000 US or more",                 "value": "100k plus"},
+        { "label": "Don't Know / Choose not to answer",    "value": "Not to answer"}
+      ]
+    },
+    {
+      "type": "text",
+      "id": "survey_country_text",
+      "defaultValue": "10. What country do you live in?"
+    },
+    {
+      "type": "input",
+      "id": "survey_country",
+      "messageKey": "survey_country",
+      "defaultValue": ""
+    },
+    {
+      "type": "text",
+      "id": "survey_zipcode_text",
+      "defaultValue": "11. What is your zip or postal code?"
+    },
+    {
+      "type": "input",
+      "id": "survey_zipcode",
+      "messageKey": "survey_zipcode",
+      "defaultValue": ""
     }
   ]
 },

@@ -14,26 +14,35 @@ module.exports = function (minified) {
   // List IDs of components in each section.
   var eligible_section = ['eligible_heading', 'eligible_text', 'eligible_button',
     'eligible_1', 'eligible_2', 'eligible_3', 'eligible_4', 'eligible_5', 
-    'eligible_6', 'eligible_7', 'eligible_8'];
+    'eligible_6', 'eligible_7', 'eligible_8'
+  ];
   var pfbuttons = ['pfbutton_deprecated'];
   var eligible_result_section = ['eligible_result_text', 'eligible_result_button'];
   var consent_start_section = ['consent_heading_start', 'consent_text_start', 
-    'consent_button_start'];
+    'consent_button_start'
+  ];
   var consent_section = ['consent_heading', 'consent_text', //'consent_icon', 
-    'consent_button_next'];
+    'consent_button_next'
+  ];
   var consent_review_section = ['consent_review_heading', 'consent_review_text', 
     'consent_review_heading_form', 'consent_review_approve_text', 'consent_review_expire_text',
     'consent_name', 'consent_email',
-    'consent_review_text_form', 'consent_button_agree', 'consent_button_disagree'];
+    'consent_review_text_form', 'consent_button_agree', 'consent_button_disagree'
+  ];
   var consent_result_section = ['consent_result_text', 'consent_result_button']; 
   var survey_section = ['survey_heading_0', 'survey_text_0', 'survey_heading_1', 'survey_text_1',
-    'survey_age_text', 'survey_age', 'survey_gender', 
-    'survey_height', 'survey_height_unit', 'survey_weight', 'survey_weight_unit', 'survey_race'];
+    'survey_age_text', 'survey_age', 'survey_gender', 'survey_height', 'survey_height_unit', 
+    'survey_weight', 'survey_weight_unit', 'survey_race', 'survey_school', 
+    'survey_occupation_text', 'survey_occupation', 'survey_deskwork', 'survey_income', 
+    'survey_country_text', 'survey_country', 'survey_zipcode_text', 'survey_zipcode'
+  ];
   var config_section = ['settings', 'activate', 'vibrate', 'break_freq', 'break_len',
     'dynamic_wakeup', 'sliding_window', 'step_threshold', 'daily_start_time', 
-    'daily_end_time', 'display_duration', 'config_summary', 'version', 'watchtoken'];
+    'daily_end_time', 'display_duration', 'config_summary', 'version', 'watchtoken'
+  ];
   var sub_config_section = ['vibrate', 'break_freq', 'break_len', 
-    'daily_start_time', 'daily_end_time', 'config_summary'];
+    'daily_start_time', 'daily_end_time', 'config_summary'
+  ];
 
   // Components that should always be hidden.
   var disabled_components = [//'step_threshold', 
