@@ -40,7 +40,8 @@ exports.getConfig = function (watch, next) {
     references.getUser(watch, null, function (err, reference) { // TODO: numBreak not used
       if (err) return next(err);
 
-      newConfig['ref_scores'] = reference.scores.join(','); // Convert to string
+      newConfig['ref_average'] = reference.average.join(','); // Convert to string
+      newConfig['ref_best'] = reference.best; // Convert to string
 
       console.log('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');
       console.log(newConfig);

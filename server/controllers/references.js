@@ -5,7 +5,7 @@ var Reference = require('../models/reference');
  */
 exports.getUser = function (watch, numBreak, next) {
   Reference.findOne({ 'watch': watch }).
-    select('scores').
+    select('average best').
     lean().
     exec(next);
 };
@@ -16,7 +16,7 @@ exports.getUser = function (watch, numBreak, next) {
  */
 exports.getAll = function (numBreak, next) {
   Reference.findOne({ 'watch': 'all' }).
-    select('scores').
+    select('average best').
     lean().
     exec(next);
 }
