@@ -140,8 +140,8 @@ module.exports = function (minified) {
         clayConfig.getItemById('eligible_5').get() === undefined ||
         clayConfig.getItemById('eligible_6').get() === undefined ||
         clayConfig.getItemById('eligible_7').get() === undefined ||
+        //clayConfig.getItemById('eligible_8').$element.get('ans') === undefined)
         clayConfig.getItemById('eligible_8').get() === undefined) {
-        //clayConfig.getItemById('eligible_8').$element.get('ans') === undefined) {
       showWarningText();
     } else {
       hidePFButtons();
@@ -156,8 +156,8 @@ module.exports = function (minified) {
           clayConfig.getItemById('eligible_5').get() === 'false' &&
           clayConfig.getItemById('eligible_6').get() === 'false' &&
           clayConfig.getItemById('eligible_7').get() === 'false' &&
+          //clayConfig.getItemById('eligible_8').$element.get('ans') === 'false')
           clayConfig.getItemById('eligible_8').get() === 'false') {
-          //clayConfig.getItemById('eligible_8').$element.get('ans') === 'false') {
         isEligible = true;
         clayConfig.getItemById('eligible_result_text').set("<p align='justify'>You are eligible to join the study. Tap the button below to begin the consent process.</p>");
         clayConfig.getItemById('eligible_result_button').set('Start Consent');

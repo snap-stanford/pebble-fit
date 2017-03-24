@@ -224,7 +224,7 @@ static void window_load(Window *window) {
   // when creating the main TextLayer.
   GSize top_text_size = text_layer_get_content_size(s_top_text_layer);
   GRect main_bounds = GRect(bounds.origin.x, bounds.origin.y + top_text_size.h, 
-                            bounds.size.w, bounds.size.h);
+                            bounds.size.w, bounds.size.h); // TODO: different height value?
   GEdgeInsets main_text_insets = {.top = 5, .right = 20, .left = 20};
   s_main_text_font = fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD);
   //s_main_text_layer = make_text_layer(main_bounds, s_main_text_font, GTextAlignmentCenter);
@@ -237,7 +237,7 @@ static void window_load(Window *window) {
   scroll_layer_add_child(s_scroll_layer, text_layer_get_layer(s_main_text_layer));
 
   // Enable paging and text flow with an inset of 5 pixels
-  // If there is too much text in the top TextLayer, this pagination might cause 
+  // Note that if there is too much text in the top TextLayer, this pagination might cause 
   // unneccessary line spaces and clipped texts.
   if (top_text_size.h == 0) {
     text_layer_enable_screen_text_flow_and_paging(s_main_text_layer, 5);

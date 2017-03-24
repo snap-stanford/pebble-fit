@@ -272,7 +272,7 @@ void launch_handler(bool activate) {
   } else {
     s_dialog_window = dialog_window_push();
     dialog_text_layer_update_proc(
-        "You must activate this app from the 'Settings' page on your phone.");
+      "You must provide consent and activate this app from the 'Settings' page on your phone.");
   }
 }
 
