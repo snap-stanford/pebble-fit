@@ -58,14 +58,24 @@ module.exports = function (minified) {
     'watch_alert_text', 'watch_pass_text'];
 
   // Text to be displayed on each of the content pages. The idea is to use the same 
-  // components, but change the text displayed for them. Note that the texts of the
-  // first page is already supplied in the config.json file.
+  // components, but change the text displayed for them. 
+  // Must make sure consent_heading and consent_text arrays have the same length.
+  // Note that the texts of the first page is already supplied in the config.json file.
   var consentPageIndex = 0;
-  var consent_heading = ["Data Gathering", "Privacy", "Data Use"];
+  var consent_heading = ["Data Gathering", "Privacy", "Data Use", "Time Commitment", 
+    "Withdrawing", "Study Surveys", "Notifications", "Study Activities",
+    "Risks and Potential Benefits"
+  ];
   var consent_text = [
     "This study will gather physical activity data from your smartphone and smartwatch as you go about your day. This will include the number of steps you take and the time you are sedentary. No other data will be accessed or gathered.",
     "Your data will be encrypted and sent to a secure database. If you choose to provide us with you name and email, which is not mandatory, this information will be stored separately within our database to prevent you from being identifiable.",
-    "Your coded data (without your name) will be used for research by Stanford University and our research partners."
+    "Your coded data (without your name) will be used for research by Stanford University and our research partners.",
+    "Our study will last up to two years and you can be part of the study as long as you like. It is useful for us even if you only participate in our study for as little as 1 week.",
+    "You can withdraw your consent and stop participating in this study at any time by deleting the app from your smart watch.",
+    "At the beginning of the study we will ask you some questions about you, your current physical activity, and lifestyle. These should only take about 15 minutes. We may also ask you some additional questions at other times during the study, but you are never obligated to answer.",
+    "Throughout the day, you might be sent notifications through your smartwatch to encourage you to get up and move. Sometimes the notifications will be written text; other times it may be vibrations. You will always have the ability to personalize your app settings to increase or decrease the frequency of notifications.",
+    "The physical activities you are encouraged to perform in this study will not be very strenuous. For example, you may be encouraged to add light and short bouts of walking to your day.",
+    "As with any increase in walking activity, there are small risks of temporary and minor injury, such as muscle fatigue and soreness. It is possible that you will benefit physically and emotionally from increasing your physical activity levels — <strong>but we cannot guarantee this study will have any benefit to you</strong>."
   ];
 
   /* Hide/Show various configuration sections, i.e. getItemById('config_section').hide()
