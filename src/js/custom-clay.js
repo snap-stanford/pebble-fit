@@ -40,12 +40,13 @@ module.exports = function (minified) {
     'dynamic_wakeup', 'sliding_window', 'step_threshold', 'daily_start_time', 
     'daily_end_time', 'display_duration', 'config_summary', 'version', 'watchtoken'
   ];
-  var sub_config_section = ['vibrate', 'break_freq', 'break_len', 
+  // Elements in this section will be enabled/disabled by the activate button.
+  var sub_config_section = ['vibrate', 'break_freq', 'break_len',
     'daily_start_time', 'daily_end_time', 'config_summary'
   ];
 
   // Components that should always be hidden.
-  var disabled_components = [//'step_threshold', 
+  var disabled_components = ['step_threshold', 
     'dynamic_wakeup', 'sliding_window', 'display_duration'];
   var hidden_components = [
     'is_consent', 'config_update', 'config_update_interval', 'time_warn_text',
@@ -59,7 +60,8 @@ module.exports = function (minified) {
 
   // Text to be displayed on each of the content pages. The idea is to use the same 
   // components, but change the text displayed for them. 
-  // Must make sure consent_heading and consent_text arrays have the same length.
+  // Must make sure :w
+  // consent_heading and consent_text arrays have the same length.
   // Note that the texts of the first page is already supplied in the config.json file.
   var consentPageIndex = 0;
   var consent_heading = ["Data Gathering", "Privacy", "Data Use", "Time Commitment", 
@@ -206,6 +208,7 @@ module.exports = function (minified) {
 
   function consentButtonDisagreeClick () {
     clayConfig.getItemByMessageKey('is_consent').set(false);
+    clayConfig.getItemByMessageKey('activate').set(false);
 
     clayConfig.getItemById('consent_result_text').set('Okay, you have chosen not to participle in our study.');
     clayConfig.getItemById('submit').set('Confirm & Exit');
@@ -262,15 +265,15 @@ module.exports = function (minified) {
         " minute walking break during each of them.</p>";
 
       clayConfig.getItemById('total_break').set(totalBreak);
-      //clayConfig.getItemById('config_summary').set(message);
+      clayConfig.getItemById('config_summary').set(message);
 
       clayConfig.getItemById('submit').disable();
       clayConfig.getItemById('time_warn_text').show();
-      //clayConfig.getItemById('config_summary').show();
+      clayConfig.getItemById('config_summary').hide();
     } else {
       clayConfig.getItemById('submit').enable();
       clayConfig.getItemById('time_warn_text').hide();
-      //clayConfig.getItemById('config_summary').hide();
+      clayConfig.getItemById('config_summary').show();
     }
   }
 
