@@ -1,10 +1,10 @@
 var Message = require('../models/message');
 
 // TODO: taken out for now.
-var actionMessages = require('../config/action_messages.json');
-var healthMessages = require('../config/health_messages.json');
-//var actionMessages = [];
-//var healthMessages = [];
+//var actionMessages = require('../config/action_messages.json');
+//var healthMessages = require('../config/health_messages.json');
+var actionMessages = [];
+var healthMessages = [];
 var outcomeMessages = require('../config/outcome_messages.json');
 
 var input = [actionMessages, outcomeMessages, healthMessages];

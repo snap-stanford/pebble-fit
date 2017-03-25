@@ -54,17 +54,24 @@ exports.getConfig = function (watch, next) {
 
   var addRefScores = function (watch, newConfig, next) {
     console.log("in addRefScores, watch=" + watch);
-    references.getUser(watch, null, function (err, reference) { // TODO: numBreak not used
+    references.getUser(watch, null, function (err, refP) { // TODO: numBreak not used
       if (err) return next(err);
 
-      newConfig['ref_average'] = reference.average.join(','); // Convert to string
-      newConfig['ref_best'] = reference.best; // Convert to string
+      newConfig['score_p_average'] = refP.average.join(','); // Convert to string
+      newConfig['score_p_best'] = refP.best;
 
-      console.log('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');
-      console.log(newConfig);
-      console.log('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');
+      references.getAll(null, function (err, refAll) {
+        if (err) return next(err);
 
-      next(null, newConfig);
+        newConfig['score_a_average'] = refAll.average.join(','); // Convert to string
+        newConfig['score_a_best'] = refAll.best; 
+
+        console.log('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');
+        console.log(newConfig);
+        console.log('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');
+
+        next(null, newConfig);
+      });
     });
   };
 
@@ -83,8 +90,7 @@ exports.getConfig = function (watch, next) {
     //if (config.hasOwnProperty('random_messages')) {
     if (groupName === 'real_time_random') {
       var messagesCount = configs['real_time_random']['random_messages'];
-      //newConfig['random_messages'] = messages.getRandomMessages(messagesCount); // FIXME
-      newConfig['random_messages'] = messages.getRandomMessages(2);
+      newConfig['random_messages'] = messages.getRandomMessages(messagesCount);
 
       // Record the random messages.
       messages.save(watch, newConfig['random_messages'], function (err) {
