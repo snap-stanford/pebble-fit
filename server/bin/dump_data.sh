@@ -5,7 +5,7 @@
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 # The list of collections that exist in the DB and of whom the data would be dumped.
-collections=( events activities configs users groups messages )
+collections=( events activities configs users groups messages references )
 
 # Database information 
 HOST=ds111748.mlab.com:11748
@@ -47,7 +47,7 @@ export_json() {
           ${collection} == 'configs' || ${collection} == 'messages' ]]; then
       # Will only dump the data that has been uploaded within the specified range time.
       query="--query \"{\\\"created\\\":{\\\$gt:new Date(${ts_start}),\\\$lte:new Date(${ts_end})}}\""
-    else # groups and users collections
+    else # groups, users and references collections
       # Will dump every user and group in the DB currently.
       #query="--query \"{\\\"configUpdatedAt\\\":{\\\$gt:new Date(${ts_start}),\\\$lte:new Date(${ts_end})}}\""
       query=""
