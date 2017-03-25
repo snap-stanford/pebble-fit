@@ -1,9 +1,12 @@
 [
 {
   "type": "toggle",
-  "id": "config_update",
-  "messageKey": "config_update",
-  "defaultValue": false
+  "id": "first_config",
+  "messageKey": "first_config",
+  "defaultValue": false,
+  "attributes": {
+    "type": "number"
+  }
 },
 {
   "type": "input",
@@ -224,7 +227,10 @@
       "type": "input",
       "id": "consent_name",
       "messageKey": "consent_name",
-      "label": "Name (Optional)"
+      "label": "Name (Optional)",
+      "attributes": {
+        "maxlength": 64
+      }
     },
     {
       "type": "input",
@@ -346,11 +352,11 @@
       "defaultValue": "null",
       "options": [
         { "label": "Select",                "value": "null" },
-        { "label": "Woman",                 "value": "Woman"},
-        { "label": "Man",                   "value": "Man"},
-        { "label": "Transgender",           "value": "Transgender"},
-        { "label": "Other",                 "value": "Other"},
-        { "label": "Choose not to answer",  "value": "NA"}
+        { "label": "Woman",                 "value": "woman"},
+        { "label": "Man",                   "value": "man"},
+        { "label": "Transgender",           "value": "transgender"},
+        { "label": "Other",                 "value": "other"},
+        { "label": "Choose not to answer",  "value": "not_to_answer"}
       ]
     },
     {
@@ -368,7 +374,10 @@
       "type": "input",
       "id": "survey_height",
       "messageKey": "survey_height",
-      "defaultValue": "6'5\\\""
+      "defaultValue": "6'5\\\"",
+      "attributes": {
+        "maxlength": 10
+      }
     },
     {
       "type": "select",
@@ -399,13 +408,13 @@
       "defaultValue": "null",
       "options": [
         { "label": "Select",                              "value": "null" },
-        { "label": "Asian or Pacific Islander",           "value": "Asian"},
-        { "label": "Black or African American",           "value": "Black"},
-        { "label": "Hispanic or Latino",                  "value": "Hispanic"},
-        { "label": "Native American or American Indian",  "value": "Native American"},
-        { "label": "White",                               "value": "White"},
-        { "label": "Other",                               "value": "Other"},
-        { "label": "Choose not to answer",                "value": "Not to answer"}
+        { "label": "Asian or Pacific Islander",           "value": "asian"},
+        { "label": "Black or African American",           "value": "black"},
+        { "label": "Hispanic or Latino",                  "value": "hispanic"},
+        { "label": "Native American or American Indian",  "value": "native_American"},
+        { "label": "White",                               "value": "white"},
+        { "label": "Other",                               "value": "other"},
+        { "label": "Choose not to answer",                "value": "not_to_answer"}
       ]
     },
     {
@@ -415,19 +424,19 @@
       "label": "6. What is the highest degree or level of school you have completed?",
       "options": [
         { "label": "Select",                              "value": "null" },
-        { "label": "No schooling completed",              "value": "No school"},
-        { "label": "Nursery school to 8th grade",         "value": "Nursery"},
-        { "label": "Some high school, no diploma",        "value": "Some high school"},
+        { "label": "No schooling completed",              "value": "no_school"},
+        { "label": "Nursery school to 8th grade",         "value": "nursery"},
+        { "label": "Some high school, no diploma",        "value": "some_high_school"},
         { "label": "High school graduate, diploma or the equivalent (for example: GED)",        
           "value": "High School"},
-        { "label": "Some college credit, no degree",      "value": "Some college"},
-        { "label": "Trade/technical/vocational training", "value": "Trade"},
-        { "label": "Associate degree",                    "value": "Associate"},
-        { "label": "Bachelor’s degree",                   "value": "Bachelor's"},
-        { "label": "Master’s degree",                     "value": "Master's"},
-        { "label": "Professional degree",                 "value": "Professional"},
-        { "label": "Doctorate degree",                    "value": "Doctorate"},
-        { "label": "Choose not to answer",                "value": "Not to answer"}
+        { "label": "Some college credit, no degree",      "value": "some_college"},
+        { "label": "Trade/technical/vocational training", "value": "trade"},
+        { "label": "Associate degree",                    "value": "associate"},
+        { "label": "Bachelor’s degree",                   "value": "bachelor's"},
+        { "label": "Master’s degree",                     "value": "master's"},
+        { "label": "Professional degree",                 "value": "professional"},
+        { "label": "Doctorate degree",                    "value": "doctorate"},
+        { "label": "Choose not to answer",                "value": "not_to_answer"}
       ]
     },
     {
@@ -439,7 +448,10 @@
       "type": "input",
       "id": "survey_occupation",
       "messageKey": "survey_occupation",
-      "defaultValue": ""
+      "defaultValue": "",
+      "attributes": {
+        "maxlength": 32
+      }
     },
     {
       "type": "select",
@@ -448,11 +460,11 @@
       "label": "8. How much desk work does your occupation entail?",
       "options": [
         { "label": "Select",                  "value": "null" },
-        { "label": "All deskwork",            "value": "All"},
-        { "label": "Mostly desk work",        "value": "Mostly"},
-        { "label": "Some desk work",          "value": "Some"},
-        { "label": "Little desk work",        "value": "Little"},
-        { "label": "No desk work",            "value": "No"}
+        { "label": "All deskwork",            "value": "all"},
+        { "label": "Mostly desk work",        "value": "mostly"},
+        { "label": "Some desk work",          "value": "some"},
+        { "label": "Little desk work",        "value": "little"},
+        { "label": "No desk work",            "value": "no"}
       ]
     },
     {
@@ -462,11 +474,11 @@
       "label": "9. Roughly how much income from all sources (including earnings, pensions, investments, etc.) did your household have last year (before taxes)?",
       "options": [
         { "label": "Select",                              "value": "null" },
-        { "label": "Less than $20,000 US",                "value": "Less than 20k"},
-        { "label": "$20,000 - $50,000 US",                "value": "20k to 50k"},
-        { "label": "$50,000 - $100,000 US",               "value": "50k to 100k"},
-        { "label": "$100,000 US or more",                 "value": "100k plus"},
-        { "label": "Don't Know / Choose not to answer",    "value": "Not to answer"}
+        { "label": "Less than $20,000 US",                "value": "less_than_20k"},
+        { "label": "$20,000 - $50,000 US",                "value": "20k_to_50k"},
+        { "label": "$50,000 - $100,000 US",               "value": "50k_to_100k"},
+        { "label": "$100,000 US or more",                 "value": "100k_plus"},
+        { "label": "Don't know / Choose not to answer",   "value": "not_to_answer"}
       ]
     },
     {
@@ -478,7 +490,10 @@
       "type": "input",
       "id": "survey_country",
       "messageKey": "survey_country",
-      "defaultValue": ""
+      "defaultValue": "",
+      "attributes": {
+        "maxlength": 32
+      }
     },
     {
       "type": "text",
@@ -489,7 +504,10 @@
       "type": "input",
       "id": "survey_zipcode",
       "messageKey": "survey_zipcode",
-      "defaultValue": ""
+      "defaultValue": "",
+      "attributes": {
+        "maxlength": 10
+      }
     }
   ]
 },
@@ -509,15 +527,15 @@
       "type": "toggle",
       "id": "activate",
       "messageKey": "activate",
-      "label": "Activate Pebble Fit",
-      "description": "<p align='justify'>Push notifications to take walk breaks throughout day.</p>",
-      "defaultValue": false
+      "label": "<font color='red'>Activate Pebble Fit<font>",
+      "description": "<p align='justify'>Push notifications to take walk breaks throughout day (you must activate to use).</p>",
+      "defaultValue": true
     },
     {
       "type": "select",
       "id": "vibrate",
       "messageKey": "vibrate",
-      "label": "Notify with Vibration",
+      "label": "Notify with vibration",
       "defaultValue": 1,
       "options": [
         { "label": "Single short pulse",  "value": 1 },
@@ -573,7 +591,6 @@
       "label": "Break Frequency:",
       "description": "How frequently do you want to take walking breaks (in minutes)?",
       "options": [
-        { "label": "5",        "value": 5 },
         { "label": "60",        "value": 60 }
       ]
     },
@@ -585,7 +602,6 @@
       "label": "Break Length:",
       "description": "How many minutes of walking do you want to define as a break?",
       "options": [
-        { "label": "1",        "value": 1 },
         { "label": "5",        "value": 5 }
       ]
     },
@@ -662,7 +678,10 @@
     {
       "type": "input",
       "id": "ref_best",
-      "messageKey": "ref_best"
+      "messageKey": "ref_best",
+      "attributes": {
+        "type": "number"
+      }
     },
     {
       "type": "input",

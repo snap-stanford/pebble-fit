@@ -34,24 +34,50 @@ function saveEvent(req, res, config, next) {
 
 
 router.get(['/config'],
-  query.requireParam('query', ['watch', 'timezone', 'starttime', 'endtime',
-    'breakfreq', 'breaklen', 'group', 'threshold', 'name', 'email']),
+  query.requireParam('query', ['watch', 'timezone', 'startTime', 'endTime',
+    'breakFreq', 'breakLen', 'group', 'threshold']),
   function (req, res, next) {
-    configs.save(
-      req.query.watch,
-      req.query.timezone,
-      req.query.starttime,
-      req.query.endtime,
-      req.query.breakfreq,
-      req.query.breaklen,
-      req.query.threshold,
-      req.query.group,
-      req.query.name,
-      req.query.email,
-      function (err) {
-        if (err) return next(err);
-        res.status(200).end();
-      });
+    var callback = function (err) {
+      if (err) return next(err);
+
+      configs.save(
+        req.query.watch,
+        req.query.timezone,
+        req.query.startTime,
+        req.query.endTime,
+        req.query.breakFreq,
+        req.query.breakLen,
+        req.query.threshold,
+        req.query.group,
+        function (err) {
+          if (err) return next(err);
+          res.status(200).end();
+        });
+    }
+
+    if (req.query.first) {
+      // If user also upload survey contents, save them first.
+      users.save(
+        req.query.watch, 
+        req.query.name, 
+        req.query.email, 
+        req.query.age, 
+        req.query.gender, 
+        req.query.height, 
+        req.query.heightU, 
+        req.query.weight, 
+        req.query.weightU, 
+        req.query.race, 
+        req.query.school, 
+        req.query.occupation, 
+        req.query.deskwork, 
+        req.query.income, 
+        req.query.country, 
+        req.query.zipcode, 
+        callback);
+    } else {
+      callback(null);
+    }
   });
 
 router.get(['/launch'],

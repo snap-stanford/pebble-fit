@@ -109,16 +109,35 @@ Pebble.addEventListener('webviewclosed', function(e) {
   //console.log(dict[messageKeys.consent_email]);
   //console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
   var url = '/config' + '?date=' + date + 
-    '&watch=' + Pebble.getWatchToken() + 
-    '&timezone=' + dict[messageKeys.time_zone] + 
-    '&starttime=' + dict[messageKeys.daily_start_time] + 
-    '&endtime=' + dict[messageKeys.daily_end_time] + 
-    '&breakfreq=' + dict[messageKeys.break_freq] + 
-    '&breaklen=' + dict[messageKeys.break_len] + 
-    '&threshold=' + dict[messageKeys.step_threshold] + 
-    '&group=' + dict[messageKeys.group] + 
-    '&name=' + dict[messageKeys.consent_name] + 
-    '&email=' + dict[messageKeys.consent_email];
+    '&watch='       + Pebble.getWatchToken()                                  + 
+    '&timezone='    + dict[messageKeys.time_zone]                             + 
+    '&startTime='   + dict[messageKeys.daily_start_time]                      + 
+    '&endTime='     + dict[messageKeys.daily_end_time]                        + 
+    '&breakFreq='   + dict[messageKeys.break_freq]                            + 
+    '&breakLen='    + dict[messageKeys.break_len]                             + 
+    '&threshold='   + dict[messageKeys.step_threshold]                        + 
+    '&group='       + dict[messageKeys.group]; 
+
+  if (dict[messageKeys.first_config]) {
+    url = url +
+    '&first='        + dict[messageKeys.first_config]                          + 
+    '&name='        + encodeURIComponent(dict[messageKeys.consent_name])      + 
+    '&email='       + encodeURIComponent(dict[messageKeys.consent_email])     +
+    
+    '&age='         + dict[messageKeys.survey_age]                            +
+    '&gender='      + dict[messageKeys.survey_gender]                         +
+    '&height='      + encodeURIComponent(dict[messageKeys.survey_height])     +
+    '&heightU='     + dict[messageKeys.survey_height_unit]                    +
+    '&weight='      + encodeURIComponent(dict[messageKeys.survey_weight])     +
+    '&weightU='     + dict[messageKeys.survey_weight_unit]                    +
+    '&race='        + dict[messageKeys.survey_race]                           +
+    '&school='      + dict[messageKeys.survey_school]                         +
+    '&occupation='  + dict[messageKeys.survey_occupation]                     +
+    '&deskwork='    + dict[messageKeys.survey_deskwork]                       +
+    '&income='      + dict[messageKeys.survey_income]                         +
+    '&country='     + encodeURIComponent(dict[messageKeys.survey_country])    +
+    '&zipcode='     + encodeURIComponent(dict[messageKeys.survey_zipcode]);
+  }
 
   // Send to the server first and then to the watch.
   sendToServer(url, function receiveServerACK (err, status, response, responseText) {
@@ -151,7 +170,6 @@ function receiveServerConfigACK (err, status, response, responseText) {
     log.info(err || status)
   } else if (!response) {
     // No new configuration from the server, simply send ACK to the watch.
-    // TODO: could also use config_update to indicate server connection.
     console.log('Server response with a null.');
     Pebble.sendAppMessage({ 'AppKeyServerReceived': 1 })
   } else {
@@ -181,7 +199,9 @@ function receiveServerConfigACK (err, status, response, responseText) {
         clay.setSettings(key, settings[key]);
       }
     }
-    settings['config_update'] = 0; // Dummy config to allow enamel automatically parsing.
+    
+    settings['first_config'] = 0; // Allow Enamel automatically parse the settings received.
+
     settings['AppKeyServerReceived'] = 1;
     console.log(JSON.stringify(settings));
     Pebble.sendAppMessage(settings, 
@@ -274,5 +294,3 @@ function sendLaunchExitData(configRequest, msgID, launchTime, exitTime, score,
 
   sendToServer(url, receiveServerConfigACK);
 }
-
-

@@ -12,21 +12,38 @@ var configs = {
   'real_time_random': require('../config/real_time_random')
 };
 
-exports.save = function (watch, data, next) {
+exports.save = function (watch, name, email, age, gender, height, heightU, weight, weightU, race, school, occupation, deskwork, income, country, zipcode, next) {
   console.log("Creating new user: " + watch);
-  var obj = {watch: watch};
-  groups.random_pick(function (err, group) {
-    console.log("random_pick callback: err=" + err +"; group="+group[0].name);
-    obj.group = group[0].name;
 
-    //TODO: debugging force to be real_time_random.
-    obj.group = 'real_time_random';
+  User.update({ 'watch': watch }, 
+    { $set: { 'name':       name,
+              'email':      email,
+              'age':        age,
+              'gender':     gender,
+              'height':     height,
+              'heightU':    heightU,
+              'weight':     weight,
+              'weightU':    weightU,
+              'race':       race,
+              'school':     school,
+              'occupation': occupation,
+              'deskwork':   deskwork,
+              'income':     income,
+              'country':    country,
+              'zipcode':    zipcode 
+    } }, 
+    { upsert: true },
+    next);
 
-    if (data) obj.data = data;
-    var user = new User(obj);
-    user.save(next);
-  });
-  console.log("Creating new user. ");
+  //TODO:  Assign everyone to real_time_random for now.
+  //groups.random_pick(function (err, group) {
+  //  console.log("random_pick callback: err=" + err +"; group="+group[0].name);
+  //  obj.group = group[0].name;
+  //
+  //  if (data) obj.data = data;
+  //  var user = new User(obj);
+  //  user.save(next);
+  //});
 };
 
 /**

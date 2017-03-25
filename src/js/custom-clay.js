@@ -36,9 +36,10 @@ module.exports = function (minified) {
     'survey_occupation_text', 'survey_occupation', 'survey_deskwork', 'survey_income', 
     'survey_country_text', 'survey_country', 'survey_zipcode_text', 'survey_zipcode'
   ];
-  var config_section = ['settings', 'activate', 'vibrate', 'break_freq', 'break_len',
-    'dynamic_wakeup', 'sliding_window', 'step_threshold', 'daily_start_time', 
-    'daily_end_time', 'display_duration', 'config_summary', 'version', 'watchtoken'
+  var config_section = ['settings',  'vibrate', 'break_freq', 'break_len', 'step_threshold',
+    //'activate', 'dynamic_wakeup', 'sliding_window', 'display_duration',
+    'daily_start_time', 'daily_end_time', 'config_summary', 
+    'version', 'watchtoken'
   ];
   // Elements in this section will be enabled/disabled by the activate button.
   var sub_config_section = ['vibrate', 'break_freq', 'break_len',
@@ -49,7 +50,7 @@ module.exports = function (minified) {
   var disabled_components = ['step_threshold', 
     'dynamic_wakeup', 'sliding_window', 'display_duration'];
   var hidden_components = [
-    'is_consent', 'config_update', 'config_update_interval', 'time_warn_text',
+    'activate', 'is_consent', 'first_config', 'config_update_interval', 'time_warn_text',
     'message_daily_summary', 'total_break', 'group', 'ref_average', 'ref_best', 'time_zone',
     'message_random_0', 'message_random_1', 'message_random_2', 'message_random_3', 
     'message_random_4', 'message_random_5', 'message_random_6', 'message_random_7', 
@@ -224,11 +225,16 @@ module.exports = function (minified) {
 
     hideSection(consent_result_section);
     showSection(survey_section);
+
+    clayConfig.getItemById('first_config').set(1); // Indicate the first config after consent.
+    showConfigSection();
   }
 
   function viewConsentButtonClick () {
-    showSection(consent_review_section);
+    hideSection(survey_section);
     hideConfigSection();
+
+    showSection(consent_review_section);
   }
 
   function changeEnableApp () {
@@ -325,6 +331,12 @@ module.exports = function (minified) {
     } else {
       hideConfigSection();
     }
+
+    // Reset 'first_config' everytime we initialize the page.
+    // 'first_config' serves as: 
+    //   (1) a dummy key to allow Enamel automatically parse the settings sent
+    //   (2) the indicator that this is the first config after user has provided consent.
+    clayConfig.getItemById('first_config').set(0);
 
     // Disable certain sections so that users will not be able to edit those.
     disabled_components.forEach(function (c) { clayConfig.getItemById(c).disable(); });
