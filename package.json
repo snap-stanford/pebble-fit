@@ -79,16 +79,16 @@
       "config_summary": 3017,
       "time_zone": 3018,
       "message_daily_summary": 4001,
-      "message_random_0": 4010,
-      "message_random_1": 4011,
-      "message_random_2": 4012,
-      "message_random_3": 4013,
-      "message_random_4": 4014,
-      "message_random_5": 4015,
-      "message_random_6": 4016,
-      "message_random_7": 4017,
-      "message_random_8": 4018,
-      "message_random_9": 4019
+      "random_message_0": 4010,
+      "random_message_1": 4011,
+      "random_message_2": 4012,
+      "random_message_3": 4013,
+      "random_message_4": 4014,
+      "random_message_5": 4015,
+      "random_message_6": 4016,
+      "random_message_7": 4017,
+      "random_message_8": 4018,
+      "random_message_9": 4019
     },
     "resources": {
       "media": []

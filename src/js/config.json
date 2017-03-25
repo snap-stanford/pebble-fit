@@ -703,62 +703,62 @@
     },
     {
       "type": "input",
-      "id": "message_random_0",
-      "messageKey": "message_random_0",
+      "id": "random_message_0",
+      "messageKey": "random_message_0",
       "defaultValue": ""
     },
     {
       "type": "input",
-      "id": "message_random_1",
-      "messageKey": "message_random_1",
+      "id": "random_message_1",
+      "messageKey": "random_message_1",
       "defaultValue": ""
     },
     {
       "type": "input",
-      "id": "message_random_2",
-      "messageKey": "message_random_2",
+      "id": "random_message_2",
+      "messageKey": "random_message_2",
       "defaultValue": ""
     },
     {
       "type": "input",
-      "id": "message_random_3",
-      "messageKey": "message_random_3",
+      "id": "random_message_3",
+      "messageKey": "random_message_3",
       "defaultValue": ""
     },
     {
       "type": "input",
-      "id": "message_random_4",
-      "messageKey": "message_random_4",
+      "id": "random_message_4",
+      "messageKey": "random_message_4",
       "defaultValue": ""
     },
     {
       "type": "input",
-      "id": "message_random_5",
-      "messageKey": "message_random_5",
+      "id": "random_message_5",
+      "messageKey": "random_message_5",
       "defaultValue": ""
     },
     {
       "type": "input",
-      "id": "message_random_6",
-      "messageKey": "message_random_6",
+      "id": "random_message_6",
+      "messageKey": "random_message_6",
       "defaultValue": ""
     },
     {
       "type": "input",
-      "id": "message_random_7",
-      "messageKey": "message_random_7",
+      "id": "random_message_7",
+      "messageKey": "random_message_7",
       "defaultValue": ""
     },
     {
       "type": "input",
-      "id": "message_random_8",
-      "messageKey": "message_random_8",
+      "id": "random_message_8",
+      "messageKey": "random_message_8",
       "defaultValue": ""
     },
     {
       "type": "input",
-      "id": "message_random_9",
-      "messageKey": "message_random_9",
+      "id": "random_message_9",
+      "messageKey": "random_message_9",
       "defaultValue": ""
     }
   ]

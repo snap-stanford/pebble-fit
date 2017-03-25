@@ -16,9 +16,9 @@ log.set_level(3);
 var SERVER = 'http://pebble-fit.herokuapp.com';
 
 // Local servers (use ifconfig to find out).
-var SERVER = 'http://10.30.202.74:3000';
+//var SERVER = 'http://10.30.202.74:3000';
 //var SERVER = 'http://10.34.171.70:3000';
-//var SERVER = 'http://10.34.153.127:3000';
+var SERVER = 'http://169.254.216.195:3000';
 
 // Flag to switch off server communication
 var USE_OFFLINE = true;
@@ -187,7 +187,7 @@ function receiveServerConfigACK (err, status, response, responseText) {
         //for (var id in settings[key]) {
         var randomMessages = settings[key];
         for (var i = 0; i < randomMessages.length; i++) {
-          var messageID = 'message_random_' + i;
+          var messageID = 'random_message_' + i;
           var messageContent = randomMessages[i]['id'] + ":" + randomMessages[i]['content'];
           log.info(messageID);
           log.info(messageContent);

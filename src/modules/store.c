@@ -350,7 +350,7 @@ int store_compare_ref_score(int mode) {
 const char* store_read_random_message() {
   if (!persist_exists(PERSIST_KEY_RANDOM_MSG_INDEX)) {
     persist_write_int(PERSIST_KEY_RANDOM_MSG_INDEX, 1);
-    return enamel_get_message_random_0();
+    return enamel_get_random_message_0();
   } else {
     int index = persist_read_int(PERSIST_KEY_RANDOM_MSG_INDEX);
     index = index >= RANDOM_MSG_POOL_SIZE - 1? 0 : index + 1;
@@ -358,16 +358,16 @@ const char* store_read_random_message() {
 
     APP_LOG(APP_LOG_LEVEL_ERROR, "index=%d", index);
     switch (index) {
-      case 1: return enamel_get_message_random_1(); break;
-      case 2: return enamel_get_message_random_2(); break;
-      case 3: return enamel_get_message_random_3(); break;
-      case 4: return enamel_get_message_random_4(); break;
-      case 5: return enamel_get_message_random_5(); break;
-      case 6: return enamel_get_message_random_6(); break;
-      case 7: return enamel_get_message_random_7(); break;
-      case 8: return enamel_get_message_random_8(); break;
-      case 9: return enamel_get_message_random_9(); break;
-      default: return enamel_get_message_random_0();
+      case 1: return enamel_get_random_message_1(); break;
+      case 2: return enamel_get_random_message_2(); break;
+      case 3: return enamel_get_random_message_3(); break;
+      case 4: return enamel_get_random_message_4(); break;
+      case 5: return enamel_get_random_message_5(); break;
+      case 6: return enamel_get_random_message_6(); break;
+      case 7: return enamel_get_random_message_7(); break;
+      case 8: return enamel_get_random_message_8(); break;
+      case 9: return enamel_get_random_message_9(); break;
+      default: return enamel_get_random_message_0();
     }
   }
 }

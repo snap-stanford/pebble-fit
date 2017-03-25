@@ -53,9 +53,9 @@ module.exports = function (minified) {
     'activate', 'is_consent', 'first_config', 'config_update_interval', 'time_warn_text',
     'message_daily_summary', 'total_break', 'group', 'score_p_average', 'score_p_best', 
     'score_a_average', 'score_a_best', 'time_zone',
-    'message_random_0', 'message_random_1', 'message_random_2', 'message_random_3', 
-    'message_random_4', 'message_random_5', 'message_random_6', 'message_random_7', 
-    'message_random_8', 'message_random_9',
+    'random_message_0', 'random_message_1', 'random_message_2', 'random_message_3', 
+    'random_message_4', 'random_message_5', 'random_message_6', 'random_message_7', 
+    'random_message_8', 'random_message_9',
     'survey_age2', 'survey_age3',
     'dynamic_wakeup', 'sliding_window', 'display_duration', 'consent_icon', 
     'watch_alert_text', 'watch_pass_text'];

@@ -10,7 +10,6 @@ static Window *s_wakeup_window = NULL;
 
 static int s_config_request;
 static const char *s_random_message;
-static char random_message[RANDOM_MSG_SIZE_MAX];
 
 // For resend functions.
 static time_t s_t_launch, s_t_exit, s_curr_time;
@@ -87,39 +86,45 @@ void launch_resend(time_t t_launch, time_t t_exit, char *msg_id, uint8_t br, uin
  * Otherwise, set message ID to be either "pass" or "fail".
  */
 void launch_set_random_message() {
-  snprintf(random_message, sizeof(random_message), store_read_random_message());
+  char random_message[RANDOM_MSG_SIZE_MAX];
 
-  APP_LOG(APP_LOG_LEVEL_ERROR, "%s!", random_message);
+  const char *msg_ptr = store_read_random_message();
+
+  //snprintf(random_message, sizeof(random_message), store_read_random_message()); // FIXME: root cause?
+  //APP_LOG(APP_LOG_LEVEL_ERROR, "%s!", random_message);
+  //printf(random_message);
+  //printf(store_read_random_message());
   
-  // Parse the random message ID, which contains 4 bytes/characters:
-  // Action messages: amxx, where xx represents digits 0-9.
-  //
-  // Health messages: hmxx, where xx represents digits 0-9.
-  //
-  // Outcome messages: oyxx, where xx represents digits 0-9, and y represents:
-  //                   u - compare to user self's average score, without number.
-  //                   v - compare to user self's average score, with a number.
-  //                   w - compare to user self's best score, with a number.
-  //                   a - compare to the average score of all users, without number.
-  //                   b - compare to the average score of all users, with a number.
-  int size = 0;
-  char *c;
-  char mode;
-  int i, message_index, score_diff;
-  
-  for (s_msg_id = c = random_message; *c != ':' && *c != 0; c++, size++) {}
-  
-  *c++ = '\0'; // Replace ':' with 0.
-  
-  // Deal with the outcome messages specially.
-  if (s_msg_id[0] != 'o') {
+  if (msg_ptr[0] != 'o') { // Deal with action and health messages.
+    char *c;  // TODO: might could just using msg_ptr.
+
+    snprintf(random_message, sizeof(random_message), msg_ptr);
+    for (s_msg_id = c = random_message; *c != ':' && *c != '\0'; c++) {}
+    *c++ = '\0'; // Replace ':' with 0.
+
     s_random_message = c;
-  } else {
+  } else { // Deal with the outcome messages specially.
+    int i, start, end, message_index, score_diff, size = 0;
+    //const char *c;
+    char mode = msg_ptr[1];
+
+    for (s_msg_id = msg_ptr, i = 0; msg_ptr[i] != ':'; i++, size++) {}
     if (size != 4) {
       APP_LOG(APP_LOG_LEVEL_ERROR, "store_read_random_message provides wrong size %d.", size);
+      return;
     }
   
-    mode = s_msg_id[1];
+    // Parse the random message ID, which contains 4 bytes/characters:
+    // Action messages: amxx, where xx represents digits 0-9.
+    //
+    // Health messages: hmxx, where xx represents digits 0-9.
+    //
+    // Outcome messages: oyxx, where xx represents digits 0-9, and y represents:
+    //                   u - compare to user self's average score, without number.
+    //                   v - compare to user self's average score, with a number.
+    //                   w - compare to user self's best score, with a number.
+    //                   a - compare to the average score of all users, without number.
+    //                   b - compare to the average score of all users, with a number.
   
     // Compare with the reference score.
     switch (mode) {
@@ -135,32 +140,41 @@ void launch_set_random_message() {
         score_diff = store_compare_ref_score(3);
         break;
       default:
-        APP_LOG(APP_LOG_LEVEL_ERROR, "Unknown outcome message type %c.", s_msg_id[1]);
+        APP_LOG(APP_LOG_LEVEL_ERROR, "Unknown outcome message type %d.", s_msg_id[1]);
         return;
     }
   
     // Fetch the proper message.
     if (score_diff > 0) {
-      for (i = 0; c[i] != '|'; i++) {}
-      c[i] = '\0';
+      for (i = 0; msg_ptr[i] != '|'; i++) {}
+      start = 0;
+      end = i;
     } else if (score_diff < 0) {
-      for ( ; *c != '|'; c++) {}
-      for (c++, i = 0; c[i] != '|'; i++) {}
-      c[i] = '\0';
+      for (i = 0; msg_ptr[i] != '|'; i++) {}
+      for (start = ++i; msg_ptr[i] != '|'; i++) {}
+      end = i;
     } else { // score_diff == 0
-      for ( ; *c != '|'; c++) {}
-      for (c++ ; *c != '|'; c++) {}
-      for (c++, i = 0; c[i] != '|'; i++) {}
-      c[i] = '\0';
+      for (i = 0; msg_ptr[i] != '|'; i++) {}
+      for (++i; msg_ptr[i] != '|'; i++) {}
+      for (start = ++i; msg_ptr[i] != '\0'; i++) {}
+      end = i;
     }
     APP_LOG(APP_LOG_LEVEL_ERROR, "msgid=%s, score_diff=%d", s_msg_id, score_diff);
-    APP_LOG(APP_LOG_LEVEL_ERROR, "%s!", c);
+    APP_LOG(APP_LOG_LEVEL_ERROR, "start=%d, end=%d", start, end);
+    APP_LOG(APP_LOG_LEVEL_ERROR, "%s!", msg_ptr);
   
-    // Substitute the number in the message.
-    s_random_message = c;
-    //if (score_diff < 0) {
-    //  message_index = store_compare_ref_score(1) < 0 ? 0;
-    //}
+    if (mode == 'u' || mode == 'a') {
+      snprintf(random_message, end - start, msg_ptr+start);
+    } else {
+      // Substitute the number in the message.
+      APP_LOG(APP_LOG_LEVEL_ERROR, "Substitute the number in the message.");
+      if (score_diff < 0) {
+        score_diff = -1 * score_diff;
+      }
+      snprintf(random_message, end - start, msg_ptr+start, score_diff);
+
+      s_random_message = random_message;
+    }
   }
 } 
 
