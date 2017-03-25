@@ -650,13 +650,12 @@
       ]
     },
     {
-      "type": "input",
+      "type": "slider",
       "id": "total_break",
       "messageKey": "total_break",
       "defaultValue": 0,
-      "attributes": {
-        "type": "number"
-      }
+      "min": 0,
+      "step": 1
     },
     {
       "type": "text",
@@ -672,13 +671,26 @@
     },
     {
       "type": "input",
-      "id": "ref_average",
-      "messageKey": "ref_average"
+      "id": "score_p_average",
+      "messageKey": "score_p_average"
     },
     {
       "type": "input",
-      "id": "ref_best",
-      "messageKey": "ref_best",
+      "id": "score_p_best",
+      "messageKey": "score_p_best",
+      "attributes": {
+        "type": "number"
+      }
+    },
+    {
+      "type": "input",
+      "id": "score_a_average",
+      "messageKey": "score_a_average"
+    },
+    {
+      "type": "input",
+      "id": "score_a_best",
+      "messageKey": "score_a_best",
       "attributes": {
         "type": "number"
       }

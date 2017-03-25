@@ -69,7 +69,7 @@ void launch_resend(time_t t_launch, time_t t_exit, char *msg_id, uint8_t br, uin
   s_t_launch = t_launch;
   s_t_exit = t_exit;
   s_msg_id = msg_id;
-	s_br = br;
+  s_br = br;
   s_lr = lr;
   s_er = er;
 
@@ -86,15 +86,81 @@ void launch_resend(time_t t_launch, time_t t_exit, char *msg_id, uint8_t br, uin
  * If this is a notify wakeup, read a random message from the persistent storage into memory.
  * Otherwise, set message ID to be either "pass" or "fail".
  */
-void launch_set_random_message(bool is_notify_wakeup) {
-  if (is_notify_wakeup) {
-    char *c;
+void launch_set_random_message() {
+  snprintf(random_message, sizeof(random_message), store_read_random_message());
 
-    snprintf(random_message, sizeof(random_message), store_read_random_message());
-
-    for (s_msg_id = c = random_message; *c != ':' && *c != 0; c++) {}
-    *c++ = '\0';
+  APP_LOG(APP_LOG_LEVEL_ERROR, "%s!", random_message);
+  
+  // Parse the random message ID, which contains 4 bytes/characters:
+  // Action messages: amxx, where xx represents digits 0-9.
+  //
+  // Health messages: hmxx, where xx represents digits 0-9.
+  //
+  // Outcome messages: oyxx, where xx represents digits 0-9, and y represents:
+  //                   u - compare to user self's average score, without number.
+  //                   v - compare to user self's average score, with a number.
+  //                   w - compare to user self's best score, with a number.
+  //                   a - compare to the average score of all users, without number.
+  //                   b - compare to the average score of all users, with a number.
+  int size = 0;
+  char *c;
+  char mode;
+  int i, message_index, score_diff;
+  
+  for (s_msg_id = c = random_message; *c != ':' && *c != 0; c++, size++) {}
+  
+  *c++ = '\0'; // Replace ':' with 0.
+  
+  // Deal with the outcome messages specially.
+  if (s_msg_id[0] != 'o') {
     s_random_message = c;
+  } else {
+    if (size != 4) {
+      APP_LOG(APP_LOG_LEVEL_ERROR, "store_read_random_message provides wrong size %d.", size);
+    }
+  
+    mode = s_msg_id[1];
+  
+    // Compare with the reference score.
+    switch (mode) {
+      case 'u':
+      case 'v':
+        score_diff = store_compare_ref_score(1);
+        break;
+      case 'w':
+        score_diff = store_compare_ref_score(2);
+        break;
+      case 'a':
+      case 'b':
+        score_diff = store_compare_ref_score(3);
+        break;
+      default:
+        APP_LOG(APP_LOG_LEVEL_ERROR, "Unknown outcome message type %c.", s_msg_id[1]);
+        return;
+    }
+  
+    // Fetch the proper message.
+    if (score_diff > 0) {
+      for (i = 0; c[i] != '|'; i++) {}
+      c[i] = '\0';
+    } else if (score_diff < 0) {
+      for ( ; *c != '|'; c++) {}
+      for (c++, i = 0; c[i] != '|'; i++) {}
+      c[i] = '\0';
+    } else { // score_diff == 0
+      for ( ; *c != '|'; c++) {}
+      for (c++ ; *c != '|'; c++) {}
+      for (c++, i = 0; c[i] != '|'; i++) {}
+      c[i] = '\0';
+    }
+    APP_LOG(APP_LOG_LEVEL_ERROR, "msgid=%s, score_diff=%d", s_msg_id, score_diff);
+    APP_LOG(APP_LOG_LEVEL_ERROR, "%s!", c);
+  
+    // Substitute the number in the message.
+    s_random_message = c;
+    //if (score_diff < 0) {
+    //  message_index = store_compare_ref_score(1) < 0 ? 0;
+    //}
   }
 } 
 
@@ -172,7 +238,7 @@ void wakeup_handler(WakeupId wakeup_id, int32_t wakeup_cookie) {
         // wakeup_window_push() and the first call to init_callback. 
         APP_LOG(APP_LOG_LEVEL_ERROR, "Make sure this happens before init_callback()!");
         if (!steps_get_pass()) { // Only push the window if step goal is not met.
-          launch_set_random_message(true);
+          launch_set_random_message();
           s_wakeup_window = wakeup_window_push();
         } else {
           e_exit_reason = EXIT_TIMEOUT; // TODO: or using a new coding for silent-wakeup?

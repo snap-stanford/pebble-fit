@@ -73,7 +73,7 @@ static void main_text_layer_update_proc() {
     const char *daily_summary = enamel_get_message_daily_summary();
      
     snprintf(s_main_text_buf, sizeof(s_main_text_buf), daily_summary, 
-      store_read_curr_score(), atoi(enamel_get_total_break()));
+      store_read_curr_score(), enamel_get_total_break());
 
     strcat(s_main_text_buf, "\n\n\n"); //TODO: workaround for scrolling issue for some long text.
   }
@@ -119,18 +119,18 @@ static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
   //text_layer_set_text(s_main_text_layer, "reset timestamp");
   //store_write_upload_time(e_launch_time - 2 * SECONDS_PER_DAY);
 
-  //launch_set_random_message(true);
-  //snprintf(s_main_text_buf, sizeof(s_main_text_buf), "%s", launch_get_random_message());
-  //text_layer_set_text(s_main_text_layer, s_main_text_buf);
+  launch_set_random_message(true);
+  snprintf(s_main_text_buf, sizeof(s_main_text_buf), "%s", launch_get_random_message());
+  text_layer_set_text(s_main_text_layer, s_main_text_buf);
 
-  back_click_handler(recognizer, context); // TODO: this is the final implementation.
+  //back_click_handler(recognizer, context); // TODO: this is the final implementation.
 
   //store_reset_curr_score();
 
   // Reset last update timestamp to 2 hour ago
   //store_write_config_time(time(NULL) - 2 * SECONDS_PER_DAY);
 
-  steps_get_prior_week();
+  //steps_get_prior_week();
 }
 
 /* Deprecated. Set click event handlers. */

@@ -236,6 +236,7 @@ void steps_send_latest(time_t t_curr) {
 
 // Functions for sending the step data in the last week (supposed to be used when user first
 // install the app). 
+/*
 static void prv_pdata_write(DictionaryIterator * out) {
   //write the data
   int true_value = 1;
@@ -245,11 +246,10 @@ static void prv_pdata_write(DictionaryIterator * out) {
   dict_write_int(out, AppKeyArrayLength, &s_num_records, sizeof(int), true);
   dict_write_int(out, AppKeyArrayStart, &AppKeyArrayData, sizeof(int), true);
   for (int i = 0; i < s_num_records; i++) {
-    //dict_write_int(out, AppKeyArrayData + i, &s_step_records[i], sizeof(int), true);
-    // FIXME: s_step_records is the type of uint8_t[]
     dict_write_uint8(out, AppKeyArrayData + i, s_step_records[i]);
   }
 }
+*/
 
 /**
  * Fetch the step data in the last week. 
@@ -260,7 +260,7 @@ void steps_get_prior_week() {
   char buf[12];
   end = time(NULL);
   //s = end - 7 * SECONDS_PER_DAY;
-  s = end - 1 * SECONDS_PER_DAY;
+  s = end - 2 * SECONDS_PER_DAY; // TODO: For now only send 2 days data.
   while (s < end) {
     s_is_loaded = false;
     step = 0;

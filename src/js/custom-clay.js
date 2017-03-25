@@ -51,7 +51,8 @@ module.exports = function (minified) {
     'dynamic_wakeup', 'sliding_window', 'display_duration'];
   var hidden_components = [
     'activate', 'is_consent', 'first_config', 'config_update_interval', 'time_warn_text',
-    'message_daily_summary', 'total_break', 'group', 'ref_average', 'ref_best', 'time_zone',
+    'message_daily_summary', 'total_break', 'group', 'score_p_average', 'score_p_best', 
+    'score_a_average', 'score_a_best', 'time_zone',
     'message_random_0', 'message_random_1', 'message_random_2', 'message_random_3', 
     'message_random_4', 'message_random_5', 'message_random_6', 'message_random_7', 
     'message_random_8', 'message_random_9',

@@ -26,7 +26,7 @@ void launch_send_test();
 
 void launch_resend(time_t t_launch, time_t t_exit, char *msg_id, uint8_t br, uint8_t lr, uint8_t er);
 
-void launch_set_random_message(bool is_notify_wakeup);
+void launch_set_random_message();
 
 const char * launch_get_random_message();
 const char * launch_get_random_message_id();
