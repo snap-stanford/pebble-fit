@@ -67,15 +67,15 @@ static void main_text_layer_update_proc() {
   if (e_launch_reason == LAUNCH_WAKEUP_ALERT) {
   //if (e_launch_reason == LAUNCH_WAKEUP_ALERT || e_launch_reason == LAUNCH_PHONE) { // DEBUG
 
-    APP_LOG(APP_LOG_LEVEL_INFO, "launch_set_random_message,content=%s",launch_get_random_message());
+    APP_LOG(APP_LOG_LEVEL_INFO, "random_message,content=%s", launch_get_random_message());
     snprintf(s_main_text_buf, sizeof(s_main_text_buf), "%s", launch_get_random_message());
   } else {
     const char *daily_summary = enamel_get_message_daily_summary();
      
     snprintf(s_main_text_buf, sizeof(s_main_text_buf), daily_summary, 
-      store_read_curr_score(), atoi(enamel_get_total_break()));
+      store_read_curr_score(), enamel_get_total_break());
 
-    strcat(s_main_text_buf, "\n\n\n");
+    strcat(s_main_text_buf, "\n\n\n"); //TODO: workaround for scrolling issue for some long text.
   }
     
   text_layer_set_text(s_main_text_layer, s_main_text_buf);
@@ -85,6 +85,7 @@ static void main_text_layer_update_proc() {
   GSize main_text_size = text_layer_get_content_size(s_main_text_layer);
   main_text_size.w += top_text_size.w;
   main_text_size.h += top_text_size.h;
+  APP_LOG(APP_LOG_LEVEL_ERROR, "Gsize height = %d", main_text_size.h);
 
   scroll_layer_set_content_size(s_scroll_layer, main_text_size);
 }
@@ -122,7 +123,7 @@ static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
   snprintf(s_main_text_buf, sizeof(s_main_text_buf), "%s", launch_get_random_message());
   text_layer_set_text(s_main_text_layer, s_main_text_buf);
 
-  back_click_handler(recognizer, context); // TODO: this is the final implementation.
+  //back_click_handler(recognizer, context); // TODO: this is the final implementation.
 
   //store_reset_curr_score();
 
@@ -141,6 +142,7 @@ static void click_config_provider(void *context) {
 static void window_load(Window *window) {
   Layer *window_layer = window_get_root_layer(window);
   GRect bounds = layer_get_bounds(window_layer);
+  APP_LOG(APP_LOG_LEVEL_ERROR, "bound height = %d", bounds.size.h);
 
   //int padding = PBL_IF_ROUND_ELSE(10, 0);
   int padding = 10;
@@ -224,7 +226,7 @@ static void window_load(Window *window) {
   // when creating the main TextLayer.
   GSize top_text_size = text_layer_get_content_size(s_top_text_layer);
   GRect main_bounds = GRect(bounds.origin.x, bounds.origin.y + top_text_size.h, 
-                            bounds.size.w, bounds.size.h);
+                            bounds.size.w, bounds.size.h); // TODO: different height value?
   GEdgeInsets main_text_insets = {.top = 5, .right = 20, .left = 20};
   s_main_text_font = fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD);
   //s_main_text_layer = make_text_layer(main_bounds, s_main_text_font, GTextAlignmentCenter);
@@ -237,7 +239,7 @@ static void window_load(Window *window) {
   scroll_layer_add_child(s_scroll_layer, text_layer_get_layer(s_main_text_layer));
 
   // Enable paging and text flow with an inset of 5 pixels
-  // If there is too much text in the top TextLayer, this pagination might cause 
+  // Note that if there is too much text in the top TextLayer, this pagination might cause 
   // unneccessary line spaces and clipped texts.
   if (top_text_size.h == 0) {
     text_layer_enable_screen_text_flow_and_paging(s_main_text_layer, 5);

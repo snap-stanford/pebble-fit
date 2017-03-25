@@ -36,7 +36,7 @@ void store_write_config_time(time_t time) {
  *   Make sure there is a non-Period Wakup scheduled daily before any Period Wakeup.
  */
 bool store_resend_config_request(time_t t_curr) {
-//    return true;
+    return true;
 
   if (!persist_exists(PERSIST_KEY_CONFIG_TIME)) {
     return true;
@@ -229,9 +229,18 @@ bool store_resend_steps(time_t t_curr) {
   time_t interval_seconds = enamel_get_break_freq() * SECONDS_PER_MINUTE;
   //t_last_upload = (t_last_upload < time_start_of_today());
 
-  if (persist_exists(PERSIST_KEY_UPLOAD_TIME)) {
+  if (!persist_exists(PERSIST_KEY_UPLOAD_TIME) || enamel_get_first_config() == 1) {
+    t_last_upload = time_start_of_today() - 2 *SECONDS_PER_DAY; // TODO: only send 2 days history.
+
+    return false;
+  } else {
     persist_read_data(PERSIST_KEY_UPLOAD_TIME, &t_last_upload, sizeof(time_t));
-    APP_LOG(APP_LOG_LEVEL_ERROR, "t_last_upload=%u", (unsigned) t_last_upload);
+
+    // DEBUG
+    char buf[32];
+    strftime(buf, sizeof(buf), "%d:%H:%M", localtime(&t_last_upload));
+    APP_LOG(APP_LOG_LEVEL_ERROR, "t_last_upload=%s",  buf);
+    //DEBUG
     if (t_last_upload  < time_start_of_today() - 2 * SECONDS_PER_DAY) {
       // If last upload time is ealier than 2 days ago, only upload starting at 2 days ago
       t_last_upload = time_start_of_today() - 2 * SECONDS_PER_DAY;
@@ -244,10 +253,9 @@ bool store_resend_steps(time_t t_curr) {
 
     t_last_upload += interval_seconds;
     persist_write_data(PERSIST_KEY_UPLOAD_TIME, &t_last_upload, sizeof(time_t));
+
     //return t_last_upload < t_curr - interval_seconds;
     return false;
-  } else {
-    return true;
   }
 }
 
@@ -290,6 +298,53 @@ int store_read_curr_score() {
 }
 
 /**
+ * Compare the current score to a reference score.
+ * The reference score used depends on the mode:
+ *   1 - personal average
+ *   2 - personal best
+ *   3 - all average
+ * Return an integer value = current_score - reference.
+ */
+int store_compare_ref_score(int mode) {
+  if (mode == 2) {
+      return store_read_curr_score() - atoi(enamel_get_score_p_best());
+  } else if (mode == 1 || mode == 3) {
+    int start, end, count, ref_score = 0;
+    const char *buf;
+
+    // Calculate the current position of time in a day.
+    int possible_score = (time(NULL) - time_start_of_today() - enamel_get_daily_start_time()) / 
+        (enamel_get_break_freq() * SECONDS_PER_MINUTE);
+    if (possible_score > enamel_get_total_break()) {
+      possible_score = enamel_get_total_break();
+    }
+
+    // Parse the CSV format string to get the reference score.
+    if (mode == 1) {
+      buf = enamel_get_score_p_average();
+    } else { // mode == 3
+      buf = enamel_get_score_a_average();
+    }
+    for (start = 0, end = 0, count = 1; buf[end] != '\0' && count < possible_score; end++) {
+      if (buf[end] == ',') {
+        count++;
+        start = end + 1;
+      }
+    }
+    for (int i = start; i <= end; i++) {
+      ref_score = ref_score * 10 + buf[i] - '0';
+    }
+    APP_LOG(APP_LOG_LEVEL_ERROR, "possible_score=%d, curr_score=%d, ref_score=%d", 
+        possible_score, store_read_curr_score(), ref_score);
+    return store_read_curr_score() - ref_score;
+  } else {
+    APP_LOG(APP_LOG_LEVEL_ERROR, "Unknown mode value %d", mode);
+  }
+  
+  return 0;
+}
+
+/**
  * Return the next random message from the message pool.
  */
 const char* store_read_random_message() {
@@ -301,6 +356,7 @@ const char* store_read_random_message() {
     index = index >= RANDOM_MSG_POOL_SIZE - 1? 0 : index + 1;
     persist_write_int(PERSIST_KEY_RANDOM_MSG_INDEX, index);
 
+    APP_LOG(APP_LOG_LEVEL_ERROR, "index=%d", index);
     switch (index) {
       case 1: return enamel_get_message_random_1(); break;
       case 2: return enamel_get_message_random_2(); break;

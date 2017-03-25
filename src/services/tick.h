@@ -6,5 +6,5 @@
 #include "../modules/launch.h"
 #include "../windows/wakeup_window.h"
 
-/* Subscribe to a tick timer service. */
+void tick_reset_count();
 void tick_second_subscribe(bool activate);

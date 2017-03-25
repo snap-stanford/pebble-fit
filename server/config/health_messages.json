@@ -1,12 +1,1 @@
-{
-  "hm1":        "Taking regular breaks from sitting lowers your risk of type II diabetes.",
-  "hm2":        "Sitting for long periods increases your risk of type II diabetes.",
-  "hm3":        "Taking regular breaks from sitting lowers your risk of cardiovascular disease.",
-  "hm4":        "Sitting for long increases your risk of cardiovascular disease.",
-  "hm5":        "Taking regular breaks from sitting is associated with lower blood pressure.",
-  "hm6":        "Sitting for long periods is associated higher blood pressure.",
-  "hm7":        "Taking regular breaks from sitting is linked to better overall physical function.",
-  "hm8":        "Sitting for long periods is linked to worsened overall physical function.",
-  "hm9":        "Taking regular breaks from sitting is associated with less fat around the waist.",
-  "hm10":       "Sitting for long periods is associated with more fat around the waist."
-}
+[{"content": "Taking regular breaks from sitting lowers your risk of type II diabetes.", "id": "hm1"}, {"content": "Sitting for long periods increases your risk of type II diabetes.", "id": "hm2"}, {"content": "Taking regular breaks from sitting lowers your risk of cardiovascular disease.", "id": "hm3"}, {"content": "Sitting for long increases your risk of cardiovascular disease.", "id": "hm4"}, {"content": "Taking regular breaks from sitting is associated with lower blood pressure.", "id": "hm5"}, {"content": "Sitting for long periods is associated higher blood pressure.", "id": "hm6"}, {"content": "Taking regular breaks from sitting is linked to better overall physical function.", "id": "hm7"}, {"content": "Sitting for long periods is linked to worsened overall physical function.", "id": "hm8"}, {"content": "Taking regular breaks from sitting is associated with less fat around the waist.", "id": "hm9"}, {"content": "Sitting for long periods is associated with more fat around the waist.", "id": "hm10"}]

@@ -1,12 +1,14 @@
-{
-  "om1":        "You are doing better today than a typical day:)",
-  "om2":        "You are doing worse today than a typical day:(",
-  "om3":        "You are X breaks ahead of your typical day:)",
-  "om4":        "You are X breaks behind your typical day:(",
-  "om5":        "You are only X periods away from your personal best!",
-  "om6":        "You are X periods behind your personal best.",
-  "om7":        "You are doing better today than most other app users:)",
-  "om8":        "You are doing worse today than most other app users:(",
-  "om9":        "You are X breaks ahead of most other app users:)",
-  "om10":       "You are X breaks behind most other app users:("
-}
+[
+{"id": "ou01", 
+"content": "You are doing better today than a typical day:)|You are doing worse today than a typical day:(|You are doing the same today as a typical day."},
+{"id": "ov02",
+"content": "You are %d breaks ahead of your typical day:)|You are %d breaks behind your typical day:(|You are doing the same today as a typical day."},
+{"id": "ow02", 
+"content":"You have beat your personal best!|You are %d periods away from your personal best.|You have tied your personal best!"},
+{"id": "oa01",
+"content": "You are doing better today than most other app users:)|You are doing worse today than most other app users:(|You are doing just as well as most other app users."},
+{"id": "ob02", 
+"content":"You are %d breaks ahead of most other app users:)|You are %d breaks behind most other app users:(|You are doing just as well as most other app users."}
+]
+
+
