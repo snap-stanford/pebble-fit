@@ -307,7 +307,8 @@ int store_read_curr_score() {
  */
 int store_compare_ref_score(int mode) {
   if (mode == 2) {
-      return store_read_curr_score() - atoi(enamel_get_score_p_best());
+    APP_LOG(APP_LOG_LEVEL_ERROR, "curr_score=%d, ref_score=%d", (int)store_read_curr_score(), (int)enamel_get_score_p_best());
+    return store_read_curr_score() - enamel_get_score_p_best();
   } else if (mode == 1 || mode == 3) {
     int start, end, count, ref_score = 0;
     const char *buf;
@@ -334,8 +335,8 @@ int store_compare_ref_score(int mode) {
     for (int i = start; i <= end; i++) {
       ref_score = ref_score * 10 + buf[i] - '0';
     }
-    APP_LOG(APP_LOG_LEVEL_ERROR, "possible_score=%d, curr_score=%d, ref_score=%d", 
-        possible_score, store_read_curr_score(), ref_score);
+    //APP_LOG(APP_LOG_LEVEL_ERROR, "possible_score=%d, curr_score=%d, ref_score=%d", 
+    //    possible_score, store_read_curr_score(), ref_score);
     return store_read_curr_score() - ref_score;
   } else {
     APP_LOG(APP_LOG_LEVEL_ERROR, "Unknown mode value %d", mode);
@@ -356,7 +357,7 @@ const char* store_read_random_message() {
     index = index >= RANDOM_MSG_POOL_SIZE - 1? 0 : index + 1;
     persist_write_int(PERSIST_KEY_RANDOM_MSG_INDEX, index);
 
-    APP_LOG(APP_LOG_LEVEL_ERROR, "index=%d", index);
+    //APP_LOG(APP_LOG_LEVEL_ERROR, "index=%d", index);
     switch (index) {
       case 1: return enamel_get_random_message_1(); break;
       case 2: return enamel_get_random_message_2(); break;

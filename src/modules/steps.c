@@ -252,9 +252,10 @@ static void prv_pdata_write(DictionaryIterator * out) {
 */
 
 /**
- * Fetch the step data in the last week. 
+ * Fetch the step data in the last week and then upload to the server. 
+ * TODO: optimize to reduce upload time.
  */
-void steps_get_prior_week() {
+void steps_upload_prior_week() {
   int step;
   time_t end, s, e;
   char buf[12];

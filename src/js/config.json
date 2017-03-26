@@ -675,12 +675,12 @@
       "messageKey": "score_p_average"
     },
     {
-      "type": "input",
+      "type": "slider",
       "id": "score_p_best",
       "messageKey": "score_p_best",
-      "attributes": {
-        "type": "number"
-      }
+      "defaultValue": 0,
+      "min": 0,
+      "step": 1
     },
     {
       "type": "input",
@@ -691,9 +691,9 @@
       "type": "input",
       "id": "score_a_best",
       "messageKey": "score_a_best",
-      "attributes": {
-        "type": "number"
-      }
+      "defaultValue": 0,
+      "min": 0,
+      "step": 1
     },
     {
       "type": "input",

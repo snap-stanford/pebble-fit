@@ -159,22 +159,22 @@ void launch_set_random_message() {
       for (start = ++i; msg_ptr[i] != '\0'; i++) {}
       end = i;
     }
-    APP_LOG(APP_LOG_LEVEL_ERROR, "msgid=%s, score_diff=%d", s_msg_id, score_diff);
-    APP_LOG(APP_LOG_LEVEL_ERROR, "start=%d, end=%d", start, end);
-    APP_LOG(APP_LOG_LEVEL_ERROR, "%s!", msg_ptr);
+    //APP_LOG(APP_LOG_LEVEL_ERROR, "msgid=%s, score_diff=%d", s_msg_id, score_diff);
+    //APP_LOG(APP_LOG_LEVEL_ERROR, "start=%d, end=%d", start, end);
+    //APP_LOG(APP_LOG_LEVEL_ERROR, "%s!", msg_ptr);
   
     if (mode == 'u' || mode == 'a') {
-      snprintf(random_message, end - start, msg_ptr+start);
+      snprintf(random_message, end - start+1, msg_ptr+start);
     } else {
       // Substitute the number in the message.
-      APP_LOG(APP_LOG_LEVEL_ERROR, "Substitute the number in the message.");
+      //APP_LOG(APP_LOG_LEVEL_ERROR, "Substitute the number in the message.");
       if (score_diff < 0) {
         score_diff = -1 * score_diff;
       }
       snprintf(random_message, end - start, msg_ptr+start, score_diff);
 
-      s_random_message = random_message;
     }
+    s_random_message = random_message;
   }
 } 
 
