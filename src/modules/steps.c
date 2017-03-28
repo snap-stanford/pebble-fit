@@ -192,7 +192,7 @@ bool steps_get_pass() {
 
 /* Write steps array data to dict. */
 static void data_write(DictionaryIterator * out) {
-  //write the data
+  // Write the data
   int true_value = 1;
   dict_write_int(out, AppKeyStepsData, &true_value, sizeof(int), true);
 
@@ -200,8 +200,6 @@ static void data_write(DictionaryIterator * out) {
   dict_write_int(out, AppKeyArrayLength, &s_num_records, sizeof(int), true);
   dict_write_int(out, AppKeyArrayStart, &AppKeyArrayData, sizeof(int), true);
   for (int i = 0; i < s_num_records; i++) {
-    //dict_write_int(out, AppKeyArrayData + i, &s_step_records[i], sizeof(int), true);
-    // FIXME: s_step_records is the type of uint8_t[]
     dict_write_uint8(out, AppKeyArrayData + i, s_step_records[i]);
   }
 }
@@ -236,42 +234,58 @@ void steps_send_latest(time_t t_curr) {
 
 // Functions for sending the step data in the last week (supposed to be used when user first
 // install the app). 
-/*
-static void prv_pdata_write(DictionaryIterator * out) {
+static uint8_t s_prior_step_records[MAX_ENTRIES];
+static int s_prior_num_records;
+static time_t s_prior_start;
+static void prv_prior_data_write(DictionaryIterator * out) {
   //write the data
   int true_value = 1;
   dict_write_int(out, AppKeyStepsData, &true_value, sizeof(int), true);
 
   dict_write_int(out, AppKeyDate, &s_start, sizeof(int), true);
-  dict_write_int(out, AppKeyArrayLength, &s_num_records, sizeof(int), true);
+  dict_write_int(out, AppKeyArrayLength, &s_prior_num_records, sizeof(int), true);
   dict_write_int(out, AppKeyArrayStart, &AppKeyArrayData, sizeof(int), true);
-  for (int i = 0; i < s_num_records; i++) {
-    dict_write_uint8(out, AppKeyArrayData + i, s_step_records[i]);
+  for (int i = 0; i < s_prior_num_records; i++) {
+    dict_write_uint8(out, AppKeyArrayData + i, s_prior_step_records[i]);
   }
 }
-*/
 
 /**
  * Fetch the step data in the last week and then upload to the server. 
  * TODO: optimize to reduce upload time.
  */
 void steps_upload_prior_week() {
-  int step;
-  time_t end, s, e;
-  char buf[12];
-  end = time(NULL);
-  //s = end - 7 * SECONDS_PER_DAY;
-  s = end - 2 * SECONDS_PER_DAY; // TODO: For now only send 2 days data.
-  while (s < end) {
+  int i, curr = 0;
+  time_t t_start, t_end, t_final;
+  uint8_t step_records[120];
+
+  s_prior_num_records = 0;
+  //s = e_launch_time - 7 * SECONDS_PER_DAY;
+  // TODO: For now only send limited data.
+  t_final = e_launch_time - MAX_ENTRIES * SECONDS_PER_MINUTE; // not include last period.
+  t_start = s_prior_start = t_final - 120 * SECONDS_PER_MINUTE + 1; 
+  while (t_start < t_final) {
+    // Read data into a temporary array with limited size. Due to the fact we cannot load
+    // more than a certain amount of data in a given call.
     s_is_loaded = false;
-    step = 0;
-    e = s + SECONDS_PER_HOUR;
-    prv_load_data(&s, &e);
-    for (int i = 0; i < MAX_ENTRIES; i++) {
-      step += s_step_records[i]; 
+    t_end = t_start + MAX_ENTRIES * SECONDS_PER_MINUTE;
+
+    // DEBUG
+    char buf[12], bufe[12];
+    strftime(buf, sizeof(buf), "%d/%H:%M", localtime(&t_start));
+    strftime(bufe, sizeof(bufe), "%d/%H:%M", localtime(&t_end));
+    APP_LOG(APP_LOG_LEVEL_INFO, "DEBUG: loading history data at %s-%s", buf, bufe);
+    // DEBUG
+    //prv_load_data(&t_start, &t_end);
+
+    // Move data into an accumalative array.
+    for (i = 0; i < MAX_ENTRIES; i++, curr++) {
+      s_prior_step_records[curr] = curr; 
     }
-    strftime(buf, sizeof(buf), "%d:%H:%M", localtime(&s));
-    APP_LOG(APP_LOG_LEVEL_INFO, "Hisotrical hourly = %s, steps = %d", buf, step);
-    s += SECONDS_PER_HOUR;
+
+    s_prior_num_records += MAX_ENTRIES;
+    t_start = t_end + 1;
   }
+
+  comm_send_data(prv_prior_data_write, comm_sent_handler, comm_server_received_handler);
 }

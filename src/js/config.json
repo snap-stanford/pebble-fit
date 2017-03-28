@@ -591,6 +591,7 @@
       "label": "Break Frequency:",
       "description": "How frequently do you want to take walking breaks (in minutes)?",
       "options": [
+        { "label": "5",        "value": 5 },
         { "label": "60",        "value": 60 }
       ]
     },
@@ -602,6 +603,7 @@
       "label": "Break Length:",
       "description": "How many minutes of walking do you want to define as a break?",
       "options": [
+        { "label": "1",        "value": 1 },
         { "label": "5",        "value": 5 }
       ]
     },
@@ -632,6 +634,7 @@
       "label": "Step threshold:",
       "description": "<p align='justify'>The minimum number of steps required within a break.</p>",
       "options": [
+        { "label": "10",   "value": 10 },
         { "label": "100",   "value": 100 }
       ]
     },

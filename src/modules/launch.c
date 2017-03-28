@@ -159,9 +159,9 @@ void launch_set_random_message() {
       for (start = ++i; msg_ptr[i] != '\0'; i++) {}
       end = i;
     }
-    //APP_LOG(APP_LOG_LEVEL_ERROR, "msgid=%s, score_diff=%d", s_msg_id, score_diff);
-    //APP_LOG(APP_LOG_LEVEL_ERROR, "start=%d, end=%d", start, end);
-    //APP_LOG(APP_LOG_LEVEL_ERROR, "%s!", msg_ptr);
+    APP_LOG(APP_LOG_LEVEL_ERROR, "msgid=%s, score_diff=%d", s_msg_id, score_diff);
+    APP_LOG(APP_LOG_LEVEL_ERROR, "start=%d, end=%d", start, end);
+    APP_LOG(APP_LOG_LEVEL_ERROR, "%s!", msg_ptr);
   
     if (mode == 'u' || mode == 'a') {
       snprintf(random_message, end - start+1, msg_ptr+start);

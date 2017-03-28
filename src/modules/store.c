@@ -36,7 +36,6 @@ void store_write_config_time(time_t time) {
  *   Make sure there is a non-Period Wakup scheduled daily before any Period Wakeup.
  */
 bool store_resend_config_request(time_t t_curr) {
-    return true;
 
   if (!persist_exists(PERSIST_KEY_CONFIG_TIME)) {
     return true;
@@ -357,7 +356,7 @@ const char* store_read_random_message() {
     index = index >= RANDOM_MSG_POOL_SIZE - 1? 0 : index + 1;
     persist_write_int(PERSIST_KEY_RANDOM_MSG_INDEX, index);
 
-    //APP_LOG(APP_LOG_LEVEL_ERROR, "index=%d", index);
+    APP_LOG(APP_LOG_LEVEL_ERROR, "index=%d", index);
     switch (index) {
       case 1: return enamel_get_random_message_1(); break;
       case 2: return enamel_get_random_message_2(); break;

@@ -47,7 +47,7 @@ module.exports = function (minified) {
   ];
 
   // Components that should always be hidden.
-  var disabled_components = ['step_threshold', 
+  var disabled_components = [//'step_threshold', 
     'dynamic_wakeup', 'sliding_window', 'display_duration'];
   var hidden_components = [
     'activate', 'is_consent', 'first_config', 'config_update_interval', 'time_warn_text',
@@ -259,29 +259,32 @@ module.exports = function (minified) {
     var start = clayConfig.getItemById('daily_start_time').get();
     var end = clayConfig.getItemById('daily_end_time').get();
     
-    if (end < start) { 
+    if (start < end) { // Valid time range.
       start = start.split(':');
       end = end.split(':');
 
       var breakFreq = parseInt(clayConfig.getItemById('break_freq').get());
       var breakLen = clayConfig.getItemById('break_len').get();
 
-      var totalBreak = (end[0]*60+parseInt(end[1])-start[0]*60-parseInt(start[1])) / breakFreq;
+      var totalBreak = Math.floor((end[0]*60+parseInt(end[1])-start[0]*60-parseInt(start[1])) / breakFreq);
 
-      var message = "<p align='justify'>Great, that means there will be " + totalBreak + 
+      var message = "<p align='justify'>start=" + start[0] + ":" + start[1] + "end= "+end[0]+ ":" + end[1] +
+        " Great, that means there will be " + totalBreak + 
         " breaks in a day. Let's see if you can take a " + breakLen + 
         " minute walking break during each of them.</p>";
 
       clayConfig.getItemById('total_break').set(totalBreak);
       clayConfig.getItemById('config_summary').set(message);
 
-      clayConfig.getItemById('submit').disable();
-      clayConfig.getItemById('time_warn_text').show();
-      clayConfig.getItemById('config_summary').hide();
-    } else {
-      clayConfig.getItemById('submit').enable();
-      clayConfig.getItemById('time_warn_text').hide();
       clayConfig.getItemById('config_summary').show();
+      clayConfig.getItemById('time_warn_text').hide();
+
+      clayConfig.getItemById('submit').enable();
+    } else { // Invalid time range.
+      clayConfig.getItemById('config_summary').hide();
+      clayConfig.getItemById('time_warn_text').show();
+
+      clayConfig.getItemById('submit').disable();
     }
   }
 
