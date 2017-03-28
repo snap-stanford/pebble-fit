@@ -399,6 +399,7 @@ void update_config(void *context) {
   store_write_config_time(e_launch_time);
 
   // Reset the current progress to eliminate any inconsistency after config change.
+  APP_LOG(APP_LOG_LEVEL_ERROR, "IDSJFODSIJFOISDJGOIDSJGPOISDJG");
   store_reset_curr_score();
 
   // Force it to timeout.

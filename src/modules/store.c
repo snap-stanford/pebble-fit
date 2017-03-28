@@ -36,7 +36,6 @@ void store_write_config_time(time_t time) {
  *   Make sure there is a non-Period Wakup scheduled daily before any Period Wakeup.
  */
 bool store_resend_config_request(time_t t_curr) {
-  return true;
 
   if (!persist_exists(PERSIST_KEY_CONFIG_TIME)) {
     return true;
@@ -271,7 +270,9 @@ bool store_resend_steps(time_t t_curr) {
  */
 void store_reset_curr_score() {
   APP_LOG(APP_LOG_LEVEL_ERROR, "RESET break count");
+  time_t t_last = time(NULL);
   persist_write_int(PERSIST_KEY_CURR_SCORE, 0); 
+  persist_write_data(PERSIST_KEY_CURR_SCORE_TIME, &t_last, sizeof(time_t));
 }
 
 /**
@@ -279,6 +280,7 @@ void store_reset_curr_score() {
  * Also record the current time associated with this break count increment.
  */
 void store_increment_curr_score() {
+  APP_LOG(APP_LOG_LEVEL_ERROR, "enter store_increment_curr_score()");
   if (!persist_exists(PERSIST_KEY_CURR_SCORE)) {
     persist_write_int(PERSIST_KEY_CURR_SCORE, 1); 
   } else {
