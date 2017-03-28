@@ -268,10 +268,9 @@ module.exports = function (minified) {
 
       var totalBreak = Math.floor((end[0]*60+parseInt(end[1])-start[0]*60-parseInt(start[1])) / breakFreq);
 
-      var message = "<p align='justify'>start=" + start[0] + ":" + start[1] + "end= "+end[0]+ ":" + end[1] +
-        " Great, that means there will be " + totalBreak + 
+      var message = " Great, that means there will be " + totalBreak + 
         " breaks in a day. Let's see if you can take a " + breakLen + 
-        " minute walking break during each of them.</p>";
+        " minute walking break during each of them.";
 
       clayConfig.getItemById('total_break').set(totalBreak);
       clayConfig.getItemById('config_summary').set(message);

@@ -124,9 +124,9 @@ static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
   //store_write_upload_time(e_launch_time - 2 * SECONDS_PER_DAY);
 
   // Test: random messages.
-  //launch_set_random_message(true);
-  //snprintf(s_main_text_buf, sizeof(s_main_text_buf), "%s", launch_get_random_message());
-  //text_layer_set_text(s_main_text_layer, s_main_text_buf);
+  launch_set_random_message(true);
+  snprintf(s_main_text_buf, sizeof(s_main_text_buf), "%s", launch_get_random_message());
+  text_layer_set_text(s_main_text_layer, s_main_text_buf);
 
   //back_click_handler(recognizer, context); // TODO: this is the final implementation.
 
@@ -136,7 +136,7 @@ static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
   //store_write_config_time(time(NULL) - 2 * SECONDS_PER_DAY);
 
   // Test: send prior week's data
-  steps_upload_prior_week();
+  //steps_upload_prior_week();
 }
 
 /* Deprecated. Set click event handlers. */

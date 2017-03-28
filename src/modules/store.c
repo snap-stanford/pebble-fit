@@ -36,6 +36,7 @@ void store_write_config_time(time_t time) {
  *   Make sure there is a non-Period Wakup scheduled daily before any Period Wakeup.
  */
 bool store_resend_config_request(time_t t_curr) {
+  return true;
 
   if (!persist_exists(PERSIST_KEY_CONFIG_TIME)) {
     return true;
@@ -161,6 +162,7 @@ void deprecated_store_write_launchexit_event(time_t t_launch, time_t t_exit, uin
  * to the server. 
  */
 bool store_resend_launchexit_event() {
+  APP_LOG(APP_LOG_LEVEL_ERROR, "in store_resend_launchexit_event");
   // FIXME: consider using a single key and sequential storage location
   uint32_t key, msg_id_ascii;
   time_t t_launch, t_exit;
@@ -209,10 +211,16 @@ bool store_resend_launchexit_event() {
 
       persist_delete(key);
       s_launchexit_count--;
-    }
 
-    persist_write_data(PERSIST_KEY_LAUNCHEXIT_COUNT, &s_launchexit_count, LAUNCHEXIT_COUNT_SIZE);
-    return false;
+      persist_write_data(PERSIST_KEY_LAUNCHEXIT_COUNT, &s_launchexit_count, 
+        LAUNCHEXIT_COUNT_SIZE);
+      return false;
+    } else {
+      s_launchexit_count--;
+      persist_write_data(PERSIST_KEY_LAUNCHEXIT_COUNT, &s_launchexit_count, 
+        LAUNCHEXIT_COUNT_SIZE);
+      return true;
+    }
   } else {
     return true;
   }
