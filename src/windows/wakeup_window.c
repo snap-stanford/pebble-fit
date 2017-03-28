@@ -43,7 +43,7 @@ static void top_text_layer_update_proc() {
     snprintf(s_top_text_buf, sizeof(s_top_text_buf), "%s", text);
   } else { 
     // Other launch event, supposed to display nothing in this top TextLayer.
-    text = "Test";
+    text = "";
     snprintf(s_top_text_buf, sizeof(s_top_text_buf), "%s", text);
 
     // DEBUG BEGIN
@@ -71,6 +71,7 @@ static void main_text_layer_update_proc() {
 
     APP_LOG(APP_LOG_LEVEL_INFO, "random_message,content=ABSZ1");
     APP_LOG(APP_LOG_LEVEL_INFO, "random_message,content=%s", launch_get_random_message());
+    APP_LOG(APP_LOG_LEVEL_INFO, "random_message,content=ABSZ1");
     snprintf(s_main_text_buf, sizeof(s_main_text_buf), "%s", launch_get_random_message());
   } else {
     APP_LOG(APP_LOG_LEVEL_INFO, "random_message,content=ABSZ2");
@@ -126,7 +127,7 @@ static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
   //store_write_upload_time(e_launch_time - 2 * SECONDS_PER_DAY);
 
   // Test: random messages.
-  launch_set_random_message(true);
+  launch_set_random_message();
   snprintf(s_main_text_buf, sizeof(s_main_text_buf), "%s", launch_get_random_message());
   text_layer_set_text(s_main_text_layer, s_main_text_buf);
 

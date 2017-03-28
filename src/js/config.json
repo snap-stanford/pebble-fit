@@ -658,6 +658,7 @@
       "messageKey": "total_break",
       "defaultValue": 0,
       "min": 0,
+      "max": 1440,
       "step": 1
     },
     {

@@ -9,7 +9,8 @@ static Window *s_dialog_window = NULL;
 static Window *s_wakeup_window = NULL;
 
 static int s_config_request;
-static const char *s_random_message;
+static char *s_random_message;
+char s_random_message_buf[RANDOM_MSG_SIZE_MAX];
 
 // For resend functions.
 static time_t s_t_launch, s_t_exit, s_curr_time;
@@ -86,7 +87,7 @@ void launch_resend(time_t t_launch, time_t t_exit, char *msg_id, uint8_t br, uin
  * Otherwise, set message ID to be either "pass" or "fail".
  */
 void launch_set_random_message() {
-  char random_message[RANDOM_MSG_SIZE_MAX];
+  //char random_message[RANDOM_MSG_SIZE_MAX]; // FIXME: change to global static variable.
 
   const char *msg_ptr = store_read_random_message();
 
@@ -98,9 +99,10 @@ void launch_set_random_message() {
   if (msg_ptr[0] != 'o') { // Deal with action and health messages.
     char *c;  // TODO: might could just using msg_ptr.
 
-    snprintf(random_message, sizeof(random_message), msg_ptr);
-    for (s_msg_id = c = random_message; *c != ':' && *c != '\0'; c++) {}
-    *c++ = '\0'; // Replace ':' with 0.
+    snprintf(s_random_message_buf, sizeof(s_random_message_buf), msg_ptr);
+    for (s_msg_id = c = s_random_message_buf; *c != ':' && *c != '\0'; c++) {}
+    c[4] = '\0';
+    snprintf(s_random_message_buf, sizeof(s_random_message_buf), msg_ptr+5);
 
     s_random_message = c;
   } else { // Deal with the outcome messages specially.
@@ -164,17 +166,19 @@ void launch_set_random_message() {
     APP_LOG(APP_LOG_LEVEL_ERROR, "%s!", msg_ptr);
   
     if (mode == 'u' || mode == 'a') {
-      snprintf(random_message, end - start+1, msg_ptr+start);
+      //snprintf(random_message, end - start+1, msg_ptr+start);
+      snprintf(s_random_message_buf, end - start+1, msg_ptr+start);
     } else {
       // Substitute the number in the message.
       //APP_LOG(APP_LOG_LEVEL_ERROR, "Substitute the number in the message.");
       if (score_diff < 0) {
         score_diff = -1 * score_diff;
       }
-      snprintf(random_message, end - start, msg_ptr+start, score_diff);
+      //snprintf(random_message, end - start, msg_ptr+start, score_diff);
+      snprintf(s_random_message_buf, end - start, msg_ptr+start, score_diff);
 
     }
-    s_random_message = random_message;
+    s_random_message = s_random_message_buf;
   }
 } 
 
