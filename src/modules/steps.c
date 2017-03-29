@@ -44,7 +44,7 @@ static void prv_load_data(time_t *start, time_t *end) {
         s_step_records[i] = minute_data[i].steps;
         s_steps += s_step_records[i];
         //if (s_step_records[i] > 0) {
-        //  APP_LOG(APP_LOG_LEVEL_INFO, "s_step_records %d = %d", (int)i, (int)s_step_records[i]);
+          APP_LOG(APP_LOG_LEVEL_INFO, "s_step_records %d = %d", (int)i, (int)s_step_records[i]);
         //}
       }
     }
@@ -72,7 +72,7 @@ void steps_update() {
     s_is_loaded = false; // Force to load new data from Health service.
     s_end = time(NULL);
     s_start = s_end - SECONDS_PER_MINUTE * MAX_ENTRIES; 
-    APP_LOG(APP_LOG_LEVEL_INFO, "DEBUG: steps_update - before prv_load_data.");
+    //APP_LOG(APP_LOG_LEVEL_INFO, "DEBUG: steps_update - before prv_load_data.");
     prv_load_data(&s_start, &s_end);
 
     //s_inactive_mins = 0;
@@ -86,21 +86,27 @@ void steps_update() {
     //  break_len, break_freq, sliding_window, step_threshold);
     
     // Check whether the goal is met. Use s_pass as the indicator.
-    start_index = e_launch_reason == LAUNCH_WAKEUP_ALERT? 
-     MAX_ENTRIES-enamel_get_break_freq()+2*break_len : MAX_ENTRIES-enamel_get_break_freq();
+    start_index = e_launch_reason == LAUNCH_WAKEUP_ALERT ? 
+     //MAX_ENTRIES-enamel_get_break_freq()+2*break_len : MAX_ENTRIES-enamel_get_break_freq();
+     s_num_records-enamel_get_break_freq()+2*break_len : 
+     s_num_records-enamel_get_break_freq();
+    //APP_LOG(APP_LOG_LEVEL_INFO, "DEBUG: s_num_records = %d", s_num_records);
+    //APP_LOG(APP_LOG_LEVEL_ERROR, "DEBUG: step_threshold = %d", step_threshold);
+    //APP_LOG(APP_LOG_LEVEL_ERROR, "DEBUG: start_index = %d", start_index);
+    if (start_index < 0) start_index = 0;
     
     // 1. This is the approach for checking whether step_count > threshold in at least 
     // "break_len" minutes in the last period of "break_freq" minutes.
     int step_count = 0;
-    for (right = start_index; right < break_len; right++) {
+    for (left = right = start_index; right < start_index + break_len; right++) {
       step_count += s_step_records[right];
     }
     if (step_count >= step_threshold) {
       s_pass = true;
     } else {
-      left = 0;
-      for ( ; right < MAX_ENTRIES; right++, left++) {
+      for ( ; right < s_num_records; right++, left++) {
         step_count += s_step_records[right] - s_step_records[left];
+        APP_LOG(APP_LOG_LEVEL_ERROR, "step_count = %d", step_count);
         if (step_count >= step_threshold) {
           s_pass = true;
           break;
@@ -146,14 +152,16 @@ void steps_update() {
 
     // Convert to human readable time for the display purpose.
     //APP_LOG(APP_LOG_LEVEL_ERROR, "enamel_get_sleep_minutes=%d", enamel_get_sleep_minutes());
-    APP_LOG(APP_LOG_LEVEL_ERROR, "step_threshold=%d", step_threshold);
     if (s_pass) {
+      APP_LOG(APP_LOG_LEVEL_ERROR, "pass");
       prv_report_steps(right);
       
       // Only increment score if this is a period-wakeup.
       // TODO: We might only want to check steps at period-wakeup in final version.
       // FIXME: could optimiza by moving to the front of this function to save time.
+      APP_LOG(APP_LOG_LEVEL_ERROR, "%d", e_launch_reason);
       if (e_launch_reason == LAUNCH_WAKEUP_PERIOD) {
+        APP_LOG(APP_LOG_LEVEL_ERROR, "ABSZ store_increment_curr_score");
         store_increment_curr_score();
       }
 

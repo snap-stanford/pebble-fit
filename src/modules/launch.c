@@ -238,11 +238,11 @@ static void prv_wakeup_vibrate(bool force) {
 void wakeup_handler(WakeupId wakeup_id, int32_t wakeup_cookie) {
   APP_LOG(APP_LOG_LEVEL_INFO, "DEBUG: wakeup=%d cookie=%d", (int)wakeup_id, (int)wakeup_cookie);
   
-  steps_update();
-  
   // wakeup_cookie is the index associated to the wakeup event. It is also the wakeup type.
   if (wakeup_cookie >= LAUNCH_WAKEUP_PERIOD) {
     e_launch_reason = wakeup_cookie;
+    steps_update();
+  
     prv_wakeup_vibrate(false); // TODO: consider moving into swtich statement.
 
     // This could happen if we receive wakeup event while the app has been on the foreground.
@@ -310,7 +310,7 @@ void launch_handler(bool activate) {
 
     // TODO: Calculate steps only at the scheduled wakeup event? What if user accomplish goal and manually check it before the scheduled wakeup?
     // This is redundant and for debug only, later on we will only update steps at wakeup launch, and we won't change curr_score other than notification/period launch.
-    steps_update(); 
+    //steps_update();
 
     // Set the message ID to be pass/fail. This will be overwritten by the true random
     // message ID if this is a LAUNCH_WAKEUP_ALERT event.

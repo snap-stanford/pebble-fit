@@ -18,7 +18,7 @@ var SERVER = 'http://pebble-fit.herokuapp.com';
 // Local servers (use ifconfig to find out).
 //var SERVER = 'http://10.30.202.74:3000';
 //var SERVER = 'http://10.34.171.70:3000';
-var SERVER = 'http://192.168.0.27:3000';
+//var SERVER = 'http://192.168.0.27:3000';
 
 // Flag to switch off server communication
 var USE_OFFLINE = true;
