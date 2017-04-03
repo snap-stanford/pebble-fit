@@ -12,25 +12,36 @@ var configs = {
   'real_time_random': require('../config/real_time_random')
 };
 
-exports.save = function (watch, name, email, age, gender, height, heightU, weight, weightU, race, school, occupation, deskwork, income, country, zipcode, next) {
-  console.log("Creating new user: " + watch);
+//exports.save = function (watch, name, email, age, gender, height, heightU, weight, weightU, race, school, occupation, deskwork, income, country, zipcode, next) {
+exports.save = function (query, next) {
+  console.log("Creating new user: " + query.watch);
 
-  User.update({ 'watch': watch }, 
-    { $set: { 'name':       name,
-              'email':      email,
-              'age':        age,
-              'gender':     gender,
-              'height':     height,
-              'heightU':    heightU,
-              'weight':     weight,
-              'weightU':    weightU,
-              'race':       race,
-              'school':     school,
-              'occupation': occupation,
-              'deskwork':   deskwork,
-              'income':     income,
-              'country':    country,
-              'zipcode':    zipcode 
+  User.update({ 'watch': query.watch }, 
+    { $set: { 'name':       query.name,
+              'email':      query.email,
+              'age':        query.age,
+              'gender':     query.gender,
+              'height':     query.height,
+              'heightU':    query.heightU,
+              'weight':     query.weight,
+              'weightU':    query.weightU,
+              'race':       query.race,
+              'school':     query.school,
+              'occupation': query.occupation,
+              'deskwork':   query.deskwork,
+              'income':     query.income,
+              'country':    query.country,
+              'zipcode':    query.zipcode,
+              'sit1':       query.sit1,
+              'sit2':       query.sit2,
+              'sit3':       query.sit3,
+              'sit4':       query.sit4,
+              'sit5':       query.sit5,
+              'sit6':       query.sit6,
+              'sit7':       query.sit7,
+              'sit8':       query.sit8,
+              'sit9':       query.sit9,
+              'sit9T':      query.sit9T,
     } }, 
     { upsert: true },
     next);

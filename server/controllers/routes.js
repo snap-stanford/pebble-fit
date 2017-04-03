@@ -57,6 +57,7 @@ router.get(['/config'],
 
     if (req.query.first) {
       // If user also upload survey contents, save them first.
+      /*
       users.save(
         req.query.watch, 
         req.query.name, 
@@ -74,7 +75,8 @@ router.get(['/config'],
         req.query.income, 
         req.query.country, 
         req.query.zipcode, 
-        callback);
+        callback); */
+      users.save(req.query, callback);
     } else {
       callback(null);
     }

@@ -31,10 +31,13 @@ module.exports = function (minified) {
   ];
   var consent_result_section = ['consent_result_text', 'consent_result_button']; 
   var survey_section = ['survey_heading_0', 'survey_text_0', 'survey_heading_1', 'survey_text_1',
+    'survey_heading_2', 'survey_text_2', 'survey_text_3',
     'survey_age_text', 'survey_age', 'survey_gender', 'survey_height', 'survey_height_unit', 
     'survey_weight', 'survey_weight_unit', 'survey_race', 'survey_school', 
     'survey_occupation_text', 'survey_occupation', 'survey_deskwork', 'survey_income', 
-    'survey_country_text', 'survey_country', 'survey_zipcode_text', 'survey_zipcode'
+    'survey_country_text', 'survey_country', 'survey_zipcode_text', 'survey_zipcode',
+    'survey_sit_1', 'survey_sit_2', 'survey_sit_3', 'survey_sit_4', 'survey_sit_5', 
+    'survey_sit_6', 'survey_sit_7', 'survey_sit_8', 'survey_sit_9', 'survey_sit_9_text'
   ];
   var config_section = ['settings',  'vibrate', 'break_freq', 'break_len', 'step_threshold',
     //'activate', 'dynamic_wakeup', 'sliding_window', 'display_duration',

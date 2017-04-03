@@ -16,7 +16,7 @@ log.set_level(3);
 var SERVER = 'http://pebble-fit.herokuapp.com';
 
 // Local servers (use ifconfig to find out).
-//var SERVER = 'http://10.30.202.74:3000';
+var SERVER = 'http://10.30.202.74:3000';
 //var SERVER = 'http://10.34.171.70:3000';
 //var SERVER = 'http://192.168.0.27:3000';
 
@@ -136,7 +136,19 @@ Pebble.addEventListener('webviewclosed', function(e) {
     '&deskwork='    + dict[messageKeys.survey_deskwork]                       +
     '&income='      + dict[messageKeys.survey_income]                         +
     '&country='     + encodeURIComponent(dict[messageKeys.survey_country])    +
-    '&zipcode='     + encodeURIComponent(dict[messageKeys.survey_zipcode]);
+    '&zipcode='     + encodeURIComponent(dict[messageKeys.survey_zipcode])    +
+
+    '&sit1='        + encodeURIComponent(dict[messageKeys.survey_sit_1])      +
+    '&sit2='        + encodeURIComponent(dict[messageKeys.survey_sit_2])      +
+    '&sit3='        + encodeURIComponent(dict[messageKeys.survey_sit_3])      +
+    '&sit4='        + encodeURIComponent(dict[messageKeys.survey_sit_4])      +
+    '&sit5='        + encodeURIComponent(dict[messageKeys.survey_sit_5])      +
+    '&sit6='        + encodeURIComponent(dict[messageKeys.survey_sit_6])      +
+    '&sit7='        + encodeURIComponent(dict[messageKeys.survey_sit_7])      +
+    '&sit8='        + encodeURIComponent(dict[messageKeys.survey_sit_8])      +
+    '&sit9='        + encodeURIComponent(dict[messageKeys.survey_sit_9])      +
+    '&sit9T='       + encodeURIComponent(dict[messageKeys.survey_sit_9_text])
+    ;
   }
 
   // Send to the server first and then to the watch.
@@ -162,6 +174,18 @@ Pebble.addEventListener('webviewclosed', function(e) {
     delete dict[messageKeys.random_message_7];
     delete dict[messageKeys.random_message_8];
     delete dict[messageKeys.random_message_9];
+    delete dict[messageKeys.config_summary];
+    delete dict[messageKeys.survey_sit_1];
+    delete dict[messageKeys.survey_sit_2];
+    delete dict[messageKeys.survey_sit_3];
+    delete dict[messageKeys.survey_sit_4];
+    delete dict[messageKeys.survey_sit_5];
+    delete dict[messageKeys.survey_sit_6];
+    delete dict[messageKeys.survey_sit_7];
+    delete dict[messageKeys.survey_sit_8];
+    delete dict[messageKeys.survey_sit_9];
+    delete dict[messageKeys.survey_sit_9_text];
+
     log.info("Before sending config data to Pebble!");
     log.info(JSON.stringify(dict));
     

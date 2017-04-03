@@ -227,7 +227,7 @@
       "type": "input",
       "id": "consent_name",
       "messageKey": "consent_name",
-      "label": "Name (Optional)",
+      "label": "User Name (Optional)",
       "attributes": {
         "maxlength": 64
       }
@@ -364,9 +364,9 @@
       "id": "survey_height_unit",
       "messageKey": "survey_height_unit",
       "label": "3. What is your current height?",
-      "defaultValue": "ft",
+      "defaultValue": "in",
       "options": [
-        { "label": "ft",     "value": "ft"},
+        { "label": "in",     "value": "in"},
         { "label": "cm",     "value": "cm"}
       ]
     },
@@ -411,7 +411,7 @@
         { "label": "Asian or Pacific Islander",           "value": "asian"},
         { "label": "Black or African American",           "value": "black"},
         { "label": "Hispanic or Latino",                  "value": "hispanic"},
-        { "label": "Native American or American Indian",  "value": "native_American"},
+        { "label": "Native American or American Indian",  "value": "native_american"},
         { "label": "White",                               "value": "white"},
         { "label": "Other",                               "value": "other"},
         { "label": "Choose not to answer",                "value": "not_to_answer"}
@@ -427,8 +427,7 @@
         { "label": "No schooling completed",              "value": "no_school"},
         { "label": "Nursery school to 8th grade",         "value": "nursery"},
         { "label": "Some high school, no diploma",        "value": "some_high_school"},
-        { "label": "High school graduate, diploma or the equivalent (for example: GED)",        
-          "value": "High School"},
+        { "label": "High school diploma or equivalent",   "value": "high_school"},
         { "label": "Some college credit, no degree",      "value": "some_college"},
         { "label": "Trade/technical/vocational training", "value": "trade"},
         { "label": "Associate degree",                    "value": "associate"},
@@ -508,6 +507,200 @@
       "attributes": {
         "maxlength": 10
       }
+    },
+    {
+      "type": "heading",
+      "id": "survey_heading_2",
+      "defaultValue": "More about your time sitting…"
+    },
+    {
+      "type": "text",
+      "id": "survey_text_2",
+      "defaultValue": "<p align='justify'>One of our goals is to try and reduce sedentary time, so it is useful for us to know a little more about the time you spend sitting.</p>"
+    },
+    {
+      "type": "text",
+      "id": "survey_text_3",
+      "defaultValue": "<p align='justify'>1. On a typical weekday, how much time do you spend (from when you wake up until you go to bed) sitting or lying down and doing the following?</p>"
+    },
+    {
+      "type": "radiogroup",
+      "id": "survey_sit_1",
+      "messageKey": "survey_sit_1",
+      "label": "Sitting during transit (i.e. driving in car, bus, train, etc.)",
+      "options": [
+        { "label": "None",              "value": "none" },
+        { "label": "1-15 min",          "value": "1-15min" },
+        { "label": "15-30 min",         "value": "15-30min" },
+        { "label": "30 min-1 hr",       "value": "30-1hr" },
+        { "label": "1-2 hrs",           "value": "1-2hrs" },
+        { "label": "2-3 hrs",           "value": "2-3hrs" },
+        { "label": "3-4 hrs",           "value": "3-4hrs" },
+        { "label": "4-5 hrs",           "value": "4-5hrs" },
+        { "label": "5-6 hrs",           "value": "5-6hrs" },
+        { "label": "6-7 hrs",           "value": "6-7hrs" },
+        { "label": "more than 7 hrs",   "value": "7hrs+" }
+      ]
+    },
+    {
+      "type": "radiogroup",
+      "id": "survey_sit_2",
+      "messageKey": "survey_sit_2",
+      "label": "Sitting while eating meals (i.e. breakfast, lunch, dinner)",
+      "options": [
+        { "label": "None",              "value": "none" },
+        { "label": "1-15 min",          "value": "1-15min" },
+        { "label": "15-30 min",         "value": "15-30min" },
+        { "label": "30 min-1 hr",       "value": "30-1hr" },
+        { "label": "1-2 hrs",           "value": "1-2hrs" },
+        { "label": "2-3 hrs",           "value": "2-3hrs" },
+        { "label": "3-4 hrs",           "value": "3-4hrs" },
+        { "label": "4-5 hrs",           "value": "4-5hrs" },
+        { "label": "5-6 hrs",           "value": "5-6hrs" },
+        { "label": "6-7 hrs",           "value": "6-7hrs" },
+        { "label": "more than 7 hrs",   "value": "7hrs+" }
+      ]
+    },
+    {
+      "type": "radiogroup",
+      "id": "survey_sit_3",
+      "messageKey": "survey_sit_3",
+      "label": "Sitting for occupation (i.e. office screen time, paper work, etc.)",
+      "options": [
+        { "label": "None",              "value": "none" },
+        { "label": "1-15 min",          "value": "1-15min" },
+        { "label": "15-30 min",         "value": "15-30min" },
+        { "label": "30 min-1 hr",       "value": "30-1hr" },
+        { "label": "1-2 hrs",           "value": "1-2hrs" },
+        { "label": "2-3 hrs",           "value": "2-3hrs" },
+        { "label": "3-4 hrs",           "value": "3-4hrs" },
+        { "label": "4-5 hrs",           "value": "4-5hrs" },
+        { "label": "5-6 hrs",           "value": "5-6hrs" },
+        { "label": "6-7 hrs",           "value": "6-7hrs" },
+        { "label": "more than 7 hrs",   "value": "7hrs+" }
+      ]
+    },
+    {
+      "type": "radiogroup",
+      "id": "survey_sit_4",
+      "messageKey": "survey_sit_4",
+      "label": "Sitting while caring (i.e. for child, elderly, or disabled relative)",
+      "options": [
+        { "label": "None",              "value": "none" },
+        { "label": "1-15 min",          "value": "1-15min" },
+        { "label": "15-30 min",         "value": "15-30min" },
+        { "label": "30 min-1 hr",       "value": "30-1hr" },
+        { "label": "1-2 hrs",           "value": "1-2hrs" },
+        { "label": "2-3 hrs",           "value": "2-3hrs" },
+        { "label": "3-4 hrs",           "value": "3-4hrs" },
+        { "label": "4-5 hrs",           "value": "4-5hrs" },
+        { "label": "5-6 hrs",           "value": "5-6hrs" },
+        { "label": "6-7 hrs",           "value": "6-7hrs" },
+        { "label": "more than 7 hrs",   "value": "7hrs+" }
+      ]
+    },
+    {
+      "type": "radiogroup",
+      "id": "survey_sit_5",
+      "messageKey": "survey_sit_5",
+      "label": "Sitting while doing household tasks (i.e. cooking, ironing, etc.)",
+      "options": [
+        { "label": "None",              "value": "none" },
+        { "label": "1-15 min",          "value": "1-15min" },
+        { "label": "15-30 min",         "value": "15-30min" },
+        { "label": "30 min-1 hr",       "value": "30-1hr" },
+        { "label": "1-2 hrs",           "value": "1-2hrs" },
+        { "label": "2-3 hrs",           "value": "2-3hrs" },
+        { "label": "3-4 hrs",           "value": "3-4hrs" },
+        { "label": "4-5 hrs",           "value": "4-5hrs" },
+        { "label": "5-6 hrs",           "value": "5-6hrs" },
+        { "label": "6-7 hrs",           "value": "6-7hrs" },
+        { "label": "more than 7 hrs",   "value": "7hrs+" }
+      ]
+    },
+    {
+      "type": "radiogroup",
+      "id": "survey_sit_6",
+      "messageKey": "survey_sit_6",
+      "label": "Sitting while doing household tasks (i.e. cooking, ironing, etc.)",
+      "options": [
+        { "label": "None",              "value": "none" },
+        { "label": "1-15 min",          "value": "1-15min" },
+        { "label": "15-30 min",         "value": "15-30min" },
+        { "label": "30 min-1 hr",       "value": "30-1hr" },
+        { "label": "1-2 hrs",           "value": "1-2hrs" },
+        { "label": "2-3 hrs",           "value": "2-3hrs" },
+        { "label": "3-4 hrs",           "value": "3-4hrs" },
+        { "label": "4-5 hrs",           "value": "4-5hrs" },
+        { "label": "5-6 hrs",           "value": "5-6hrs" },
+        { "label": "6-7 hrs",           "value": "6-7hrs" },
+        { "label": "more than 7 hrs",   "value": "7hrs+" }
+      ]
+    },
+    {
+      "type": "radiogroup",
+      "id": "survey_sit_7",
+      "messageKey": "survey_sit_7",
+      "label": "Sitting for leisure, with screen (i.e. watching TV or online videos, video or computer games, web surfing, social media, online reading, etc.)",
+      "options": [
+        { "label": "None",              "value": "none" },
+        { "label": "1-15 min",          "value": "1-15min" },
+        { "label": "15-30 min",         "value": "15-30min" },
+        { "label": "30 min-1 hr",       "value": "30-1hr" },
+        { "label": "1-2 hrs",           "value": "1-2hrs" },
+        { "label": "2-3 hrs",           "value": "2-3hrs" },
+        { "label": "3-4 hrs",           "value": "3-4hrs" },
+        { "label": "4-5 hrs",           "value": "4-5hrs" },
+        { "label": "5-6 hrs",           "value": "5-6hrs" },
+        { "label": "6-7 hrs",           "value": "6-7hrs" },
+        { "label": "more than 7 hrs",   "value": "7hrs+" }
+      ]
+    },
+    {
+      "type": "radiogroup",
+      "id": "survey_sit_8",
+      "messageKey": "survey_sit_8",
+      "label": "Sitting for leisure, no screen (i.e. reading a book, playing an instrument, crosswords, crafts, etc.)",
+      "options": [
+        { "label": "None",              "value": "none" },
+        { "label": "1-15 min",          "value": "1-15min" },
+        { "label": "15-30 min",         "value": "15-30min" },
+        { "label": "30 min-1 hr",       "value": "30-1hr" },
+        { "label": "1-2 hrs",           "value": "1-2hrs" },
+        { "label": "2-3 hrs",           "value": "2-3hrs" },
+        { "label": "3-4 hrs",           "value": "3-4hrs" },
+        { "label": "4-5 hrs",           "value": "4-5hrs" },
+        { "label": "5-6 hrs",           "value": "5-6hrs" },
+        { "label": "6-7 hrs",           "value": "6-7hrs" },
+        { "label": "more than 7 hrs",   "value": "7hrs+" }
+      ]
+    },
+    {
+      "type": "input",
+      "id": "survey_sit_9_text",
+      "messageKey": "survey_sit_9_text",
+      "label": "Other",
+      "attributes": {
+        "maxlength": 64
+      }
+    },
+    {
+      "type": "radiogroup",
+      "id": "survey_sit_9",
+      "messageKey": "survey_sit_9",
+      "options": [
+        { "label": "None",              "value": "none" },
+        { "label": "1-15 min",          "value": "1-15min" },
+        { "label": "15-30 min",         "value": "15-30min" },
+        { "label": "30 min-1 hr",       "value": "30-1hr" },
+        { "label": "1-2 hrs",           "value": "1-2hrs" },
+        { "label": "2-3 hrs",           "value": "2-3hrs" },
+        { "label": "3-4 hrs",           "value": "3-4hrs" },
+        { "label": "4-5 hrs",           "value": "4-5hrs" },
+        { "label": "5-6 hrs",           "value": "5-6hrs" },
+        { "label": "6-7 hrs",           "value": "6-7hrs" },
+        { "label": "more than 7 hrs",   "value": "7hrs+" }
+      ]
     }
   ]
 },
@@ -521,7 +714,7 @@
     {
       "type": "heading",
       "id": "settings",
-      "defaultValue": "Settings"
+      "defaultValue": "App Settings"
     },
     {
       "type": "toggle",
@@ -529,13 +722,14 @@
       "messageKey": "activate",
       "label": "<font color='red'>Activate Pebble Fit<font>",
       "description": "<p align='justify'>Push notifications to take walk breaks throughout day (you must activate to use).</p>",
-      "defaultValue": true
+      "defaultValue": false
     },
     {
       "type": "select",
       "id": "vibrate",
       "messageKey": "vibrate",
       "label": "Notify with vibration",
+      "description": "<p align='justify'>Notifications will remind you to take short walking breaks throughout the day.</p>",
       "defaultValue": 1,
       "options": [
         { "label": "Single short pulse",  "value": 1 },
@@ -565,7 +759,7 @@
       "messageKey": "daily_start_time",
       "defaultValue": "08:00",
       "label": "Start time",
-      "description": "<p align='justify'>Earliest notification you will receive in the day is one hour earlier than this time.</p>",
+      "description": "<p align='justify'>Earliest notification you will receive in the day.</p>",
       "attributes": {
         "type": "time",
         "step": "3600"
@@ -653,8 +847,8 @@
       "type": "slider",
       "id": "total_break",
       "messageKey": "total_break",
-      "defaultValue": 0,
-      "min": 0,
+      "defaultValue": -1,
+      "min": -1,
       "max": 1440,
       "step": 1
     },
