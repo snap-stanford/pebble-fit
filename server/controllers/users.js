@@ -14,9 +14,10 @@ var configs = {
 
 //exports.save = function (watch, name, email, age, gender, height, heightU, weight, weightU, race, school, occupation, deskwork, income, country, zipcode, next) {
 exports.save = function (query, next) {
-  console.log("Creating new user: " + query.watch);
+  var watch = query.watch
+  console.log("Creating new user: " + watch);
 
-  User.update({ 'watch': query.watch }, 
+  User.update({ 'watch': watch }, 
     { $set: { 'name':       query.name,
               'email':      query.email,
               'age':        query.age,
@@ -44,7 +45,14 @@ exports.save = function (query, next) {
               'sit9T':      query.sit9T,
     } }, 
     { upsert: true },
-    next);
+    //next);
+    function (err) { // Create fake ref scores for the this user
+      if (err) return next(err);
+
+
+      //references.save(watch, next);
+      references.update(watch, [1,1,2,2,3,3,4,4,5,5,6,6], 10, next);
+    });
 
   //TODO:  Assign everyone to real_time_random for now.
   //groups.random_pick(function (err, group) {

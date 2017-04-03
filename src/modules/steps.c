@@ -44,7 +44,7 @@ static void prv_load_data(time_t *start, time_t *end) {
         s_step_records[i] = minute_data[i].steps;
         s_steps += s_step_records[i];
         //if (s_step_records[i] > 0) {
-          APP_LOG(APP_LOG_LEVEL_INFO, "s_step_records %d = %d", (int)i, (int)s_step_records[i]);
+        //  APP_LOG(APP_LOG_LEVEL_INFO, "s_step_records %d = %d", (int)i, (int)s_step_records[i]);
         //}
       }
     }
@@ -106,7 +106,7 @@ void steps_update() {
     } else {
       for ( ; right < s_num_records; right++, left++) {
         step_count += s_step_records[right] - s_step_records[left];
-        APP_LOG(APP_LOG_LEVEL_ERROR, "step_count = %d", step_count);
+        //APP_LOG(APP_LOG_LEVEL_ERROR, "step_count = %d", step_count);
         if (step_count >= step_threshold) {
           s_pass = true;
           break;
