@@ -381,3 +381,15 @@ const char* store_read_random_message() {
     }
   }
 }
+
+/**
+ * Delete all persistent storage value. This should be called when user inactivate the app.
+ */
+void store_delete_all() {
+  persist_delete(PERSIST_KEY_LAUNCHEXIT_COUNT);
+  persist_delete(PERSIST_KEY_CONFIG_TIME);
+  persist_delete(PERSIST_KEY_UPLOAD_TIME);
+  persist_delete(PERSIST_KEY_CURR_SCORE);
+  persist_delete(PERSIST_KEY_CURR_SCORE_TIME);
+  persist_delete(PERSIST_KEY_RANDOM_MSG_INDEX);
+}

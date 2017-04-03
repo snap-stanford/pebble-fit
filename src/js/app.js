@@ -157,46 +157,56 @@ Pebble.addEventListener('webviewclosed', function(e) {
       log.info(err || status)
     } else {
       // Do not expect a response from the server.
-      if (response) log.info("Got server response: " + JSON.stringify(response));
+      if (response) {
+        log.info("Got server response: " + JSON.stringify(response));
+        response["vibrate"] = dict[messageKeys.daily_start_time];
+        response["daily_start_time"] = dict[messageKeys.daily_start_time];
+        response["daily_end_time"] = dict[messageKeys.daily_start_time];
+        response["daily_end_time"] = dict[messageKeys.daily_start_time];
+        response["total_break"] = dict[messageKeys.total_break];
+
+        log.info("Got server response: " + JSON.stringify(response));
+        receiveServerConfigACK(err, status, response, responseText);
+      } else {
+        // Delete random messages to reduce the size of AppMessage (watch can only receive 
+        // APP_MESSAGE_INBOX_SIZE_MINIMUM amount of data, i.e. 124).
+        // TODO: we may also delete those settings that are not required on watch (e.g.
+        // survey answers, Clay page markup, etc.)
+        delete dict[messageKeys.random_message_0];
+        delete dict[messageKeys.random_message_1];
+        delete dict[messageKeys.random_message_2];
+        delete dict[messageKeys.random_message_3];
+        delete dict[messageKeys.random_message_4];
+        delete dict[messageKeys.random_message_5];
+        delete dict[messageKeys.random_message_6];
+        delete dict[messageKeys.random_message_7];
+        delete dict[messageKeys.random_message_8];
+        delete dict[messageKeys.random_message_9];
+        delete dict[messageKeys.config_summary];
+        delete dict[messageKeys.survey_sit_1];
+        delete dict[messageKeys.survey_sit_2];
+        delete dict[messageKeys.survey_sit_3];
+        delete dict[messageKeys.survey_sit_4];
+        delete dict[messageKeys.survey_sit_5];
+        delete dict[messageKeys.survey_sit_6];
+        delete dict[messageKeys.survey_sit_7];
+        delete dict[messageKeys.survey_sit_8];
+        delete dict[messageKeys.survey_sit_9];
+        delete dict[messageKeys.survey_sit_9_text];
+
+        log.info("Before sending config data to Pebble!");
+        log.info(JSON.stringify(dict));
+        
+        // Have to save Clay settings to the watch regardless whether the server receive it or not.
+        // TODO: If the server do not ACK, might need to set a flag to re-send it next time.
+        Pebble.sendAppMessage(dict, function(e) {
+          console.log('Sent config data to Pebble.');
+        }, function(e) {
+          console.log('Failed to send config data!');
+          console.log(JSON.stringify(e));
+        }); 
+      }
     }
-
-    // Delete random messages to reduce the size of AppMessage (watch can only receive 
-    // APP_MESSAGE_INBOX_SIZE_MINIMUM amount of data, i.e. 124).
-    // TODO: we may also delete those settings that are not required on watch (e.g.
-    // survey answers, Clay page markup, etc.)
-    delete dict[messageKeys.random_message_0];
-    delete dict[messageKeys.random_message_1];
-    delete dict[messageKeys.random_message_2];
-    delete dict[messageKeys.random_message_3];
-    delete dict[messageKeys.random_message_4];
-    delete dict[messageKeys.random_message_5];
-    delete dict[messageKeys.random_message_6];
-    delete dict[messageKeys.random_message_7];
-    delete dict[messageKeys.random_message_8];
-    delete dict[messageKeys.random_message_9];
-    delete dict[messageKeys.config_summary];
-    delete dict[messageKeys.survey_sit_1];
-    delete dict[messageKeys.survey_sit_2];
-    delete dict[messageKeys.survey_sit_3];
-    delete dict[messageKeys.survey_sit_4];
-    delete dict[messageKeys.survey_sit_5];
-    delete dict[messageKeys.survey_sit_6];
-    delete dict[messageKeys.survey_sit_7];
-    delete dict[messageKeys.survey_sit_8];
-    delete dict[messageKeys.survey_sit_9];
-    delete dict[messageKeys.survey_sit_9_text];
-
-    log.info("Before sending config data to Pebble!");
-    log.info(JSON.stringify(dict));
-    
-    // Have to save Clay settings to the watch regardless whether the server receive it or not.
-    // TODO: If the server do not ACK, might need to set a flag to re-send it next time.
-    Pebble.sendAppMessage(dict, function(e) {
-      console.log('Sent config data to Pebble.');
-    }, function(e) {
-      console.log('Failed to send config data!');
-      console.log(JSON.stringify(e));
-    }); 
   });
 });
 

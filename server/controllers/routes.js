@@ -37,9 +37,12 @@ router.get(['/config'],
   query.requireParam('query', ['watch', 'timezone', 'startTime', 'endTime',
     'breakFreq', 'breakLen', 'group', 'threshold']),
   function (req, res, next) {
+
+    // This callback function is called after user entry is updated.
     var callback = function (err) {
       if (err) return next(err);
 
+      // Save configs and then send new configuration settings to user.
       configs.save(
         req.query.watch,
         req.query.timezone,
@@ -51,32 +54,32 @@ router.get(['/config'],
         req.query.group,
         function (err) {
           if (err) return next(err);
-          res.status(200).end();
+
+          //res.status(200).end();
+          users.getConfig(req.query.watch, true, function (err, config) {
+            if (err) return next(err);
+
+            console.log("Before save&send: config == " + JSON.stringify(config));
+            saveEvent(req, res, config, next);
+          });
         });
     }
 
     if (req.query.first) {
       // If user also upload survey contents, save them first.
-      /*
-      users.save(
-        req.query.watch, 
-        req.query.name, 
-        req.query.email, 
-        req.query.age, 
-        req.query.gender, 
-        req.query.height, 
-        req.query.heightU, 
-        req.query.weight, 
-        req.query.weightU, 
-        req.query.race, 
-        req.query.school, 
-        req.query.occupation, 
-        req.query.deskwork, 
-        req.query.income, 
-        req.query.country, 
-        req.query.zipcode, 
-        callback); */
       users.save(req.query, callback);
+        /*
+      users.save(req.query, function (err) {
+        if (err) return next(err);
+
+        users.getConfig(req.query.watch, function (err, config) {
+          if (err) return next(err);
+
+          console.log("Before save&send: config == " + JSON.stringify(config));
+          saveEvent(req, res, config, next);
+        });
+      });
+        */
     } else {
       callback(null);
     }
@@ -105,6 +108,7 @@ router.get(['/launch'],
       */
       users.getConfig(
         req.query.watch,
+        false,
         function (err, config) {
           if (err) return next(err);
 

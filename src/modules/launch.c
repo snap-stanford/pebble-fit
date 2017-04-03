@@ -393,6 +393,8 @@ void update_config(void *context) {
     APP_LOG(APP_LOG_LEVEL_INFO, "Got inactivated. Cancelling all wakeup events.");
     wakeup_cancel_all();
 
+    store_delete_all();
+
     if (s_wakeup_window != NULL) {
       launch_handler(false); // Change from wakeup_window to dialog_window.
     }

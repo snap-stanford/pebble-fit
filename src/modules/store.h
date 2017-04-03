@@ -23,3 +23,5 @@ int store_read_curr_score();
 int store_compare_ref_score(int mode);
 
 const char* store_read_random_message();
+
+void store_delete_all();

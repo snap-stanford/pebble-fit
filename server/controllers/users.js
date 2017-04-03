@@ -18,7 +18,8 @@ exports.save = function (query, next) {
   console.log("Creating new user: " + watch);
 
   User.update({ 'watch': watch }, 
-    { $set: { 'name':       query.name,
+    { $set: { 'group':      'real_time_random', // TODO: randomize  group assignment.
+              'name':       query.name,
               'email':      query.email,
               'age':        query.age,
               'gender':     query.gender,
@@ -42,7 +43,7 @@ exports.save = function (query, next) {
               'sit7':       query.sit7,
               'sit8':       query.sit8,
               'sit9':       query.sit9,
-              'sit9T':      query.sit9T,
+              'sit9T':      query.sit9T
     } }, 
     { upsert: true },
     //next);
@@ -69,10 +70,10 @@ exports.save = function (query, next) {
  * Get the new configuration settings for a given user. The settings might include general
  * settings, new random messages, and/or the reference scores.
  */
-exports.getConfig = function (watch, next) {
+exports.getConfig = function (watch, force, next) {
 
   var addRefScores = function (watch, newConfig, next) {
-    console.log("in addRefScores, watch=" + watch);
+    console.log("in addRefScores, watch=" + watch + "; force=" + force);
     references.getUser(watch, null, function (err, refP) { // TODO: numBreak not used
       if (err) return next(err);
 
@@ -85,9 +86,9 @@ exports.getConfig = function (watch, next) {
         newConfig['score_a_average'] = refAll.average.join(','); // Convert to string
         newConfig['score_a_best'] = refAll.best; 
 
-        console.log('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');
-        console.log(newConfig);
-        console.log('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');
+        //console.log('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');
+        //console.log(newConfig);
+        //console.log('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');
 
         next(null, newConfig);
       });
@@ -98,12 +99,12 @@ exports.getConfig = function (watch, next) {
     //console.log("in checkUpdate callback");
     if (err) return next(err);
     
-    var newConfig = {};
-    if (isNewConfig) { 
+    if (force || isNewConfig) { 
       // New update available. Read the new configuration.
-      newConfig = configs[groupName];
-    } 
-
+      var newConfig = Object.assign({}, configs[groupName]);
+    } else { 
+      var newConfig = {};
+    }
 
     // Add random messages if neccessary.
     //if (config.hasOwnProperty('random_messages')) {
@@ -176,15 +177,15 @@ var checkUpdate = function (watch, next) {
 
       if (!user) {
         // If the user does not exist, create a new entry.
-	save(watch, null, function (err, user) {
-	  console.log("save callback");
+        save(watch, null, function (err, user) {
+          console.log("save callback");
 
-	  if (err) return next(err);
+          if (err) return next(err);
 
-	  updateConfig(user, true, next);
-	});
+          updateConfig(user, true, next);
+        });
       } else {
-	updateConfig(user, false, next);
+        updateConfig(user, false, next);
       }
     });
 };
