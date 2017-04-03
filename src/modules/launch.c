@@ -9,7 +9,7 @@ static Window *s_dialog_window = NULL;
 static Window *s_wakeup_window = NULL;
 
 static int s_config_request;
-static char *s_random_message;
+static char *s_random_message = "";
 char s_random_message_buf[RANDOM_MSG_SIZE_MAX];
 
 // For resend functions.
@@ -90,6 +90,7 @@ void launch_set_random_message() {
   //char random_message[RANDOM_MSG_SIZE_MAX]; // FIXME: change to global static variable.
 
   const char *msg_ptr = store_read_random_message();
+  APP_LOG(APP_LOG_LEVEL_ERROR, "AAA%sAAA", msg_ptr);
 
   //snprintf(random_message, sizeof(random_message), store_read_random_message()); // FIXME: root cause?
   //APP_LOG(APP_LOG_LEVEL_ERROR, "%s!", random_message);
@@ -146,17 +147,18 @@ void launch_set_random_message() {
         return;
     }
   
-    // Fetch the proper message.
+    // Fetch the proper message. Loop starts at index 5 assuming msgID is 4-char long and
+    // ':' is used as delimiter betwee msgID and the actual message content.
     if (score_diff > 0) {
-      for (i = 0; msg_ptr[i] != '|'; i++) {}
-      start = 0;
+      start = 5;
+      for (i = start; msg_ptr[i] != '|'; i++) {}
       end = i;
     } else if (score_diff < 0) {
-      for (i = 0; msg_ptr[i] != '|'; i++) {}
+      for (i = 5; msg_ptr[i] != '|'; i++) {}
       for (start = ++i; msg_ptr[i] != '|'; i++) {}
       end = i;
     } else { // score_diff == 0
-      for (i = 0; msg_ptr[i] != '|'; i++) {}
+      for (i = 5; msg_ptr[i] != '|'; i++) {}
       for (++i; msg_ptr[i] != '|'; i++) {}
       for (start = ++i; msg_ptr[i] != '\0'; i++) {}
       end = i;
@@ -294,6 +296,7 @@ void wakeup_handler(WakeupId wakeup_id, int32_t wakeup_cookie) {
  * Return the newly created window.
  */
 void launch_handler(bool activate) {
+  APP_LOG(APP_LOG_LEVEL_ERROR, "total_break=%d", (int)enamel_get_total_break());
   if (activate) {
     bool will_timeout = false;
     int lr = launch_reason();
