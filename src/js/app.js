@@ -18,7 +18,7 @@ var SERVER = 'http://pebble-fit.herokuapp.com';
 // Local servers (use ifconfig to find out).
 //var SERVER = 'http://10.30.202.74:3000';
 //var SERVER = 'http://10.34.171.70:3000';
-//var SERVER = 'http://10.34.17.83:3000';
+var SERVER = 'http://10.34.100.107:3000';
 
 // Flag to switch off server communication
 var USE_OFFLINE = true;
@@ -146,8 +146,7 @@ Pebble.addEventListener('webviewclosed', function(e) {
     '&sit6='        + encodeURIComponent(dict[messageKeys.survey_sit_6])      +
     '&sit7='        + encodeURIComponent(dict[messageKeys.survey_sit_7])      +
     '&sit8='        + encodeURIComponent(dict[messageKeys.survey_sit_8])      +
-    '&sit9='        + encodeURIComponent(dict[messageKeys.survey_sit_9])      +
-    '&sit9T='       + encodeURIComponent(dict[messageKeys.survey_sit_9_text])
+    '&sit8T='       + encodeURIComponent(dict[messageKeys.survey_sit_8_text])
     ;
   }
 
@@ -191,8 +190,7 @@ Pebble.addEventListener('webviewclosed', function(e) {
         delete dict[messageKeys.survey_sit_6];
         delete dict[messageKeys.survey_sit_7];
         delete dict[messageKeys.survey_sit_8];
-        delete dict[messageKeys.survey_sit_9];
-        delete dict[messageKeys.survey_sit_9_text];
+        delete dict[messageKeys.survey_sit_8_text];
 
         log.info("Before sending config data to Pebble!");
         log.info(JSON.stringify(dict));

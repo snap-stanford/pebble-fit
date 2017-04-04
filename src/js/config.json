@@ -34,7 +34,7 @@
     {
       "type": "heading",
       "id": "eligible_heading",
-      "defaultValue": "Eligibility"
+      "defaultValue": "Eligibility/Consent"
     },
     {
       "type": "text",
@@ -227,7 +227,7 @@
       "type": "input",
       "id": "consent_name",
       "messageKey": "consent_name",
-      "label": "User Name (Optional)",
+      "label": "Username (Optional)",
       "attributes": {
         "maxlength": 64
       }
@@ -521,7 +521,7 @@
     {
       "type": "text",
       "id": "survey_text_3",
-      "defaultValue": "<p align='justify'>1. On a typical weekday, how much time do you spend (from when you wake up until you go to bed) sitting or lying down and doing the following?</p>"
+      "defaultValue": "<p align='justify'>1. On a typical <strong>weekday</strong>, how much time do you spend (from when you wake up until you go to bed) <strong>sitting</strong> or <strong>lying</strong> down and doing the following?</p>"
     },
     {
       "type": "radiogroup",
@@ -622,7 +622,7 @@
       "type": "radiogroup",
       "id": "survey_sit_6",
       "messageKey": "survey_sit_6",
-      "label": "Sitting while doing household tasks (i.e. cooking, ironing, etc.)",
+      "label": "Sitting for leisure, with screen (i.e. watching TV or online videos, video or computer games, web surfing, social media, online reading, etc.)",
       "options": [
         { "label": "None",              "value": "none" },
         { "label": "1-15 min",          "value": "1-15min" },
@@ -641,25 +641,6 @@
       "type": "radiogroup",
       "id": "survey_sit_7",
       "messageKey": "survey_sit_7",
-      "label": "Sitting for leisure, with screen (i.e. watching TV or online videos, video or computer games, web surfing, social media, online reading, etc.)",
-      "options": [
-        { "label": "None",              "value": "none" },
-        { "label": "1-15 min",          "value": "1-15min" },
-        { "label": "15-30 min",         "value": "15-30min" },
-        { "label": "30 min-1 hr",       "value": "30-1hr" },
-        { "label": "1-2 hrs",           "value": "1-2hrs" },
-        { "label": "2-3 hrs",           "value": "2-3hrs" },
-        { "label": "3-4 hrs",           "value": "3-4hrs" },
-        { "label": "4-5 hrs",           "value": "4-5hrs" },
-        { "label": "5-6 hrs",           "value": "5-6hrs" },
-        { "label": "6-7 hrs",           "value": "6-7hrs" },
-        { "label": "more than 7 hrs",   "value": "7hrs+" }
-      ]
-    },
-    {
-      "type": "radiogroup",
-      "id": "survey_sit_8",
-      "messageKey": "survey_sit_8",
       "label": "Sitting for leisure, no screen (i.e. reading a book, playing an instrument, crosswords, crafts, etc.)",
       "options": [
         { "label": "None",              "value": "none" },
@@ -677,17 +658,17 @@
     },
     {
       "type": "input",
-      "id": "survey_sit_9_text",
-      "messageKey": "survey_sit_9_text",
-      "label": "Other",
+      "id": "survey_sit_8_text",
+      "messageKey": "survey_sit_8_text",
+      "label": "Other sitting (enter below)",
       "attributes": {
         "maxlength": 64
       }
     },
     {
       "type": "radiogroup",
-      "id": "survey_sit_9",
-      "messageKey": "survey_sit_9",
+      "id": "survey_sit_8",
+      "messageKey": "survey_sit_8",
       "options": [
         { "label": "None",              "value": "none" },
         { "label": "1-15 min",          "value": "1-15min" },

@@ -37,9 +37,10 @@ module.exports = function (minified) {
     'survey_occupation_text', 'survey_occupation', 'survey_deskwork', 'survey_income', 
     'survey_country_text', 'survey_country', 'survey_zipcode_text', 'survey_zipcode',
     'survey_sit_1', 'survey_sit_2', 'survey_sit_3', 'survey_sit_4', 'survey_sit_5', 
-    'survey_sit_6', 'survey_sit_7', 'survey_sit_8', 'survey_sit_9', 'survey_sit_9_text'
+    'survey_sit_6', 'survey_sit_7', 'survey_sit_8', 'survey_sit_8_text'
   ];
-  var config_section = ['settings',  'vibrate', 'break_freq', 'break_len', 'step_threshold',
+  var config_section = ['settings',  'vibrate', 
+    //'break_freq', 'break_len', 'step_threshold',
     //'activate', 'dynamic_wakeup', 'sliding_window', 'display_duration',
     'daily_start_time', 'daily_end_time', 'config_summary', 
     'version', 'watchtoken'
@@ -60,6 +61,7 @@ module.exports = function (minified) {
     'random_message_4', 'random_message_5', 'random_message_6', 'random_message_7', 
     'random_message_8', 'random_message_9',
     'survey_age2', 'survey_age3',
+    'break_freq', 'break_len', 'step_threshold', // Invisible since user cannot modify them.
     'dynamic_wakeup', 'sliding_window', 'display_duration', 'consent_icon', 
     'watch_alert_text', 'watch_pass_text'];
 
@@ -103,13 +105,19 @@ module.exports = function (minified) {
    * and the consent form button. */
   function showConfigSection () {
     clayConfig.getItemById('submit').show();
-    clayConfig.getItemById('view_consent_button').show();
+
     showSection(config_section);
+    
+    //if (showConsentButton) {
+    //  clayConfig.getItemById('view_consent_button').show();
+    //}
   }
   function hideConfigSection () {
     clayConfig.getItemById('view_consent_button').hide();
-    clayConfig.getItemById('submit').hide();
+
     hideSection(config_section);
+
+    clayConfig.getItemById('submit').hide();
   }
 
   /* Show the warnning text for the eligibility page if required field is answered. */
@@ -194,7 +202,8 @@ module.exports = function (minified) {
   function consentButtonNextClick () {
     if (consentPageIndex == consent_heading.length) {
       hideSection(consent_section);
-      showSection(consent_review_section);
+
+      //showSection(consent_review_section); // Do not want to display this long form.
     } else {
       clayConfig.getItemById('consent_heading').set(consent_heading[consentPageIndex]);
       clayConfig.getItemById('consent_text').set("<p align='justify'>"+
@@ -333,7 +342,7 @@ module.exports = function (minified) {
       updateConfigSummary.call();
 
       clayConfig.getItemById('watchtoken').set(clayConfig.meta.watchToken);
-      clayConfig.getItemById('version').set('v1.3.0');
+      clayConfig.getItemById('version').set('v1.4.0');
     } else {
       hideConfigSection();
     }
