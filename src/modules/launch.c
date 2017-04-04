@@ -101,11 +101,11 @@ void launch_set_random_message() {
     char *c;  // TODO: might could just using msg_ptr.
 
     snprintf(s_random_message_buf, sizeof(s_random_message_buf), msg_ptr);
-    for (s_msg_id = c = s_random_message_buf; *c != ':' && *c != '\0'; c++) {}
-    c[4] = '\0';
-    snprintf(s_random_message_buf, sizeof(s_random_message_buf), msg_ptr+5);
 
-    s_random_message = c;
+    // Extract msgID and message content.
+    for (s_msg_id = c = s_random_message_buf; *c != ':' && *c != '\0'; c++) {}
+    *c = '\0'; // Replace ':' with '\0'.
+    s_random_message = ++c;
   } else { // Deal with the outcome messages specially.
     int i, start, end, message_index, score_diff, size = 0;
     //const char *c;
