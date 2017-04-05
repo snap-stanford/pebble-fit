@@ -17,10 +17,10 @@ module.exports = function (minified) {
     'eligible_6', 'eligible_7', 'eligible_8'
   ];
   var pfbuttons = ['pfbutton_deprecated'];
-  var eligible_result_section = ['eligible_result_text', 'eligible_result_button'];
-  var consent_start_section = ['consent_heading_start', 'consent_text_start', 
-    'consent_button_start'
-  ];
+  var eligible_result_section = ['eligible_result_text', 'consent_button_start'];
+  //var consent_start_section = ['consent_heading_start', 'consent_text_start', 
+  //  'consent_button_start'
+  //];
   var consent_section = ['consent_heading', 'consent_text', //'consent_icon', 
     'consent_button_next'
   ];
@@ -172,30 +172,21 @@ module.exports = function (minified) {
           //clayConfig.getItemById('eligible_8').$element.get('ans') === 'false')
           clayConfig.getItemById('eligible_8').get() === 'false') {
         isEligible = true;
-        clayConfig.getItemById('eligible_result_text').set("<p align='justify'>You are eligible to join the study. Tap the button below to begin the consent process.</p>");
-        clayConfig.getItemById('eligible_result_button').set('Start Consent');
+        clayConfig.getItemById('eligible_result_text').set("<p align='justify'>You are eligible to join the study.</p><br><p align='justify'>Next, we will use short descriptions to explain the research study, how participating may affect you, and what it means to consent to participate.</p>");
+        //clayConfig.getItemById('eligible_result_button').set('Start Consent');
+        clayConfig.getItemById('consent_button_start').show();
       } else {
         isEligible = false;
         clayConfig.getItemById('eligible_result_text').set("<p align='justify'>Sorry, you are not eligible to join the study. Tap the button below to exit the app.</p>");
-        clayConfig.getItemById('eligible_result_button').hide();
+        clayConfig.getItemById('consent_button_start').hide();
         clayConfig.getItemById('submit').set('Exit');
         clayConfig.getItemById('submit').show();
       }
     }
   }
 
-  function eligibleResultButtonClick () {
-    //if (isEligible) {
-      hideSection(eligible_result_section);
-      showSection(consent_start_section);
-    //} else {
-    //  clayConfig.getItemById('submit').trigger('click'); // FIXME: no effect
-    //  clayConfig.destroy(); // This only destroy the page but not exit the config
-    //}
-  }
-
   function consentButtonStartClick () {
-    hideSection(consent_start_section);
+    hideSection(eligible_result_section);
     showSection(consent_section);
   }
 
@@ -309,7 +300,6 @@ module.exports = function (minified) {
     activateToggle.on('change', changeEnableApp);
 
     clayConfig.getItemById('eligible_button').on('click', eligibleButtonClick);
-    clayConfig.getItemById('eligible_result_button').on('click', eligibleResultButtonClick);
     clayConfig.getItemById('consent_button_start').on('click', consentButtonStartClick);
     clayConfig.getItemById('consent_button_next').on('click', consentButtonNextClick);
     clayConfig.getItemById('consent_result_button').on('click', consentResultButtonClick);
@@ -327,7 +317,6 @@ module.exports = function (minified) {
     hideSection(hidden_components);
     hideWarningText();
     hideSection(eligible_result_section);
-    hideSection(consent_start_section);
     hideSection(consent_section);
     hideSection(consent_review_section);
     hideSection(consent_result_section);

@@ -34,7 +34,7 @@
     {
       "type": "heading",
       "id": "eligible_heading",
-      "defaultValue": "Eligibility/Consent"
+      "defaultValue": "Eligibility and Consent"
     },
     {
       "type": "text",
@@ -142,11 +142,11 @@
     {
       "type": "text",
       "id": "eligible_result_text",
-      "defaultValue": "<p align='justify'>You are eligible to join the study. Tap the button below to begin the consent process.</p>"
+      "defaultValue": ""
     },
     {
       "type": "button",
-      "id": "eligible_result_button",
+      "id": "consent_button_start",
       "defaultValue": "Start Consent"
     }
   ]
@@ -158,21 +158,6 @@
   "type": "section",
   "id": "consent_section",
   "items": [
-    {
-      "type": "heading",
-      "id": "consent_heading_start",
-      "defaultValue": "Study Description and Consent"
-    },
-    {
-      "type": "text",
-      "id": "consent_text_start",
-      "defaultValue": "<p align='justify'>Next, we will use short descriptions to explain the research study, how participating may affect you, and what it means to consent to participate.</p>"
-    },
-    {
-      "type": "button",
-      "id": "consent_button_start",
-      "defaultValue": "Get Started"
-    },
     {
       "type": "heading",
       "id": "consent_heading",
@@ -953,6 +938,7 @@
 {
   "type": "button",
   "id": "view_consent_button",
+  "primary": false,
   "defaultValue": "View Consent Form"
 },
 
