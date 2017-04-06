@@ -102,3 +102,6 @@ fi
 # Here we supply password stored in a local file defined by the variable $PASSWD
 echo ${mongo_cmd}
 ${cmd} ${HEROKU_MONGODB} --eval "${mongo_cmd}" -u admin -p < ${PASSWD}
+
+echo
+echo "Successfully upload configuration files to the server."
