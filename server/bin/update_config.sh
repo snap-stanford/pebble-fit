@@ -5,6 +5,7 @@
 # settings on the server will be updated to reflect that new configuration available.
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+SERVER_CONFIG_DIR=${DIR}/../config
 HEROKU_MONGODB="ds111748.mlab.com:11748/heroku_0cbvznft"
 PASSWD=${DIR}/password.txt
 
@@ -13,23 +14,54 @@ if [[ $# -ne 1 ]]; then
     exit 1
 fi
 
-# Assume we use the same mb server, so these are hard-coded
+if [[ ! -d $1 ]]; then
+    echo $0: "Error: $1 is not a valid directory."
+    exit 1
+fi
+
+# Assume we use the same mb server to store the local config files, so these are hard-coded.
 new_config_dir=$1/new_configuration
 storage_dir=$1/old_configuration
 
-# Store the current configuration files and the replace with the new configuration files.
+if [[ ! -d ${new_config_dir} ]]; then
+    echo $0: "Error: ${new_config_dir} is not a valid directory."
+    exit 1
+fi
+if [[ ! -d ${storage_dir} ]]; then
+    echo $0: "Error: ${storage_dir} is not a valid directory."
+    exit 1
+fi
+
+# Store and keep a record of the new configuration files for future reference.
 new_storage_dir="${storage_dir}/`date +%Y%m%d-%H:%M:%S`"
 mkdir -p ${new_storage_dir}
-cp ${DIR}/../config/* ${new_storage_dir}
+#cp ${DIR}/../config/* ${new_storage_dir} # Copy the old config to the storage dir.
+cp ${new_config_dir}/* ${new_storage_dir} # Copy the new config to the storage dir.
 chmod 444 ${new_storage_dir}/*
 chmod 554 ${new_storage_dir}
 
-cp ${new_config_dir}/* ${DIR}/../config/
+# Move the new configuration files to the proper location.
+cp ${new_config_dir}/* ${SERVER_CONFIG_DIR}
 
-# Push new configuration files to the server. Note that this assumes the new configuration
-# files have been git commited. 
+# Convert the CSV files to JSON files.
+cd ${SERVER_CONFIG_DIR}
+for f in *.csv; do 
+  echo "Processing $f file..."
+  python ${DIR}/csv2json.py $f .
+done
+cd -
+
+# Push new configuration files to the server. First we have to commit the changes.
+# Note that some files are not to be commited, since they are not used by the backend logic.
 # TODO: is there an easier way to transfer files to Heroku server?
-#${DIR}/../../bin/push_server.sh
+cd ${DIR}/../.. # cd to pebble-fit
+rm ${SERVER_CONFIG_DIR}/*.csv
+rm ${SERVER_CONFIG_DIR}/constants.h
+git add ${SERVER_CONFIG_DIR} && \
+  git commit -m "Update configuration files." && \
+  git push origin master
+./bin/push_server.sh
+cd -
 
 # Update MongoDB. TODO: now we will update timestamp of all groups. Later on, we 
 # might need to detect which file has been modified and only update those groups
@@ -67,17 +99,6 @@ fi
 #${cmd} pebble-fit --eval "${mongo_cmd}"
 
 # Leave -p as the last argument will force mongo to prompt for a password
+# Here we supply password stored in a local file defined by the variable $PASSWD
 echo ${mongo_cmd}
 ${cmd} ${HEROKU_MONGODB} --eval "${mongo_cmd}" -u admin -p < ${PASSWD}
-#${cmd} ${HEROKU_MONGODB} --eval "db.groups.find()" -u user -p < ${PASSWD}
-#${cmd} ${HEROKU_MONGODB} --eval '
-#  db.groups.update(
-#    { "name": "'${group_name}'" },
-#    { 
-#      $set: { "file": "./config/'${group_name}'.json" },
-#      $currentDate: { configUpdatedAt: true } 
-#    },
-#    { "upsert": true}
-#  )' -u admin -p < ${PASSWD}
-
-
