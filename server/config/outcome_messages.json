@@ -1,14 +1,1 @@
-[
-{"id": "ou01", 
-"content": "You are doing better today than a typical day :)|You are doing worse today than a typical day :(|You are doing the same today as a typical day."},
-{"id": "ov02",
-"content": "You are %d breaks ahead of your typical day :)|You are %d breaks behind your typical day :(|You are doing the same today as a typical day."},
-{"id": "ow02", 
-"content":"You have beat your personal best!|You are %d periods away from your personal best.|You have tied your personal best!"},
-{"id": "oa01",
-"content": "You are doing better today than most other app users :)|You are doing worse today than most other app users :(|You are doing just as well as most other app users."},
-{"id": "ob02", 
-"content":"You are %d breaks ahead of most other app users :)|You are %d breaks behind most other app users :(|You are doing just as well as most other app users."}
-]
-
-
+[{"content": "You are doing better today than a typical day :)|You are doing worse today than a typical day :(|You are doing the same today as a typical day.},", "id": "ou01"}, {"content": "You are %d breaks ahead of your typical day :)|You are %d breaks behind your typical day :(|You are doing the same today as a typical day.},", "id": "ov01"}, {"content": "You have beat your personal best!|You are %d periods away from your personal best.|You have tied your personal best!},", "id": "ow01"}, {"content": "You are doing better today than most other app users :)|You are doing worse today than most other app users :(|You are doing just as well as most other app users.},", "id": "oa01"}, {"content": "You are %d breaks ahead of most other app users :)|You are %d breaks behind most other app users :(|You are doing just as well as most other app users.", "id": "ob01"}]
