@@ -84,7 +84,7 @@ module.exports = function (minified) {
     "At the beginning of the study we will ask you some questions about you, your current physical activity, and lifestyle. These should only take about 15 minutes. We may also ask you some additional questions at other times during the study, but you are never obligated to answer.",
     "Throughout the day, you might be sent notifications through your smartwatch to encourage you to get up and move. Sometimes the notifications will be written text; other times it may be vibrations. You will always have the ability to personalize your app settings to increase or decrease the frequency of notifications.",
     "The physical activities you are encouraged to perform in this study will not be very strenuous. For example, you may be encouraged to add light and short bouts of walking to your day.",
-    "As with any increase in walking activity, there are small risks of temporary and minor injury, such as muscle fatigue and soreness. It is possible that you will benefit physically and emotionally from increasing your physical activity levels — <strong>but we cannot guarantee this study will have any benefit to you</strong>."
+    "As with any increase in walking activity, there are small risks of temporary and minor injury, such as muscle fatigue and soreness. It is possible that you will benefit physically and emotionally from increasing your physical activity levels — <strong>but we cannot guarantee this study will have any benefit to you.</strong>"
   ];
 
   /* Hide/Show various configuration sections, i.e. getItemById('config_section').hide()
@@ -194,7 +194,7 @@ module.exports = function (minified) {
     if (consentPageIndex == consent_heading.length) {
       hideSection(consent_section);
 
-      //showSection(consent_review_section); // Do not want to display this long form.
+      showSection(consent_review_section); // TODO: Do not want to display this long form.
     } else {
       clayConfig.getItemById('consent_heading').set(consent_heading[consentPageIndex]);
       clayConfig.getItemById('consent_text').set("<p align='justify'>"+

@@ -196,12 +196,12 @@
     {
       "type": "text",
       "id": "consent_review_approve_text",
-      "defaultValue": "Approval Date: TBD"
+      "defaultValue": "Approval Date: 03/30/2017"
     },
     {
       "type": "text",
       "id": "consent_review_expire_text",
-      "defaultValue": "Expiration Date: TBD"
+      "defaultValue": "Expiration Date: 02/28/2018"
     },
     {
       "type": "text",
@@ -221,7 +221,7 @@
       "type": "input",
       "id": "consent_email",
       "messageKey": "consent_email",
-      "label": "Email (Optional)",
+      "label": "Email (Optional, US participants only, please)",
       "description": "<p align='justify'>If you provide your email, we may contact you in the future with additional questions or information about this study or future related studies.</p>",
       "attributes": {
         "type": "email",
@@ -645,7 +645,7 @@
       "type": "input",
       "id": "survey_sit_8_text",
       "messageKey": "survey_sit_8_text",
-      "label": "Other sitting (enter below)",
+      "label": "Other: If you have other tasks that require you to sit or lie during the day, please list them here, and indicate the time spent sitting or lying while doing them.",
       "attributes": {
         "maxlength": 64
       }
