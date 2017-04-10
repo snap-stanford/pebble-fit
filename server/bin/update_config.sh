@@ -9,19 +9,20 @@ SERVER_CONFIG_DIR=${DIR}/../config
 HEROKU_MONGODB="ds111748.mlab.com:11748/heroku_0cbvznft"
 PASSWD=${DIR}/password.txt
 
-if [[ $# -ne 1 ]]; then
-    echo $0: "Usage: update_config.sh configuration_directory"
+if [[ $# -ne 0 ]]; then
+    echo "Usage: ./update_config.sh"
     exit 1
 fi
 
-if [[ ! -d $1 ]]; then
-    echo $0: "Error: $1 is not a valid directory."
-    exit 1
-fi
+#if [[ ! -d $1 ]]; then
+#    echo $0: "Error: $1 is not a valid directory."
+#    exit 1
+#fi
 
 # Assume we use the same mb server to store the local config files, so these are hard-coded.
-new_config_dir=$1/new_configuration
-storage_dir=$1/old_configuration
+default_conf_dir=/datamb/pebble/configuration
+new_config_dir=${default_conf_dir}/new_configuration
+storage_dir=${default_conf_dir}/old_configuration
 
 if [[ ! -d ${new_config_dir} ]]; then
     echo $0: "Error: ${new_config_dir} is not a valid directory."
@@ -54,9 +55,11 @@ cd -
 # Push new configuration files to the server. First we have to commit the changes.
 # Note that some files are not to be commited, since they are not used by the backend logic.
 # TODO: is there an easier way to transfer files to Heroku server?
+# TODO: how do we deal with user entering wrong credentials??????
 cd ${DIR}/../.. # cd to pebble-fit
 rm ${SERVER_CONFIG_DIR}/*.csv
 rm ${SERVER_CONFIG_DIR}/constants.h
+git pull # Make sure we have the latest commit.
 git add ${SERVER_CONFIG_DIR} && \
   git commit -m "Update configuration files." && \
   git push origin master
