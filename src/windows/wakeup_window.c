@@ -27,7 +27,7 @@ static TextLayer* make_text_layer(GRect bounds, GFont font, GTextAlignment align
 /* Procedure for how to update s_top_text_layer. */
 static void top_text_layer_update_proc() {
   APP_LOG(APP_LOG_LEVEL_ERROR, "enter top_text_layer_update_proc()");
-  char *text;
+  const char *text;
 
   // Display a warning wakeup to notify the user of losing connection for 36 hours.
   if (!connection_service_peek_pebble_app_connection() && 
@@ -36,9 +36,9 @@ static void top_text_layer_update_proc() {
     snprintf(s_top_text_buf, sizeof(s_top_text_buf), "%s", text);
   } else if (e_launch_reason == LAUNCH_WAKEUP_PERIOD) {
     if (steps_get_pass()) {
-      text = "Break accomplished. Nice work!";
+      text = enamel_get_message_pass();
     } else {
-      text = "Opps! Break missed.";
+      text = enamel_get_message_fail();
     }
     snprintf(s_top_text_buf, sizeof(s_top_text_buf), "%s", text);
   } else { 
@@ -74,7 +74,7 @@ static void main_text_layer_update_proc() {
     APP_LOG(APP_LOG_LEVEL_INFO, "random_message,content=ABSZ1");
     snprintf(s_main_text_buf, sizeof(s_main_text_buf), "%s", launch_get_random_message());
   } else {
-    const char *daily_summary = enamel_get_message_daily_summary();
+    const char *daily_summary = enamel_get_message_summary();
      
     snprintf(s_main_text_buf, sizeof(s_main_text_buf), daily_summary, 
       store_read_curr_score(), enamel_get_total_break());
@@ -126,15 +126,15 @@ static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
   //store_write_upload_time(e_launch_time - 2 * SECONDS_PER_DAY);
 
   // Test: reset launchexit count.
-  //int temp = 0;
-  //persist_write_data(PERSIST_KEY_LAUNCHEXIT_COUNT, &temp, 1);
+  int temp = 0;
+  persist_write_data(PERSIST_KEY_LAUNCHEXIT_COUNT, &temp, 1);
   
   // Test: random messages.
-  //launch_set_random_message();
-  //snprintf(s_main_text_buf, sizeof(s_main_text_buf), "%s", launch_get_random_message());
-  //text_layer_set_text(s_main_text_layer, s_main_text_buf);
+  launch_set_random_message();
+  snprintf(s_main_text_buf, sizeof(s_main_text_buf), "%s", launch_get_random_message());
+  text_layer_set_text(s_main_text_layer, s_main_text_buf);
 
-  back_click_handler(recognizer, context); // TODO: this is the final implementation.
+  //back_click_handler(recognizer, context); // TODO: this is the final implementation.
 
   //store_reset_curr_score();
 
@@ -154,7 +154,7 @@ static void click_config_provider(void *context) {
 static void window_load(Window *window) {
   Layer *window_layer = window_get_root_layer(window);
   GRect bounds = layer_get_bounds(window_layer);
-  APP_LOG(APP_LOG_LEVEL_ERROR, "bound height = %d", bounds.size.h);
+  //APP_LOG(APP_LOG_LEVEL_ERROR, "bound height = %d", bounds.size.h);
 
   //int padding = PBL_IF_ROUND_ELSE(10, 0);
   int padding = 10;

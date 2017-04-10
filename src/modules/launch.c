@@ -98,7 +98,7 @@ void launch_set_random_message() {
   //printf(store_read_random_message());
   
   if (msg_ptr[0] != 'o') { // Deal with action and health messages.
-    char *c;  // TODO: might could just using msg_ptr.
+    char *c;
 
     snprintf(s_random_message_buf, sizeof(s_random_message_buf), msg_ptr);
 
@@ -108,7 +108,6 @@ void launch_set_random_message() {
     s_random_message = ++c;
   } else { // Deal with the outcome messages specially.
     int i, start, end, message_index, score_diff, size = 0;
-    //const char *c;
     char mode = msg_ptr[1];
 
     for (s_msg_id = msg_ptr, i = 0; msg_ptr[i] != ':'; i++, size++) {}
@@ -408,8 +407,7 @@ void update_config(void *context) {
   store_write_config_time(e_launch_time);
 
   // Reset the current progress to eliminate any inconsistency after config change.
-  APP_LOG(APP_LOG_LEVEL_ERROR, "IDSJFODSIJFOISDJGOIDSJGPOISDJG");
-  store_reset_curr_score();
+  //store_reset_curr_score();
 
   // Force it to timeout.
   tick_second_subscribe(true);

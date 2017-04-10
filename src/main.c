@@ -25,7 +25,10 @@ static void init(void) {
   //app_message_register_inbox_received(e_js_ready_handler);
   //app_message_set_context(callback);
   
+  APP_LOG(APP_LOG_LEVEL_ERROR, "Outbox sizes: %d, %u", APP_MESSAGE_OUTBOX_SIZE_MINIMUM, (unsigned)app_message_outbox_size_maximum());
   events_app_message_request_outbox_size(APP_MESSAGE_OUTBOX_SIZE_MINIMUM);
+  // Use a larger buffer to send the historical data.
+  events_app_message_request_outbox_size(4096);
 
   s_normal_msg_handler = events_app_message_register_inbox_received(init_callback, NULL);
   s_enamel_msg_handler = enamel_settings_received_subscribe(update_config, NULL);

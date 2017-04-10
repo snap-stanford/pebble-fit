@@ -1,5 +1,5 @@
 {
-  "version": "1.4",
+  "version": "1.4.0",
   "author": "Stanford SNAP",
   "dependencies": {
     "enamel": "^1.2.4",
@@ -87,7 +87,9 @@
       "score_a_best": 3016,
       "config_summary": 3017,
       "time_zone": 3018,
-      "message_daily_summary": 4001,
+      "message_summary": 4001,
+      "message_pass": 4002,
+      "message_fail": 4003,
       "random_message_0": 4010,
       "random_message_1": 4011,
       "random_message_2": 4012,

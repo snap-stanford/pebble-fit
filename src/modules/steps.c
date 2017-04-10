@@ -242,7 +242,8 @@ void steps_send_latest(time_t t_curr) {
 
 // Functions for sending the step data in the last week (supposed to be used when user first
 // install the app). 
-static uint8_t s_prior_step_records[MAX_ENTRIES];
+#define STEP_PRIOR_BATCH_SIZE 540
+static uint8_t s_prior_step_records[STEP_PRIOR_BATCH_SIZE];
 static int s_prior_num_records;
 static time_t s_prior_start;
 static void prv_prior_data_write(DictionaryIterator * out) {
@@ -253,9 +254,11 @@ static void prv_prior_data_write(DictionaryIterator * out) {
   dict_write_int(out, AppKeyDate, &s_start, sizeof(int), true);
   dict_write_int(out, AppKeyArrayLength, &s_prior_num_records, sizeof(int), true);
   dict_write_int(out, AppKeyArrayStart, &AppKeyArrayData, sizeof(int), true);
+  APP_LOG(APP_LOG_LEVEL_ERROR, "dict_size = %u", (unsigned) dict_size(out));
   for (int i = 0; i < s_prior_num_records; i++) {
     dict_write_uint8(out, AppKeyArrayData + i, s_prior_step_records[i]);
   }
+  APP_LOG(APP_LOG_LEVEL_ERROR, "dict_size = %u", (unsigned) dict_size(out));
 }
 
 /**
@@ -265,13 +268,12 @@ static void prv_prior_data_write(DictionaryIterator * out) {
 void steps_upload_prior_week() {
   int i, curr = 0;
   time_t t_start, t_end, t_final;
-  uint8_t step_records[120];
 
   s_prior_num_records = 0;
   //s = e_launch_time - 7 * SECONDS_PER_DAY;
   // TODO: For now only send limited data.
   t_final = e_launch_time - MAX_ENTRIES * SECONDS_PER_MINUTE; // not include last period.
-  t_start = s_prior_start = t_final - 120 * SECONDS_PER_MINUTE + 1; 
+  t_start = s_prior_start = t_final - STEP_PRIOR_BATCH_SIZE * SECONDS_PER_MINUTE + 1; 
   while (t_start < t_final) {
     // Read data into a temporary array with limited size. Due to the fact we cannot load
     // more than a certain amount of data in a given call.
@@ -288,12 +290,13 @@ void steps_upload_prior_week() {
 
     // Move data into an accumalative array.
     for (i = 0; i < MAX_ENTRIES; i++, curr++) {
-      s_prior_step_records[curr] = curr; 
+      s_prior_step_records[curr] = i; // TODO: load the actual data.
     }
 
     s_prior_num_records += MAX_ENTRIES;
     t_start = t_end + 1;
   }
+  APP_LOG(APP_LOG_LEVEL_INFO, "DEBUG: Done loading history data");
 
   comm_send_data(prv_prior_data_write, comm_sent_handler, comm_server_received_handler);
 }

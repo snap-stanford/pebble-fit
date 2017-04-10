@@ -9,10 +9,10 @@ var references = require('./references')
 var configs = {
   'passive_tracking': require('../config/passive_tracking'),
   'daily_message': require('../config/daily_message'),
-  'real_time_random': require('../config/real_time_random')
+  'real_time_random': require('../config/real_time_random'),
+  'normal_messages': require('../config/normal_messages')
 };
 
-//exports.save = function (watch, name, email, age, gender, height, heightU, weight, weightU, race, school, occupation, deskwork, income, country, zipcode, next) {
 exports.save = function (query, next) {
   var watch = query.watch
   console.log("Creating new user: " + watch);
@@ -55,6 +55,7 @@ exports.save = function (query, next) {
       references.update(watch, [1,1,2,2,3,3,4,4,5,5,6,6], 10, next);
     });
 
+  // Assign user to randomly selected group.
   //TODO:  Assign everyone to real_time_random for now.
   //groups.random_pick(function (err, group) {
   //  console.log("random_pick callback: err=" + err +"; group="+group[0].name);
@@ -86,10 +87,6 @@ exports.getConfig = function (watch, force, next) {
         newConfig['score_a_average'] = refAll.average.join(','); // Convert to string
         newConfig['score_a_best'] = refAll.best; 
 
-        //console.log('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');
-        //console.log(newConfig);
-        //console.log('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');
-
         next(null, newConfig);
       });
     });
@@ -99,15 +96,22 @@ exports.getConfig = function (watch, force, next) {
     //console.log("in checkUpdate callback");
     if (err) return next(err);
     
-    if (force || isNewConfig) { 
+    //if (force || isNewConfig) { 
+    if (true) { 
       // New update available. Read the new configuration.
       var newConfig = Object.assign({}, configs[groupName]);
+
+      // Supply normal message with its actual content.
+      for (var key in newConfig) {
+        if (key.startsWith('message_')) {
+          newConfig[key] = configs['normal_messages'][newConfig[key]];
+        }
+      }
     } else { 
       var newConfig = {};
     }
 
     // Add random messages if neccessary.
-    //if (config.hasOwnProperty('random_messages')) {
     if (groupName === 'real_time_random') {
       var messagesCount = configs['real_time_random']['random_messages'];
       newConfig['random_messages'] = messages.getRandomMessages(messagesCount);
