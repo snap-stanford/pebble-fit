@@ -6,6 +6,9 @@ static ScrollLayer *s_scroll_layer;
 static ContentIndicator *s_indicator;
 static Layer *s_indicator_up_layer, *s_indicator_down_layer;
 
+
+static int s_top_offset = 10;
+
 /** 
  * Update the text displayed on this dialog window.
  */
@@ -15,7 +18,13 @@ void dialog_text_layer_update_proc(char *text) {
   // Set up ScrollLayer according to the text size (assuming top_text_layer_update_proc done).
   GSize text_size = text_layer_get_content_size(s_text_layer);
 
+  APP_LOG(APP_LOG_LEVEL_ERROR, "main_text_size.w=%d, h=%d", text_size.w, text_size.h);
+  text_size.h += 2 * s_top_offset;
   scroll_layer_set_content_size(s_scroll_layer, text_size);
+
+  #if defined(PBL_ROUND)
+    text_layer_enable_screen_text_flow_and_paging(s_text_layer, 5);
+  #endif
 }
 
 /**
@@ -26,9 +35,8 @@ static void window_load(Window *window) {
 
   GRect bounds = layer_get_bounds(window_layer);
 
-  int text_layer_height = 400;
+  int text_layer_height = 800;
   float center = bounds.size.h / 2;
-  int padding = 10;
 
 
 
@@ -87,7 +95,7 @@ static void window_load(Window *window) {
 
   // Create TextLayer.
   GRect text_bounds = GRect(bounds.origin.x, bounds.origin.y, bounds.size.w, text_layer_height);
-  GEdgeInsets text_insets = {.top = padding, .right = 5, .left = 5};
+  GEdgeInsets text_insets = {.top = s_top_offset, .right = 5, .left = 5};
   s_text_layer = text_layer_create(grect_inset(text_bounds, text_insets));
   text_layer_set_background_color(s_text_layer, GColorClear);
   text_layer_set_text_color(s_text_layer, GColorRed);
@@ -96,10 +104,6 @@ static void window_load(Window *window) {
 
   // Add TextLayer as children of the ScrollLayer.
   scroll_layer_add_child(s_scroll_layer, text_layer_get_layer(s_text_layer));
-
-  #if defined(PBL_ROUND)
-    text_layer_enable_screen_text_flow_and_paging(s_text_layer, 5);
-  #endif
 }
 
 static void window_unload(Window *window) {

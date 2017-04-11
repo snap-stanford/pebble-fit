@@ -357,8 +357,9 @@ void launch_handler(bool activate) {
     tick_second_subscribe(will_timeout);
   } else {
     s_dialog_window = dialog_window_push();
-    dialog_text_layer_update_proc(
-      "You must provide consent and activate this app from the 'Settings' page on your phone.");
+    //dialog_text_layer_update_proc(
+    //  "You must provide consent and activate this app from the 'Settings' page on your phone.");
+    dialog_text_layer_update_proc("To join the study, open the MyMobilize app on your phone (found in your Pebble app library), and click on settings to complete the Eligibility and Consent process.");
   }
 }
 
@@ -407,7 +408,8 @@ void update_config(void *context) {
   store_write_config_time(e_launch_time);
 
   // Reset the current progress to eliminate any inconsistency after config change.
-  //store_reset_curr_score();
+  APP_LOG(APP_LOG_LEVEL_ERROR, "IDSJFODSIJFOISDJGOIDSJGPOISDJG");
+  //store_reset_curr_score(); // TODO: uncomment.
 
   // Force it to timeout.
   tick_second_subscribe(true);

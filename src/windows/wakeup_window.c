@@ -66,27 +66,13 @@ static void top_text_layer_update_proc() {
 /* Procedure for how to update s_main_text_layer. */
 static void main_text_layer_update_proc() {
   APP_LOG(APP_LOG_LEVEL_ERROR, "enter main_text_layer_update_proc()");
-  if (e_launch_reason == LAUNCH_WAKEUP_ALERT) {
-  //if (e_launch_reason == LAUNCH_WAKEUP_ALERT || e_launch_reason == LAUNCH_PHONE) { // DEBUG
-
-    APP_LOG(APP_LOG_LEVEL_INFO, "random_message,content=ABSZ1");
-    APP_LOG(APP_LOG_LEVEL_INFO, "random_message,content=%s", launch_get_random_message());
-    APP_LOG(APP_LOG_LEVEL_INFO, "random_message,content=ABSZ1");
-    snprintf(s_main_text_buf, sizeof(s_main_text_buf), "%s", launch_get_random_message());
-  } else {
-    const char *daily_summary = enamel_get_message_summary();
-     
-    snprintf(s_main_text_buf, sizeof(s_main_text_buf), daily_summary, 
-      store_read_curr_score(), enamel_get_total_break());
-
-    strcat(s_main_text_buf, "\n\n\n"); //TODO: workaround for scrolling issue for some long text.
-  }
-    
+   
   text_layer_set_text(s_main_text_layer, s_main_text_buf);
 
   // Set up ScrollLayer according to the text size (assuming top_text_layer_update_proc done).
   GSize top_text_size = text_layer_get_content_size(s_top_text_layer);
   GSize main_text_size = text_layer_get_content_size(s_main_text_layer);
+  APP_LOG(APP_LOG_LEVEL_ERROR, "main_text_size.w=%d, h=%d", main_text_size.w, main_text_size.h);
   main_text_size.w += top_text_size.w;
   main_text_size.h += top_text_size.h;
   APP_LOG(APP_LOG_LEVEL_ERROR, "Gsize height = %d", main_text_size.h);
@@ -236,11 +222,31 @@ static void window_load(Window *window) {
   // Note: due to the fact that text_layer_get_content_size() does no give accurate value when
   // used with text_layer_enable_screen_text_flow_and_paging(), we add an arbitrary margin
   // when creating the main TextLayer.
+  
+  // We need to get a sense of the size of message to place the text layer properly 
+  // approximately at the center of the screen.
+  //if (e_launch_reason == LAUNCH_WAKEUP_ALERT) {
+  if (e_launch_reason == LAUNCH_WAKEUP_ALERT || e_launch_reason == LAUNCH_PHONE) { // DEBUG
+    launch_set_random_message();
+    APP_LOG(APP_LOG_LEVEL_ERROR, "random_message,content=%s", launch_get_random_message());
+    //snprintf(s_main_text_buf, sizeof(s_main_text_buf), "%s", launch_get_random_message());
+    snprintf(s_main_text_buf, sizeof(s_main_text_buf), "Nice outside? Talk a stroll.");
+  } else {
+    const char *daily_summary = enamel_get_message_summary();
+     
+    snprintf(s_main_text_buf, sizeof(s_main_text_buf), daily_summary, 
+      store_read_curr_score(), enamel_get_total_break());
+
+    strcat(s_main_text_buf, "\n\n\n"); //TODO: workaround for scrolling issue for some long text.
+  }
+  APP_LOG(APP_LOG_LEVEL_ERROR, "ABSZ. string length=%d", strlen(s_main_text_buf));
+ 
   GSize top_text_size = text_layer_get_content_size(s_top_text_layer);
   GRect main_bounds = GRect(bounds.origin.x, bounds.origin.y + top_text_size.h, 
                             bounds.size.w, bounds.size.h); // TODO: different height value?
   GEdgeInsets main_text_insets = {.top = 5, .right = 20, .left = 20};
-  s_main_text_font = fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD);
+  //s_main_text_font = fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD);
+  s_main_text_font = fonts_get_system_font(FONT_KEY_GOTHIC_24);
   //s_main_text_layer = make_text_layer(main_bounds, s_main_text_font, GTextAlignmentCenter);
   //s_main_text_layer = make_text_layer(grect_inset(main_bounds, GEdgeInsets(15)), 
   s_main_text_layer = make_text_layer(

@@ -201,7 +201,7 @@
     {
       "type": "text",
       "id": "consent_review_text",
-      "defaultValue": "<p align='justify'>Please review the consent form below and tap to agree if you are ready to continue.</p>"
+      "defaultValue": "<p align='justify'>Please tap agree if you are ready to continue.</p>"
     },
     {
       "type": "heading",

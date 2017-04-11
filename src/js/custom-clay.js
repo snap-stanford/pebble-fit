@@ -55,8 +55,8 @@ module.exports = function (minified) {
   // Components that should always be hidden.
   var disabled_components = [//'step_threshold', 
     'dynamic_wakeup', 'sliding_window', 'display_duration'];
-  var hidden_components = [
-    'activate', 'is_consent', 'first_config', 'config_update_interval', 'time_warn_text',
+  var hidden_components = [ 'activate', 
+    'is_consent', 'first_config', 'config_update_interval', 'time_warn_text',
     'message_summary', 'message_pass', 'message_fail', 
     'total_break', 'group', 'score_p_average', 'score_p_best', 
     'score_a_average', 'score_a_best', 'time_zone',
@@ -197,7 +197,9 @@ module.exports = function (minified) {
     if (consentPageIndex == consent_heading.length) {
       hideSection(consent_section);
 
-      showSection(consent_review_section); // TODO: Do not want to display this long form.
+      showSection(consent_review_section); 
+
+      //clayConfig.getItemById('consent_review_text_form').hide(); // Not display the long form.
     } else {
       clayConfig.getItemById('consent_heading_top').set(consent_heading[consentPageIndex]);
       clayConfig.getItemById('consent_text_top').set("<p align='justify'>"+
@@ -210,7 +212,7 @@ module.exports = function (minified) {
   }
 
   function consentButtonAgreeClick () {
-    // FIXME: consent_email input field does not verify if input format is valid
+    // TODO: consent_email input field does not verify if input format is valid
 
     clayConfig.getItemByMessageKey('is_consent').set(true);
     clayConfig.getItemByMessageKey('activate').set(true);
@@ -220,8 +222,8 @@ module.exports = function (minified) {
   }
 
   function consentButtonDisagreeClick () {
-    clayConfig.getItemByMessageKey('is_consent').set(false);
     clayConfig.getItemByMessageKey('activate').set(false);
+    clayConfig.getItemByMessageKey('is_consent').set(false);
 
     clayConfig.getItemById('consent_result_text').set('Okay, you have chosen not to participle in our study.');
     clayConfig.getItemById('submit').set('Confirm & Exit');
@@ -305,10 +307,10 @@ module.exports = function (minified) {
    * This function is called after the page is built (similar to the main function).
    */
   clayConfig.on(clayConfig.EVENTS.AFTER_BUILD, function () {
-    var activateToggle = clayConfig.getItemByMessageKey('activate');
+    //var activateToggle = clayConfig.getItemByMessageKey('activate');
 
     // Register event callbacks.
-    activateToggle.on('change', changeEnableApp);
+    //activateToggle.on('change', changeEnableApp);
 
     clayConfig.getItemById('eligible_button').on('click', eligibleButtonClick);
     clayConfig.getItemById('consent_button_start').on('click', consentButtonStartClick);
@@ -360,7 +362,7 @@ module.exports = function (minified) {
     clayConfig.getItemById('time_zone').set(new Date().getTimezoneOffset());
 
     // Update the page view.
-    changeEnableApp.call(activateToggle);
+    //changeEnableApp.call(activateToggle);
   });
 
 };
