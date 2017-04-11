@@ -19,6 +19,20 @@ fi
 #    exit 1
 #fi
 
+# Choose the correct command.
+hash mongo >/dev/null 2>&1
+if [[ $? -eq 0 ]]; then
+  # Use the system installation of mongo.
+  cmd="mongo"
+elif [[ -x ${DIR}/../../../mongodb/bin/mongo ]]; then 
+  # Use the local installation of mongo.
+  cmd="${DIR}/../../../mongodb/bin/mongo"
+else
+  echo "Error: could not find mongo!"
+  exit 1
+fi
+
+
 # Assume we use the same mb server to store the local config files, so these are hard-coded.
 default_conf_dir=/datamb/pebble/configuration
 new_config_dir=${default_conf_dir}/new_configuration
@@ -84,19 +98,6 @@ mongo_cmd='
       $currentDate: { configUpdatedAt: true } 
     }
   )'
-
-# Choose the correct command.
-hash mongo >/dev/null 2>&1
-if [[ $? -eq 0 ]]; then
-  # Use the system installation of mongo.
-  cmd="mongo"
-elif [[ -x ${DIR}/mongo ]]; then 
-  # Use the local installation of mongo.
-  cmd="${DIR}/mongo"
-else
-  echo "Error: could not find mongo!"
-  exit 1
-fi
 
 # local mode (assuming the local mongod is running, and there is a pebble-fit DB)
 #${cmd} pebble-fit --eval "${mongo_cmd}"
