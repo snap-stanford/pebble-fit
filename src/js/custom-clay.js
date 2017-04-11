@@ -66,8 +66,7 @@ module.exports = function (minified) {
     'survey_age2', 'survey_age3',
     'break_freq', 'break_len', 'step_threshold', // Invisible since user cannot modify them.
     'dynamic_wakeup', 'sliding_window', 'display_duration', 
-    'consent_icon_top', 'consent_icon_bottom',
-    'watch_alert_text', 'watch_pass_text'];
+    'consent_icon_top', 'consent_icon_bottom'];
 
   // Text to be displayed on each of the content pages. The idea is to use the same 
   // components, but change the text displayed for them. 

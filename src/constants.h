@@ -33,8 +33,10 @@
 #define RANDOM_MSG_POOL_SIZE          10    // The size of random message pool
 #define RANDOM_MSG_SIZE_MAX           256   // Maximum number of characters for random message
 
-/* Persistent Storage Keys. FIXME: supposed type is uint32_t. */
+/* Communiation Keys.*/
 static const int      AppKeyArrayData               = 200; // FIXME: change to 4321? (diff from PERSIST_KEY_UPLOAD_TIME)
+
+/* Persistent Storage Keys. FIXME: supposed type is uint32_t. */
 static const uint32_t PERSIST_KEY_WAKEUP_ID         = 111;
 
 static const uint32_t PERSIST_KEY_LAUNCHEXIT_COUNT  = 1000;

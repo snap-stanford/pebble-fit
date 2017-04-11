@@ -36,7 +36,7 @@ void store_write_config_time(time_t time) {
  *   Make sure there is a non-Period Wakup scheduled daily before any Period Wakeup.
  */
 bool store_resend_config_request(time_t t_curr) {
-  return true; // TODO: debug - delete
+  //return true; // TODO: debug - delete
 
   if (!persist_exists(PERSIST_KEY_CONFIG_TIME)) {
     return true;
@@ -231,39 +231,46 @@ bool store_resend_launchexit_event() {
  * to the server. Later in steps_send_latest()  we might resend some data that we are 
  * sending in here.
  */
-bool store_resend_steps(time_t t_curr) {
+bool store_resend_steps() {
+  APP_LOG(APP_LOG_LEVEL_INFO, "DEBUG: in store_resend_steps");
   time_t t_last_upload; 
   time_t interval_seconds = enamel_get_break_freq() * SECONDS_PER_MINUTE;
   //t_last_upload = (t_last_upload < time_start_of_today());
+  APP_LOG(APP_LOG_LEVEL_ERROR, "DEBUG: first_config=%d",  enamel_get_first_config());
 
-  if (!persist_exists(PERSIST_KEY_UPLOAD_TIME) || enamel_get_first_config() == 1) {
-    t_last_upload = time_start_of_today() - 2 *SECONDS_PER_DAY; // TODO: only send 2 days history.
-
-    return false;
+  if (!persist_exists(PERSIST_KEY_UPLOAD_TIME)) {
+    APP_LOG(APP_LOG_LEVEL_INFO, "DEBUG: ABSZ");
+    t_last_upload = time_start_of_today() - 2 *SECONDS_PER_HOUR; // TODO: only send 2 hours history.
   } else {
     persist_read_data(PERSIST_KEY_UPLOAD_TIME, &t_last_upload, sizeof(time_t));
-
-    // DEBUG
-    char buf[32];
-    strftime(buf, sizeof(buf), "%d:%H:%M", localtime(&t_last_upload));
-    APP_LOG(APP_LOG_LEVEL_ERROR, "t_last_upload=%s",  buf);
-    //DEBUG
-    if (t_last_upload  < time_start_of_today() - 2 * SECONDS_PER_DAY) {
-      // If last upload time is ealier than 2 days ago, only upload starting at 2 days ago
-      t_last_upload = time_start_of_today() - 2 * SECONDS_PER_DAY;
-    } else if (t_last_upload >= t_curr - interval_seconds) {
+    if (t_last_upload >= e_launch_time - interval_seconds) {
       // Data in the lastest 60 minutes will be sent by the normal data upload routine.
       return true;
     }
-
-    steps_send_in_between(t_last_upload, t_last_upload + interval_seconds, true);
-
-    t_last_upload += interval_seconds;
-    persist_write_data(PERSIST_KEY_UPLOAD_TIME, &t_last_upload, sizeof(time_t));
-
-    //return t_last_upload < t_curr - interval_seconds;
-    return false;
   }
+
+  // DEBUG
+  char buf[32];
+  strftime(buf, sizeof(buf), "%d %H:%M", localtime(&t_last_upload));
+  APP_LOG(APP_LOG_LEVEL_ERROR, "t_last_upload=%u, %s",  (unsigned)t_last_upload, buf);
+  //DEBUG
+  /*
+  if (t_last_upload  < time_start_of_today() - 2 * SECONDS_PER_DAY) {
+    // If last upload time is ealier than 2 days ago, only upload starting at 2 days ago
+    t_last_upload = time_start_of_today() - 2 * SECONDS_PER_DAY;
+  } else if (t_last_upload >= e_launch_time - interval_seconds) {
+    // Data in the lastest 60 minutes will be sent by the normal data upload routine.
+    return true;
+  }
+  */
+
+  steps_send_in_between(t_last_upload, t_last_upload + interval_seconds, true);
+
+  t_last_upload += interval_seconds;
+  persist_write_data(PERSIST_KEY_UPLOAD_TIME, &t_last_upload, sizeof(time_t));
+
+  //return t_last_upload < t_curr - interval_seconds;
+  return false;
 }
 
 /**

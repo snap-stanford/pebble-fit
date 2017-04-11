@@ -24,7 +24,8 @@ typedef enum {
   AppKeyArrayStart,
   AppKeyConfigRequest,
   AppKeyMessageID,
-  AppKeyBreakCount
+  AppKeyBreakCount,
+  AppKeyStringData
 } AppKey;
 
 /* Init communication. */
@@ -37,7 +38,4 @@ void comm_sent_handler(DictionaryIterator *iter, void *context);
 void comm_server_received_handler(DictionaryIterator *iter, void *context);
 
 /* Send data with data writing fn, and handlers. */
-void comm_send_data(
-  DataWriteCallback,
-  AppMessageOutboxSent,
-  AppMessageInboxReceived);
+void comm_send_data( DataWriteCallback, AppMessageOutboxSent, AppMessageInboxReceived);

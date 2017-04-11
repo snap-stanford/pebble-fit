@@ -27,6 +27,24 @@ void dialog_text_layer_update_proc(char *text) {
   #endif
 }
 
+/* Back button click handler. Set the exit reason and then exit. */
+static void back_click_handler(ClickRecognizerRef recognizer, void *context) {
+  window_stack_pop_all(false);
+}
+
+/**
+ * Handler for the select button. It is same as back_click_handler() or used for debugging.
+ */
+static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
+  back_click_handler(recognizer, context);
+}
+
+/* Set click event handlers. */
+static void click_config_provider(void *context) {
+  window_single_click_subscribe(BUTTON_ID_BACK, back_click_handler);
+  window_single_click_subscribe(BUTTON_ID_SELECT, select_click_handler);
+}
+
 /**
  * Create the window and push to the window stack. 
  */
@@ -46,9 +64,9 @@ static void window_load(Window *window) {
 
   // Let the ScrollLayer receive click events, and set click handlers for windows.
   scroll_layer_set_click_config_onto_window(s_scroll_layer, window);
-  //scroll_layer_set_callbacks(s_scroll_layer, (ScrollLayerCallbacks) {
-  //  .click_config_provider =  click_config_provider,
-  //});
+  scroll_layer_set_callbacks(s_scroll_layer, (ScrollLayerCallbacks) {
+    .click_config_provider =  click_config_provider,
+  });
 
   // Add the ScrollLayer to the main window layer.
   layer_add_child(window_layer, scroll_layer_get_layer(s_scroll_layer));

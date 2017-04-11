@@ -18,7 +18,7 @@ var SERVER = 'http://pebble-fit.herokuapp.com';
 // Local servers (use ifconfig to find out).
 //var SERVER = 'http://10.30.202.74:3000';
 //var SERVER = 'http://10.34.171.70:3000';
-var SERVER = 'http://10.34.179.121:3000';
+//var SERVER = 'http://10.34.165.239:3000';
 
 // Flag to switch off server communication
 var USE_OFFLINE = true;
@@ -55,8 +55,18 @@ Pebble.addEventListener('appmessage', function (dict) {
 
   // Data related to step count.
   if (dict.payload['AppKeyStepsData'] !== undefined) {
-    var data = load_data_array()
+    if (dict.payload['AppKeyStringData'] !== undefined) {
+      var string = dict.payload['AppKeyStringData'];
+      if (string !== undefined) {
+        console.log('debug string: ' + string);
+        var data = string.split(',').map(function(num) {return parseInt(num)});
+      }
+    } else {
+      var data = load_data_array();
+    }
+
     log.debug('Data: ' + data);
+    log.debug('Data length: ' + data.length);
     sendStepData(data, date);
   }
 

@@ -360,6 +360,12 @@ void launch_handler(bool activate) {
     //dialog_text_layer_update_proc(
     //  "You must provide consent and activate this app from the 'Settings' page on your phone.");
     dialog_text_layer_update_proc("To join the study, open the MyMobilize app on your phone (found in your Pebble app library), and click on settings to complete the Eligibility and Consent process.");
+
+    prv_wakeup_vibrate(true);
+
+    // Still buzz user for providing consent. 
+    // TODO: maybe just a special wakeup at 1 hour frequency?
+    wakeup_schedule_events();
   }
 }
 
@@ -371,7 +377,6 @@ void launch_handler(bool activate) {
  */
 void update_config(void *context) {
   APP_LOG(APP_LOG_LEVEL_INFO, "in update_config. %d", enamel_get_activate());
-  APP_LOG(APP_LOG_LEVEL_INFO, "%s, %d, %d", enamel_get_watch_alert_text(), enamel_get_is_consent(), enamel_get_break_freq());
   // FIXME: this seems to cause the scroll window not properly response to the up/down buttons.
   
   // Assuming only two states/windows (activated/non-activated)
@@ -486,7 +491,7 @@ void init_callback(DictionaryIterator *iter, void *context) {
       }
       break;
     case 3: 
-      steps_send_latest(e_launch_time);
+      steps_send_latest();
       init_stage++;
       break;
     default:

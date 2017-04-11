@@ -96,8 +96,8 @@ exports.getConfig = function (watch, force, next) {
     //console.log("in checkUpdate callback");
     if (err) return next(err);
     
-    //if (force || isNewConfig) { 
-    if (true) { 
+    if (force || isNewConfig) { 
+    //if (true) { 
       // New update available. Read the new configuration.
       var newConfig = Object.assign({}, configs[groupName]);
 

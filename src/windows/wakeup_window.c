@@ -106,6 +106,7 @@ static void back_click_handler(ClickRecognizerRef recognizer, void *context) {
  * Handler for the select button. It is same as back_click_handler() or used for debugging.
  */
 static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
+  //back_click_handler(recognizer, context); // TODO: this is the final implementation.
 
   // Test: step data re-send.
   //text_layer_set_text(s_main_text_layer, "reset timestamp");
@@ -120,18 +121,16 @@ static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
   snprintf(s_main_text_buf, sizeof(s_main_text_buf), "%s", launch_get_random_message());
   text_layer_set_text(s_main_text_layer, s_main_text_buf);
 
-  //back_click_handler(recognizer, context); // TODO: this is the final implementation.
-
   //store_reset_curr_score();
 
   // Reset last update timestamp to 2 hour ago
   //store_write_config_time(time(NULL) - 2 * SECONDS_PER_DAY);
 
   // Test: send prior week's data
-  //steps_upload_prior_week();
+  steps_upload_prior_week();
 }
 
-/* Deprecated. Set click event handlers. */
+/* Set click event handlers. */
 static void click_config_provider(void *context) {
   window_single_click_subscribe(BUTTON_ID_BACK, back_click_handler);
   window_single_click_subscribe(BUTTON_ID_SELECT, select_click_handler);
@@ -225,12 +224,13 @@ static void window_load(Window *window) {
   
   // We need to get a sense of the size of message to place the text layer properly 
   // approximately at the center of the screen.
-  //if (e_launch_reason == LAUNCH_WAKEUP_ALERT) {
-  if (e_launch_reason == LAUNCH_WAKEUP_ALERT || e_launch_reason == LAUNCH_PHONE) { // DEBUG
+  if (e_launch_reason == LAUNCH_WAKEUP_ALERT) {
+  //if (e_launch_reason == LAUNCH_WAKEUP_ALERT || e_launch_reason == LAUNCH_PHONE) { // DEBUG
     launch_set_random_message();
     APP_LOG(APP_LOG_LEVEL_ERROR, "random_message,content=%s", launch_get_random_message());
-    //snprintf(s_main_text_buf, sizeof(s_main_text_buf), "%s", launch_get_random_message());
-    snprintf(s_main_text_buf, sizeof(s_main_text_buf), "Nice outside? Talk a stroll.");
+    snprintf(s_main_text_buf, sizeof(s_main_text_buf), "%s", launch_get_random_message());
+    //snprintf(s_main_text_buf, sizeof(s_main_text_buf), "Nice outside? Talk a stroll.");
+    //snprintf(s_main_text_buf, sizeof(s_main_text_buf), "regular walking breaks can reduce risk of cardiovascular disease");
   } else {
     const char *daily_summary = enamel_get_message_summary();
      
@@ -245,8 +245,7 @@ static void window_load(Window *window) {
   GRect main_bounds = GRect(bounds.origin.x, bounds.origin.y + top_text_size.h, 
                             bounds.size.w, bounds.size.h); // TODO: different height value?
   GEdgeInsets main_text_insets = {.top = 5, .right = 20, .left = 20};
-  //s_main_text_font = fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD);
-  s_main_text_font = fonts_get_system_font(FONT_KEY_GOTHIC_24);
+  s_main_text_font = fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD);
   //s_main_text_layer = make_text_layer(main_bounds, s_main_text_font, GTextAlignmentCenter);
   //s_main_text_layer = make_text_layer(grect_inset(main_bounds, GEdgeInsets(15)), 
   s_main_text_layer = make_text_layer(

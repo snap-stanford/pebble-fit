@@ -11,10 +11,10 @@ static bool s_is_loaded = false;        // Set this to true to skip prv_load_dat
 static bool s_is_update = false;
 static bool s_pass = false;
 
-/* Load health service data for the last hour into a static array. */
+/* Load health service data between start time and end time into a static array. */
 static void prv_load_data(time_t *start, time_t *end) {
   s_steps = 0;
-  if (!s_is_loaded) {
+  //if (!s_is_loaded) {
     // Set the static array to zeros
     s_num_records = 0;
     for(int i = 0; i < MAX_ENTRIES; i++) {
@@ -49,7 +49,7 @@ static void prv_load_data(time_t *start, time_t *end) {
       }
     }
     s_is_loaded = true;
-  }
+  //}
 }
 
 /* TODO: debugging function to report the nonsed periods. */
@@ -60,7 +60,7 @@ void prv_report_steps(int i) {
   }
 }
 /* 
- * Update steps count. 
+ * Get the latest steps count for the latest period. 
  */
 void steps_update() {
   int left, right, start_index, break_freq, break_len, sliding_window, step_threshold;
@@ -70,7 +70,8 @@ void steps_update() {
 
     // Read recorded step count data from the Pebble Health service.
     s_is_loaded = false; // Force to load new data from Health service.
-    s_end = time(NULL);
+    //s_end = time(NULL);
+    s_end = e_launch_time;
     s_start = s_end - SECONDS_PER_MINUTE * MAX_ENTRIES; 
     //APP_LOG(APP_LOG_LEVEL_INFO, "DEBUG: steps_update - before prv_load_data.");
     prv_load_data(&s_start, &s_end);
@@ -218,6 +219,7 @@ void steps_send_in_between(time_t t_start, time_t end, bool force) {
     // Force prv_load_data to load load from Pebble Health.
     s_is_loaded = false;
   }
+  s_start = t_start;
   prv_load_data(&t_start, &end);
 
   if (s_num_records == 0) {
@@ -232,18 +234,20 @@ void steps_send_in_between(time_t t_start, time_t end, bool force) {
  * Send the latest steps data in the last hour.
  * FIXME: this could be integrated into store_resend_steps(). 
  */
-void steps_send_latest(time_t t_curr) {
-  time_t t_start = t_curr - (MAX_ENTRIES * SECONDS_PER_MINUTE);
-  steps_send_in_between(t_start, t_curr, false);
+void steps_send_latest() {
+  s_start = e_launch_time - (MAX_ENTRIES * SECONDS_PER_MINUTE);
 
-  store_write_upload_time(t_curr);
+  steps_send_in_between(s_start, e_launch_time, false);
+
+  store_write_upload_time(e_launch_time);
 }
 
 
 // Functions for sending the step data in the last week (supposed to be used when user first
 // install the app). 
-#define STEP_PRIOR_BATCH_SIZE 540
+#define STEP_PRIOR_BATCH_SIZE 180
 static uint8_t s_prior_step_records[STEP_PRIOR_BATCH_SIZE];
+static char s_prior_step_records_string[STEP_PRIOR_BATCH_SIZE*4];
 static int s_prior_num_records;
 static time_t s_prior_start;
 static void prv_prior_data_write(DictionaryIterator * out) {
@@ -251,14 +255,15 @@ static void prv_prior_data_write(DictionaryIterator * out) {
   int true_value = 1;
   dict_write_int(out, AppKeyStepsData, &true_value, sizeof(int), true);
 
-  dict_write_int(out, AppKeyDate, &s_start, sizeof(int), true);
-  dict_write_int(out, AppKeyArrayLength, &s_prior_num_records, sizeof(int), true);
-  dict_write_int(out, AppKeyArrayStart, &AppKeyArrayData, sizeof(int), true);
-  APP_LOG(APP_LOG_LEVEL_ERROR, "dict_size = %u", (unsigned) dict_size(out));
-  for (int i = 0; i < s_prior_num_records; i++) {
-    dict_write_uint8(out, AppKeyArrayData + i, s_prior_step_records[i]);
-  }
-  APP_LOG(APP_LOG_LEVEL_ERROR, "dict_size = %u", (unsigned) dict_size(out));
+  dict_write_int(out, AppKeyDate, &s_prior_start, sizeof(int), true);
+
+  dict_write_cstring(out, AppKeyStringData, s_prior_step_records_string);
+
+  //APP_LOG(APP_LOG_LEVEL_ERROR, "dict_size = %u", (unsigned) dict_size(out));
+  //for (int i = 0; i < s_prior_num_records; i++) {
+  //  dict_write_uint8(out, AppKeyArrayData + i, s_prior_step_records[i]);
+  //}
+  //APP_LOG(APP_LOG_LEVEL_ERROR, "dict_size = %u", (unsigned) dict_size(out));
 }
 
 /**
@@ -266,7 +271,11 @@ static void prv_prior_data_write(DictionaryIterator * out) {
  * TODO: optimize to reduce upload time.
  */
 void steps_upload_prior_week() {
-  int i, curr = 0;
+  // Use a larger buffer to send the historical data.
+  events_app_message_request_outbox_size(4096);
+  events_app_message_open(); // Call pebble-events app_message_open function
+  
+  int i, fill_index = 0, curr = 0;
   time_t t_start, t_end, t_final;
 
   s_prior_num_records = 0;
@@ -290,13 +299,30 @@ void steps_upload_prior_week() {
 
     // Move data into an accumalative array.
     for (i = 0; i < MAX_ENTRIES; i++, curr++) {
-      s_prior_step_records[curr] = i; // TODO: load the actual data.
+      //s_prior_step_records[curr] = i; // TODO: load the actual data.
+      
+      int step = 100+i;
+      if (step > 99) {
+        s_prior_step_records_string[fill_index++] = step / 100 + '0';
+        step %= 100;
+        s_prior_step_records_string[fill_index++] = step / 10 + '0';
+        s_prior_step_records_string[fill_index++] = step % 10 + '0';
+      } else if (step > 9) {
+        s_prior_step_records_string[fill_index++] = step / 10 + '0';
+        s_prior_step_records_string[fill_index++] = step % 10 + '0';
+      } else {
+        s_prior_step_records_string[fill_index++] = step + '0';
+      }
+      s_prior_step_records_string[fill_index++] = ',';
     }
 
     s_prior_num_records += MAX_ENTRIES;
     t_start = t_end + 1;
   }
-  APP_LOG(APP_LOG_LEVEL_INFO, "DEBUG: Done loading history data");
+  s_prior_step_records_string[fill_index-1] = '\0'; // Remove the tailing ','
+
+  APP_LOG(APP_LOG_LEVEL_INFO, "DEBUG: Done loading history data, fill_index=%d", fill_index);
+  APP_LOG(APP_LOG_LEVEL_INFO, "DEBUG: data = %s", s_prior_step_records_string);
 
   comm_send_data(prv_prior_data_write, comm_sent_handler, comm_server_received_handler);
 }
