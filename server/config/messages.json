@@ -1,0 +1,5 @@
+{
+  "daily_summary": "You have accomplished %d of %d possible walking breaks today.",
+  "default_pass": "Break accomplished. Nice work!",
+  "default_fail": "Opps! Break missed."
+}
