@@ -66,13 +66,17 @@ void store_write_upload_time(time_t time) {
 
 /**
  * Return the timestamp of the last time we upload steps data to the server.
+ * Return 0 if there is no upload-time stored (i.e. never uploaded steps data yet).
  */
 time_t store_read_upload_time() {
-  time_t res;
+  time_t t_last_upload; 
 
-  persist_read_data(PERSIST_KEY_UPLOAD_TIME, &res, sizeof(time_t));
-
-  return res;
+  if (!persist_exists(PERSIST_KEY_UPLOAD_TIME)) {
+    return 0;
+  } else {
+    persist_read_data(PERSIST_KEY_UPLOAD_TIME, &t_last_upload, sizeof(time_t));
+    return t_last_upload;
+  }
 }
 
 /**
@@ -240,7 +244,7 @@ bool store_resend_steps() {
 
   if (!persist_exists(PERSIST_KEY_UPLOAD_TIME)) {
     APP_LOG(APP_LOG_LEVEL_INFO, "DEBUG: ABSZ");
-    t_last_upload = time_start_of_today() - 2 *SECONDS_PER_HOUR; // TODO: only send 2 hours history.
+    t_last_upload = time_start_of_today() - 2 * SECONDS_PER_HOUR; // TODO: only send 2 hours history.
   } else {
     persist_read_data(PERSIST_KEY_UPLOAD_TIME, &t_last_upload, sizeof(time_t));
     if (t_last_upload >= e_launch_time - interval_seconds) {

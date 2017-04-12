@@ -1,55 +1,60 @@
 #include "steps.h"
 
+#define STEP_BATCH_MAXIMUM_SIZE 60
+static uint8_t s_step_batch_records[STEP_BATCH_MAXIMUM_SIZE];
+static char s_step_batch_string[STEP_BATCH_MAXIMUM_SIZE * 4]; // Number up to 3 digits + ','
+static int s_step_batch_size;
+
 static uint8_t s_step_records[MAX_ENTRIES];
 static int s_num_records;
 static int s_steps;
 static time_t s_start, s_end;
-//static int s_inactive_mins;
+
 static char s_start_buf[12];
 static char s_end_buf[12];
+static bool s_pass = false;
+
+// Deprecated. TODO: clean up
+//static int s_inactive_mins;
 static bool s_is_loaded = false;        // Set this to true to skip prv_load_data()
 static bool s_is_update = false;
-static bool s_pass = false;
 
 /* Load health service data between start time and end time into a static array. */
 static void prv_load_data(time_t *start, time_t *end) {
   s_steps = 0;
-  //if (!s_is_loaded) {
-    // Set the static array to zeros
-    s_num_records = 0;
-    for(int i = 0; i < MAX_ENTRIES; i++) {
+
+  // Initialize the static array to zeros
+  s_num_records = 0;
+  for(int i = 0; i < MAX_ENTRIES; i++) {
+    s_step_records[i] = 0;
+  }
+
+  // Check data is available
+  HealthServiceAccessibilityMask result = health_service_metric_accessible(HealthMetricStepCount, *start, *end);
+  if (result != HealthServiceAccessibilityMaskAvailable) {
+    APP_LOG(APP_LOG_LEVEL_ERROR, "No steps data available from %u to %u!", (unsigned) *start, (unsigned) *end);
+  }
+
+  // Read the data and store into the static array
+  // FIXME: due to some unknown bugs, health_service_get_minute_history() can only fetch
+  // a limited number of elements (less than 100). This is why we set MAX_ENTRIES = 60.
+  // Otherwise it will crash the watch and force the reboot of the watch.
+  HealthMinuteData minute_data[MAX_ENTRIES];
+  s_num_records = health_service_get_minute_history(&minute_data[0], MAX_ENTRIES, start, end);
+
+  for (int i = 0; i < s_num_records; i++) {
+    if (minute_data[i].is_invalid) {
+      // No valid data recorded, so minute_date[i] = -1. Treat it as 0 step count.
       s_step_records[i] = 0;
+      //APP_LOG(APP_LOG_LEVEL_INFO, "Invalid data %d = %d", (int)i, (int)minute_data[i].steps);
+    } else {
+      s_step_records[i] = minute_data[i].steps;
+      s_steps += s_step_records[i];
+      //if (s_step_records[i] > 0) {
+      //  APP_LOG(APP_LOG_LEVEL_INFO, "s_step_records %d = %d", (int)i, (int)s_step_records[i]);
+      //}
     }
-
-    // Check data is available
-    HealthServiceAccessibilityMask result = 
-      health_service_metric_accessible(HealthMetricStepCount, *start, *end);
-    if (result != HealthServiceAccessibilityMaskAvailable) {
-      APP_LOG(APP_LOG_LEVEL_ERROR, "No steps data available from %u to %u!", (unsigned) *start, (unsigned) *end);
-    }
-
-    // Read the data and store into the static array
-    // FIXME: due to some unknown bugs, health_service_get_minute_history() can only fetch
-    // a limited number of elements (less than 100). This is why we set MAX_ENTRIES = 60.
-    // Otherwise it will crash the watch and force the reboot of the watch.
-    HealthMinuteData minute_data[MAX_ENTRIES];
-    s_num_records = health_service_get_minute_history(&minute_data[0], MAX_ENTRIES, start, end);
-
-    for (int i = 0; i < s_num_records; i++) {
-      if (minute_data[i].is_invalid) {
-        // No valid data recorded, so minute_date[i] = -1. Treat it as 0 step count.
-        s_step_records[i] = 0;
-        //APP_LOG(APP_LOG_LEVEL_INFO, "Invalid data %d = %d", (int)i, (int)minute_data[i].steps);
-      } else {
-        s_step_records[i] = minute_data[i].steps;
-        s_steps += s_step_records[i];
-        //if (s_step_records[i] > 0) {
-        //  APP_LOG(APP_LOG_LEVEL_INFO, "s_step_records %d = %d", (int)i, (int)s_step_records[i]);
-        //}
-      }
-    }
-    s_is_loaded = true;
-  //}
+  }
 }
 
 /* TODO: debugging function to report the nonsed periods. */
@@ -59,8 +64,16 @@ void prv_report_steps(int i) {
     APP_LOG(APP_LOG_LEVEL_INFO, "prv_report_steps: j = %d, steps = %d", j, s_step_records[j]);
   }
 }
-/* 
- * Get the latest steps count for the latest period. 
+
+/** 
+ * Return true if the user pass the condition check (i.e. non-sedentary in the period).
+ */
+bool steps_get_pass() {
+  return s_pass;
+}
+
+/** 
+ * Get the latest steps count for the latest period, and then check for pass/fail.
  */
 void steps_update() {
   int left, right, start_index, break_freq, break_len, sliding_window, step_threshold;
@@ -178,47 +191,120 @@ void steps_update() {
     }
 }
 
-/**
- * Send updated info to wakeup_window for displaying on the watch. 
- * This assume steps_update() was called recently.
- */
-void steps_wakeup_window_update() { 
-  //wakeup_window_update(s_steps, s_start_buf, s_end_buf, s_inactive_mins);
-  wakeup_window_update(s_steps, s_start_buf, s_end_buf, 0);
-}
-
-/** 
- * Return true if the user pass the condition check (i.e. non-sedentary in the period).
- */
-bool steps_get_pass() {
-  return s_pass;
-}
-
-/* Return the inactive minutes. */
-//int steps_get_inactive_minutes() {
-//  return s_inactive_mins;
-//}
-
 /* Write steps array data to dict. */
-static void data_write(DictionaryIterator * out) {
-  // Write the data
+static void prv_data_write(DictionaryIterator * out) {
   int true_value = 1;
+
   dict_write_int(out, AppKeyStepsData, &true_value, sizeof(int), true);
 
   dict_write_int(out, AppKeyDate, &s_start, sizeof(int), true);
-  dict_write_int(out, AppKeyArrayLength, &s_num_records, sizeof(int), true);
-  dict_write_int(out, AppKeyArrayStart, &AppKeyArrayData, sizeof(int), true);
-  for (int i = 0; i < s_num_records; i++) {
-    dict_write_uint8(out, AppKeyArrayData + i, s_step_records[i]);
-  }
+
+  dict_write_cstring(out, AppKeyStringData, s_step_batch_string);
+
+  //dict_write_int(out, AppKeyArrayLength, &s_num_records, sizeof(int), true);
+  //dict_write_int(out, AppKeyArrayStart, &AppKeyArrayData, sizeof(int), true);
+  //for (int i = 0; i < s_num_records; i++) {
+  //  dict_write_uint8(out, AppKeyArrayData + i, s_step_records[i]);
+  //}
 }
+
+/**
+ * Upload steps data since the last upload time until the current launch time.
+ * The data of the last upload time needs to be uploaded as well (inclusive).
+ *
+ * Return true if it has uploaded all the neccessary data. Otherwise return false (this
+ * function will be called again to once receive ACK from the server).
+ */
+bool steps_upload_steps() {
+  int i, fill_index = 0;
+  time_t t_start, t_end, t_final;
+  time_t t_last_upload = store_read_upload_time();
+  time_t break_freq_seconds = enamel_get_break_freq() * SECONDS_PER_MINUTE;
+
+  s_step_batch_size = 0;
+
+  if (t_last_upload == 0) {
+    APP_LOG(APP_LOG_LEVEL_INFO, "DEBUG: No upload time existed.");
+
+    // TODO: only send 2 hours history. (later on 7 days)
+    t_last_upload = time_start_of_today() - 2 * SECONDS_PER_HOUR;
+  } else if (t_last_upload > e_launch_time -  1 * SECONDS_PER_MINUTE) {
+    // We arbitrarily stop uploading data at 1 minute before the current launch time.
+    return true;
+  }
+  t_last_upload = t_last_upload / SECONDS_PER_MINUTE * SECONDS_PER_MINUTE; // Rounding.
+
+  // DEBUG
+  char buf[32];
+  strftime(buf, sizeof(buf), "%d %H:%M", localtime(&t_last_upload));
+  APP_LOG(APP_LOG_LEVEL_ERROR, "t_last_upload=%u, %s",  (unsigned)t_last_upload, buf);
+  // DEBUG
+
+  // Load the data. Exclude the last min. Up to the maximum batch size.
+  t_start = s_start = t_last_upload;
+  t_final = e_launch_time - SECONDS_PER_MINUTE <= 
+            t_start + STEP_BATCH_MAXIMUM_SIZE * SECONDS_PER_MINUTE?
+              e_launch_time - SECONDS_PER_MINUTE : 
+              t_start + STEP_BATCH_MAXIMUM_SIZE * SECONDS_PER_MINUTE;
+  while (t_start < t_final) {
+    // Read data into a temporary array with limited size (MAX_ENTRIES). 
+    t_end = t_start + MAX_ENTRIES * SECONDS_PER_MINUTE;
+    // DEBUG
+    char buf[12], bufe[12];
+    strftime(buf, sizeof(buf), "%d/%H:%M", localtime(&t_start));
+    strftime(bufe, sizeof(bufe), "%d/%H:%M", localtime(&t_end));
+    APP_LOG(APP_LOG_LEVEL_INFO, "DEBUG: loading data between %s-%s", buf, bufe);
+    // DEBUG
+    prv_load_data(&t_start, &t_end);
+
+    // Move data into an accumalative string/char array.
+    for (i = 0; i < MAX_ENTRIES; i++) {
+      // TODO: load the actual data.
+      //s_prior_step_records[fill_index] = s_step_records[i];
+      
+      int step = i;
+      if (step > 99) {
+        s_step_batch_string[fill_index++] = step / 100 + '0';
+        step %= 100;
+        s_step_batch_string[fill_index++] = step / 10 + '0';
+        s_step_batch_string[fill_index++] = step % 10 + '0';
+      } else if (step > 9) {
+        s_step_batch_string[fill_index++] = step / 10 + '0';
+        s_step_batch_string[fill_index++] = step % 10 + '0';
+      } else {
+        s_step_batch_string[fill_index++] = step + '0';
+      }
+      s_step_batch_string[fill_index++] = ',';
+    }
+
+    t_start = t_end + 1; // Prepare for the next load_data() function
+  }
+  s_step_batch_string[fill_index-1] = '\0'; // Remove the tailing ','
+  s_step_batch_size = fill_index-1; 
+
+  APP_LOG(APP_LOG_LEVEL_INFO, "DEBUG: Done loading history data, fill_index=%d, strlen=%d", 
+    fill_index, strlen(s_step_batch_string));
+  APP_LOG(APP_LOG_LEVEL_INFO, "DEBUG: t_end = %u, diff = %u", (unsigned)t_end,
+      (unsigned)(t_end-t_last_upload));
+  APP_LOG(APP_LOG_LEVEL_INFO, "DEBUG: data = %s", s_step_batch_string);
+
+  comm_send_data(prv_data_write, comm_sent_handler, comm_server_received_handler);
+  
+  // Update the last upload time stored persistently.
+  t_last_upload += s_step_batch_size * SECONDS_PER_MINUTE; 
+  //t_last_upload = e_launch_time - 2 * SECONDS_PER_HOUR; // TODO: delete
+  persist_write_data(PERSIST_KEY_UPLOAD_TIME, &t_last_upload, sizeof(time_t));
+
+  return false;
+}
+
 
 /* Send steps in the time frame of 60 minutes. */
 void steps_send_in_between(time_t t_start, time_t end, bool force) {
-  if (force) {
-    // Force prv_load_data to load load from Pebble Health.
-    s_is_loaded = false;
-  }
+  //if (force) {
+  //  // Force prv_load_data to load load from Pebble Health.
+  //  s_is_loaded = false;
+  //}
   s_start = t_start;
   prv_load_data(&t_start, &end);
 
@@ -227,7 +313,7 @@ void steps_send_in_between(time_t t_start, time_t end, bool force) {
     return;
   }
 
-  comm_send_data(data_write, comm_sent_handler, comm_server_received_handler);
+  comm_send_data(prv_data_write, comm_sent_handler, comm_server_received_handler);
 }
 
 /**
@@ -326,3 +412,21 @@ void steps_upload_prior_week() {
 
   comm_send_data(prv_prior_data_write, comm_sent_handler, comm_server_received_handler);
 }
+
+
+
+/**
+ * DEBUG
+ * Send updated info to wakeup_window for displaying on the watch. 
+ * This assume steps_update() was called recently.
+ */
+void steps_wakeup_window_update() { 
+  //wakeup_window_update(s_steps, s_start_buf, s_end_buf, s_inactive_mins);
+  wakeup_window_update(s_steps, s_start_buf, s_end_buf, 0);
+}
+
+
+/* Return the inactive minutes. */
+//int steps_get_inactive_minutes() {
+//  return s_inactive_mins;
+//}

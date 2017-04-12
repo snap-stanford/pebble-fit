@@ -106,7 +106,7 @@ static void back_click_handler(ClickRecognizerRef recognizer, void *context) {
  * Handler for the select button. It is same as back_click_handler() or used for debugging.
  */
 static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
-  //back_click_handler(recognizer, context); // TODO: this is the final implementation.
+  back_click_handler(recognizer, context); // TODO: this is the final implementation.
 
   // Test: step data re-send.
   //text_layer_set_text(s_main_text_layer, "reset timestamp");
@@ -115,6 +115,7 @@ static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
   // Test: reset launchexit count.
   int temp = 0;
   persist_write_data(PERSIST_KEY_LAUNCHEXIT_COUNT, &temp, 1);
+  store_write_upload_time(e_launch_time - 2 * SECONDS_PER_HOUR);
   
   // Test: random messages.
   launch_set_random_message();

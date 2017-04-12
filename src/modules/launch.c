@@ -5,8 +5,12 @@ time_t e_launch_time;
 int e_launch_reason;
 int e_exit_reason;
 
+// Display windows.
 static Window *s_dialog_window = NULL; 
 static Window *s_wakeup_window = NULL;
+
+// Communication.
+static int s_init_stage = 2;  // Track data uploading progress. TODO: reset to 0
 
 static int s_config_request;
 static char *s_random_message = "";
@@ -376,7 +380,7 @@ void launch_handler(bool activate) {
  * and store the current timestamp to the persistent storage.
  */
 void update_config(void *context) {
-  APP_LOG(APP_LOG_LEVEL_INFO, "in update_config. %d", enamel_get_activate());
+  APP_LOG(APP_LOG_LEVEL_INFO, "DEBUG: update_config(): activate=%d", enamel_get_activate());
   // FIXME: this seems to cause the scroll window not properly response to the up/down buttons.
   
   // Assuming only two states/windows (activated/non-activated)
@@ -434,13 +438,11 @@ void update_config(void *context) {
 void init_callback(DictionaryIterator *iter, void *context) {
   if (!enamel_get_activate()) return; // Will not response to PebbleKit JS if inactivated.
 
-  static int init_stage = 0; // Track data uploading progress.
-
   if(dict_find(iter, AppKeyJSReady)) {
     // If is possible to receive multiple ready message if the Pebble app on phone is re-
     // launched. Reset the stage variable to prevent going further in the data-upload process.
     e_js_ready = true;
-    //init_stage = 0; // FIXME: somehow this will enter multiple time?
+    //s_init_stage = 0; // FIXME: somehow this will enter multiple time?
     APP_LOG(APP_LOG_LEVEL_INFO, "Connected to JS!");
   } else if (!dict_find(iter, AppKeyServerReceived)) {
     // If this message is NOT coming from the server, it is a Clay setting message, which 
@@ -452,7 +454,7 @@ void init_callback(DictionaryIterator *iter, void *context) {
 
   bool is_finished = false;
 
-  APP_LOG(APP_LOG_LEVEL_INFO, "Init stage %d", init_stage);
+  APP_LOG(APP_LOG_LEVEL_INFO, "Init stage %d", s_init_stage);
 
   // Reset the timer so that app will not timeout and exit while data is transferring (assume
   // the round trip time is less than the timeout limit).
@@ -465,18 +467,18 @@ void init_callback(DictionaryIterator *iter, void *context) {
   //  APP_LOG(APP_LOG_LEVEL_ERROR, "Not contain MESSAGE_KEY_config_update_by_server");
   //}
 
-  switch (init_stage) {
+  switch (s_init_stage) {
     case 0:
       // First message from phone. Connection between watch and phone is established.
       e_js_ready = true;
       launch_send_launch_notification();
-      init_stage++;
+      s_init_stage++;
       break;
     case 1:
       // Connection between phone and server is established.
       is_finished = store_resend_launchexit_event();
       if (is_finished) {
-        init_stage++; 
+        s_init_stage++; 
 
         // Since no data is sent and no packet expected to arrive, we call this function 
         // again to move to the next stage.
@@ -484,18 +486,16 @@ void init_callback(DictionaryIterator *iter, void *context) {
       }
       break;
     case 2: 
-      is_finished = store_resend_steps();
+      //is_finished = store_resend_steps();
+      is_finished = steps_upload_steps();
       if (is_finished) {
-        init_stage++;
-        init_callback(iter, context); // Same reason as in init_stage 1.
+        s_init_stage++;
+        init_callback(iter, context); // Same reason as in s_init_stage 1.
       }
-      break;
-    case 3: 
-      steps_send_latest();
-      init_stage++;
       break;
     default:
       // Now resend the stored data that we were not able to send previously.
+      // TODO: we might enter here is new message sent from phone arrives.
       APP_LOG(APP_LOG_LEVEL_ERROR, "Should reach here only once!");
   }
 }
