@@ -4,7 +4,8 @@ var Clay = require('pebble-clay');
 var messageKeys = require('message_keys');
 var clayConfig = require('./config.json');
 var customClay = require('./custom-clay');
-var clay = new Clay(clayConfig, customClay);
+//var clay = new Clay(clayConfig, customClay);
+var clay = new Clay(clayConfig, customClay, { autoHandleEvents: false });
 
 // Register custom Clay components.
 clay.registerComponent(require('./pfbutton'));
@@ -16,9 +17,9 @@ log.set_level(3);
 var SERVER = 'http://pebble-fit.herokuapp.com';
 
 // Local servers (use ifconfig to find out).
-//var SERVER = 'http://10.30.202.74:3000';
+var SERVER = 'http://10.30.202.74:3000';
 //var SERVER = 'http://10.34.171.70:3000';
-var SERVER = 'http://10.34.180.11:3000';
+//var SERVER = 'http://10.34.178.45:3000';
 
 // Flag to switch off server communication
 var USE_OFFLINE = true;
@@ -50,7 +51,7 @@ Pebble.addEventListener('appmessage', function (dict) {
   // Data related to date/timestamp.
   if (dict.payload['AppKeyDate'] !== undefined) {
     date = dict.payload['AppKeyDate']
-    log.debug('Date: ' + date);
+    log.debug('Date: ' + date + "; " + new Date(date));
   }
 
   // Data related to step count.
@@ -86,6 +87,13 @@ Pebble.addEventListener('appmessage', function (dict) {
 });
 
 /**
+ * Pass through function to handle Clay 'showConfiguration' event.
+ */
+Pebble.addEventListener('showConfiguration', function(e) {
+  Pebble.openURL(clay.generateUrl());
+});
+
+/**
  * Override Clay settings Save event. Send information to both the server and the watch.
  */
 Pebble.addEventListener('webviewclosed', function(e) {
@@ -93,7 +101,6 @@ Pebble.addEventListener('webviewclosed', function(e) {
   if (!e) {
     log.debug("Do not obtain Clay settings properly.");
   }
-
   if (!e.response) {
     log.info("User exit settings page without save.");
     return;
@@ -102,13 +109,38 @@ Pebble.addEventListener('webviewclosed', function(e) {
   // Get the keys and values from each config item.
   var dict = clay.getSettings(e.response);
 
+  // Append user-defined settings and then send to the watch.
+  function saveConfigToWatch(settings) {
+    //settings[messageKeys.first_config] = 0;
+    //settings[messageKeys.vibrate] = dict[messageKeys.vibrate];
+    //settings[messageKeys.daily_start_time] = dict[messageKeys.daily_start_time];
+    //settings[messageKeys.daily_end_time] = dict[messageKeys.daily_end_time];
+    //settings[messageKeys.total_break] = dict[messageKeys.total_break];
+    settings["first_config"] = 0;
+    settings["is_consent"] = dict[messageKeys.is_consent];
+    settings["activate"] = dict[messageKeys.activate];
+    settings["vibrate"] = dict[messageKeys.vibrate];
+    settings["daily_start_time"] = dict[messageKeys.daily_start_time];
+    settings["daily_end_time"] = dict[messageKeys.daily_end_time];
+    settings["total_break"] = dict[messageKeys.total_break];
+    
+    Pebble.sendAppMessage(settings, function(e) {
+      console.log('Sent config data to Pebble (' + JSON.stringify(settings) + ').');
+    }, function(e) {
+      console.log('Failed to send config data!');
+      console.log(JSON.stringify(e));
+    }); 
+  }
+
   if (!dict[messageKeys.is_consent]) {
     log.info("User did not provide the consent to continue the study.");
+    saveConfigToWatch({});
+
     return;
   }
 
-  // Prepare URL.
-  var date = Math.floor(new Date().getTime() / 1000)
+  // Prepare URL containing info to be sent to the server.
+  var date = Math.floor(new Date().getTime() / 1000);
   //console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
   //console.log(JSON.stringify(dict));
   //console.log(dict[messageKeys.time_zone]);
@@ -163,57 +195,45 @@ Pebble.addEventListener('webviewclosed', function(e) {
   // Send to the server first and then to the watch.
   sendToServer(url, function receiveServerACK (err, status, response, responseText) {
     if (err || status !== 200) {
-      log.info(err || status)
+      log.info(err || status);
+      saveConfigToWatch({});
     } else {
-      // Do not expect a response from the server.
+      // Do not expect a response from the server?
+      // TODO: server might always send a response? Or omit that for non-new user?
       if (response) {
-        log.info("Got server response: " + JSON.stringify(response));
-        response["vibrate"] = dict[messageKeys.daily_start_time];
-        response["daily_start_time"] = dict[messageKeys.daily_start_time];
-        response["daily_end_time"] = dict[messageKeys.daily_start_time];
-        response["daily_end_time"] = dict[messageKeys.daily_start_time];
-        response["total_break"] = dict[messageKeys.total_break];
-
-        log.info("Got server response: " + JSON.stringify(response));
-        receiveServerConfigACK(err, status, response, responseText);
+        var settings = parseServerConfig(JSON.parse(response));
+      } else {
+        var settings = {};
+      }
+      log.info("ABSZ: " + settings["AppKeyServerReceived"]);
+      saveConfigToWatch(settings);
+      /*
       } else {
         // Delete random messages to reduce the size of AppMessage (watch can only receive 
         // APP_MESSAGE_INBOX_SIZE_MINIMUM amount of data, i.e. 124).
         // TODO: we may also delete those settings that are not required on watch (e.g.
         // survey answers, Clay page markup, etc.)
-        delete dict[messageKeys.random_message_0];
-        delete dict[messageKeys.random_message_1];
-        delete dict[messageKeys.random_message_2];
-        delete dict[messageKeys.random_message_3];
-        delete dict[messageKeys.random_message_4];
-        delete dict[messageKeys.random_message_5];
-        delete dict[messageKeys.random_message_6];
-        delete dict[messageKeys.random_message_7];
-        delete dict[messageKeys.random_message_8];
-        delete dict[messageKeys.random_message_9];
-        delete dict[messageKeys.config_summary];
-        delete dict[messageKeys.survey_sit_1];
-        delete dict[messageKeys.survey_sit_2];
-        delete dict[messageKeys.survey_sit_3];
-        delete dict[messageKeys.survey_sit_4];
-        delete dict[messageKeys.survey_sit_5];
-        delete dict[messageKeys.survey_sit_6];
-        delete dict[messageKeys.survey_sit_7];
-        delete dict[messageKeys.survey_sit_8];
-        delete dict[messageKeys.survey_sit_8_text];
-
-        log.info("Before sending config data to Pebble!");
-        log.info(JSON.stringify(dict));
-        
-        // Have to save Clay settings to the watch regardless whether the server receive it or not.
-        // TODO: If the server do not ACK, might need to set a flag to re-send it next time.
-        Pebble.sendAppMessage(dict, function(e) {
-          console.log('Sent config data to Pebble.');
-        }, function(e) {
-          console.log('Failed to send config data!');
-          console.log(JSON.stringify(e));
-        }); 
-      }
+        //delete dict[messageKeys.random_message_0];
+        //delete dict[messageKeys.random_message_1];
+        //delete dict[messageKeys.random_message_2];
+        //delete dict[messageKeys.random_message_3];
+        //delete dict[messageKeys.random_message_4];
+        //delete dict[messageKeys.random_message_5];
+        //delete dict[messageKeys.random_message_6];
+        //delete dict[messageKeys.random_message_7];
+        //delete dict[messageKeys.random_message_8];
+        //delete dict[messageKeys.random_message_9];
+        //delete dict[messageKeys.config_summary];
+        //delete dict[messageKeys.survey_sit_1];
+        //delete dict[messageKeys.survey_sit_2];
+        //delete dict[messageKeys.survey_sit_3];
+        //delete dict[messageKeys.survey_sit_4];
+        //delete dict[messageKeys.survey_sit_5];
+        //delete dict[messageKeys.survey_sit_6];
+        //delete dict[messageKeys.survey_sit_7];
+        //delete dict[messageKeys.survey_sit_8];
+        //delete dict[messageKeys.survey_sit_8_text];
+      } */
     }
   });
 });
@@ -231,47 +251,55 @@ function receiveServerConfigACK (err, status, response, responseText) {
     console.log('Server response with a null.');
     Pebble.sendAppMessage({ 'AppKeyServerReceived': 1 })
   } else {
+    console.log('Server response.');
     // Parse the new configuration from the server, and then send to the watch.
     var settings = JSON.parse(response);
-    for (var key in settings) {
-      log.info(key + ":" + settings[key]);
-      if (key === 'messages') {
-        log.info(JSON.stringify(settings[key]));
-        for (var m in settings[key]) {
-          log.info(m + ":" + settings[key][m]);
-        }
-      } else if (key === 'random_messages') {
-        log.info(JSON.stringify(settings[key]));
-        //for (var id in settings[key]) {
-        var randomMessages = settings[key];
-        for (var i = 0; i < randomMessages.length; i++) {
-          var messageID = 'random_message_' + i;
-          var messageContent = randomMessages[i]['id'] + ":" + randomMessages[i]['content'];
-          log.info(messageID);
-          log.info(messageContent);
-          settings[messageID] = messageContent;
-          clay.setSettings(messageID, messageContent);
-        }
-        delete settings[key];
-      } else {
-        clay.setSettings(key, settings[key]);
-      }
-    }
-    
-    settings['first_config'] = 0; // Allow Enamel automatically parse the settings received.
 
-    settings['AppKeyServerReceived'] = 1;
-    console.log(JSON.stringify(settings));
-    Pebble.sendAppMessage(settings, 
-      null,
-      //function () {
-      //  console.log('Sent config data to Pebble: ' + JSON.stringify(settings));
-      //}, 
-      function(error) {
-        console.log('Failed to send config data!');
-        console.log(JSON.stringify(error));
-      });
+    settings = parseServerConfig(settings);
+
+    Pebble.sendAppMessage(settings, function(e) {
+      console.log('Sent config data to Pebble (' + JSON.stringify(settings) + ').');
+    }, function(e) {
+      console.log('Failed to send config data!');
+      console.log(JSON.stringify(e));
+    }); 
   }
+}
+
+/**
+ * Parse the settings associated with Clay config.json and then send them to the watch.
+ * @param {Object} settings The object containing the Clay configuration settings.
+ */
+function parseServerConfig (settings) {
+  for (var key in settings) {
+    if (key === 'messages') {
+      log.info("SHOULD NOT HAVE KEY messages!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+      log.info(JSON.stringify(settings[key]));
+      for (var m in settings[key]) {
+        log.info(m + ":" + settings[key][m]);
+      }
+    } else if (key === 'random_messages') {
+      log.info(JSON.stringify(settings[key]));
+      //for (var id in settings[key]) {
+      var randomMessages = settings[key];
+      for (var i = 0; i < randomMessages.length; i++) {
+        var messageID = 'random_message_' + i;
+        var messageContent = randomMessages[i]['id'] + ":" + randomMessages[i]['content'];
+        log.info(messageID);
+        log.info(messageContent);
+        settings[messageID] = messageContent;
+        clay.setSettings(messageID, messageContent);
+      }
+      delete settings[key];
+    } else {
+      log.info(key + ":" + settings[key]);
+      clay.setSettings(key, settings[key]);
+    }
+  }
+  
+  settings['AppKeyServerReceived'] = 1;
+
+  return settings;
 }
 
 /**
