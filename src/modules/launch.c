@@ -262,7 +262,7 @@ void launch_wakeup_handler(WakeupId wakeup_id, int32_t wakeup_cookie) {
       window_stack_remove(s_wakeup_window, false);
     }
 
-    switch (wakeup_cookie) {
+    switch (e_launch_reason) {
       case LAUNCH_WAKEUP_ALERT:
         // Get a random message from the persistent storage. This must happen before
         // wakeup_window_push() and the first call to init_callback. 
@@ -284,8 +284,8 @@ void launch_wakeup_handler(WakeupId wakeup_id, int32_t wakeup_cookie) {
     }
 
     // Vibrate after the window is displayed. Force every wakeup to vibrate to get attention.
-    //prv_wakeup_vibrate(false);
-    prv_wakeup_vibrate(true);
+    prv_wakeup_vibrate(false);
+    //prv_wakeup_vibrate(true);
   } else {
     e_launch_reason = -1 * wakeup_cookie; // To distinguish from other normal launch types.
     APP_LOG(APP_LOG_LEVEL_ERROR, "Fallback wakeup! cookie=%d", (int)wakeup_cookie);
@@ -312,7 +312,6 @@ void launch_wakeup_handler(WakeupId wakeup_id, int32_t wakeup_cookie) {
 void launch_handler(bool activate) {
   if (activate) {
     bool will_timeout = false;
-    int lr = launch_reason();
 
     // Reset the score to 0 at the first launch of the day.
     //   Previosuly: reset break count to 0 if it is the first launch in the day (since we will 
@@ -333,6 +332,7 @@ void launch_handler(bool activate) {
       s_msg_id = "fail";
     }
     
+    int lr = launch_reason();
     if (lr != APP_LAUNCH_WAKEUP) {
       switch (lr) {
         case APP_LAUNCH_USER: // When launched via the launch menu on the watch.
@@ -472,6 +472,9 @@ void init_callback(DictionaryIterator *iter, void *context) {
     #if DEBUG
     APP_LOG(APP_LOG_LEVEL_INFO, "DEBUG: AppKeyServerReceived is missing");
     #endif
+    return;
+  } else if (e_launch_reason == LAUNCH_WAKEUP_ALERT && !steps_get_pass()) { 
+    // Do not communicate with the phone if we do not display any message on the screen.
     return;
   }
 
