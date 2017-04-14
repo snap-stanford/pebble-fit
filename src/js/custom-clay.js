@@ -29,7 +29,7 @@ module.exports = function (minified) {
   var consent_review_section = ['consent_review_heading', 'consent_review_text', 
     'consent_review_heading_form', 'consent_review_approve_text', 'consent_review_expire_text',
     'consent_name', 'consent_email',
-    'consent_review_text_form'//, 'consent_button_agree', 'consent_button_disagree'
+    'consent_review_text_form', 'consent_button_agree', 'consent_button_disagree'
   ];
   var consent_result_section = ['consent_result_text', 'consent_result_button']; 
   var survey_section = ['survey_heading_0', 'survey_text_0', 'survey_heading_1', 'survey_text_1',
@@ -343,7 +343,7 @@ module.exports = function (minified) {
       updateConfigSummary.call();
 
       clayConfig.getItemById('watchtoken').set(clayConfig.meta.watchToken);
-      clayConfig.getItemById('version').set('v1.7.0');
+      clayConfig.getItemById('version').set('v1.9.0');
     } else {
       hideConfigSection();
     }

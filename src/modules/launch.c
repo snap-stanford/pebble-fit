@@ -94,7 +94,9 @@ void launch_set_random_message() {
   //char random_message[RANDOM_MSG_SIZE_MAX]; // FIXME: change to global static variable.
 
   const char *msg_ptr = store_read_random_message();
+  #if DEBUG
   APP_LOG(APP_LOG_LEVEL_ERROR, "AAA%sAAA", msg_ptr);
+  #endif
 
   //snprintf(random_message, sizeof(random_message), store_read_random_message()); // FIXME: root cause?
   //APP_LOG(APP_LOG_LEVEL_ERROR, "%s!", random_message);
@@ -254,7 +256,6 @@ void launch_wakeup_handler(WakeupId wakeup_id, int32_t wakeup_cookie) {
   // wakeup_cookie is the index associated to the wakeup event. It is also the wakeup type.
   if (wakeup_cookie >= LAUNCH_WAKEUP_PERIOD) {
     e_launch_reason = wakeup_cookie;
-    steps_update();
   
     // This could happen if we receive wakeup event while the app has been on the foreground.
     if (s_wakeup_window) {
@@ -323,8 +324,9 @@ void launch_handler(bool activate) {
       store_reset_curr_score();
     }
 
-    // Set the message ID to be pass/fail. This will be overwritten by the true random
-    // message ID if this is a LAUNCH_WAKEUP_ALERT event.
+    // Calculate the current period steps info, and then set the message ID to be pass/fail. 
+    // This will be overwritten by the true random message ID if this is a LAUNCH_WAKEUP_ALERT.
+    steps_update();
     if (steps_get_pass()) {
       s_msg_id = "pass";
     } else {

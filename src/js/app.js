@@ -66,6 +66,7 @@ Pebble.addEventListener('appmessage', function (dict) {
       var data = load_data_array();
     }
 
+    // If data is NaN, convert it to 0.
     log.debug('Data: ' + data);
     log.debug('Data length: ' + data.length);
     sendStepData(data, date);
