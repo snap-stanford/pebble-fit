@@ -5,6 +5,7 @@
 # settings on the server will be updated to reflect that new configuration available.
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+MONGODB_DIR="${DIR}/../../../mongodb/bin"
 SERVER_CONFIG_DIR=${DIR}/../config
 HEROKU_MONGODB="ds111748.mlab.com:11748/heroku_0cbvznft"
 PASSWD=${DIR}/password.txt
@@ -24,9 +25,9 @@ hash mongo >/dev/null 2>&1
 if [[ $? -eq 0 ]]; then
   # Use the system installation of mongo.
   cmd="mongo"
-elif [[ -x ${DIR}/../../../mongodb/bin/mongo ]]; then 
+elif [[ -x ${MONGODB_DIR}/mongo ]]; then 
   # Use the local installation of mongo.
-  cmd="${DIR}/../../../mongodb/bin/mongo"
+  cmd="${MONGODB_DIR}/mongo"
 else
   echo "Error: could not find mongo!"
   exit 1

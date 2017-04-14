@@ -3,6 +3,7 @@
 # password.txt should contain the password the specific database.
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+MONGODB_DIR="${DIR}/../../../mongodb/bin"
 
 # The list of collections that exist in the DB and of whom the data would be dumped.
 collections=( events activities configs users groups messages references )
@@ -31,9 +32,9 @@ export_json() {
   if [[ $? -eq 0 ]]; then
     # Use the system installation of mongoexport.
     cmd="mongoexport"
-  elif [[ -x ${DIR}/mongoexport ]]; then 
+  elif [[ -x ${MONGODB_DIR}/mongoexport ]]; then 
     # Use the local installation of mongoexport.
-    cmd="${DIR}/mongoexport"
+    cmd="${MONGODB_DIR}/mongoexport"
   else
     echo "Error: could not find mongoexport!"
     exit 1
