@@ -1,7 +1,7 @@
 #include "comm.h"
 
-bool e_js_ready = false;
-bool e_server_ready = false;
+bool e_js_ready;
+bool e_server_ready;
 
 /* Log that js is ready. */
 static void e_js_ready_handler(DictionaryIterator *iter, void *context) {

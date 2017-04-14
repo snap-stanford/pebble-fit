@@ -26,7 +26,9 @@ static TextLayer* make_text_layer(GRect bounds, GFont font, GTextAlignment align
 
 /* Procedure for how to update s_top_text_layer. */
 static void top_text_layer_update_proc() {
+  #if DEBUG
   APP_LOG(APP_LOG_LEVEL_ERROR, "enter top_text_layer_update_proc()");
+  #endif
   const char *text;
 
   // Display a warning wakeup to notify the user of losing connection for 36 hours.
@@ -65,17 +67,42 @@ static void top_text_layer_update_proc() {
 
 /* Procedure for how to update s_main_text_layer. */
 static void main_text_layer_update_proc() {
+  #if DEBUG
   APP_LOG(APP_LOG_LEVEL_ERROR, "enter main_text_layer_update_proc()");
-   
+  #endif
+
+  if (e_launch_reason == LAUNCH_WAKEUP_ALERT) {
+  //if (e_launch_reason == LAUNCH_WAKEUP_ALERT || e_launch_reason == LAUNCH_PHONE) { // DEBUG
+  //  launch_set_random_message(); // DEBUG
+    APP_LOG(APP_LOG_LEVEL_ERROR, "random_message,content=%s", launch_get_random_message());
+    snprintf(s_main_text_buf, sizeof(s_main_text_buf), "%s", launch_get_random_message());
+    //snprintf(s_main_text_buf, sizeof(s_main_text_buf), "Nice outside? Talk a stroll.");
+    //snprintf(s_main_text_buf, sizeof(s_main_text_buf), "regular walking breaks can reduce risk of cardiovascular disease");
+  } else {
+    const char *message_summary = enamel_get_message_summary();
+
+    store_set_possible_score();
+     
+    snprintf(s_main_text_buf, sizeof(s_main_text_buf), message_summary, 
+      store_read_curr_score(), store_read_possible_score());
+      //store_read_curr_score(), enamel_get_total_break());
+
+    strcat(s_main_text_buf, "\n\n\n"); //TODO: workaround for scrolling issue for some long text.
+  }  
+
   text_layer_set_text(s_main_text_layer, s_main_text_buf);
 
   // Set up ScrollLayer according to the text size (assuming top_text_layer_update_proc done).
   GSize top_text_size = text_layer_get_content_size(s_top_text_layer);
   GSize main_text_size = text_layer_get_content_size(s_main_text_layer);
+  #if DEBUG
   APP_LOG(APP_LOG_LEVEL_ERROR, "main_text_size.w=%d, h=%d", main_text_size.w, main_text_size.h);
+  #endif
   main_text_size.w += top_text_size.w;
   main_text_size.h += top_text_size.h;
+  #if DEBUG
   APP_LOG(APP_LOG_LEVEL_ERROR, "Gsize height = %d", main_text_size.h);
+  #endif
 
   scroll_layer_set_content_size(s_scroll_layer, main_text_size);
 }
@@ -90,7 +117,7 @@ static void prv_update_text() {
 
 /* Get the latest step count and update texts on the watch accordingly. */
 void wakeup_window_breathe() {
-  //APP_LOG(APP_LOG_LEVEL_ERROR, "wakeup_window_breathe is disabled.");
+  APP_LOG(APP_LOG_LEVEL_ERROR, "DEBUG: wakeup_window_breathe.");
   //steps_update();
   //steps_wakeup_window_update();
   prv_update_text();
@@ -106,29 +133,32 @@ static void back_click_handler(ClickRecognizerRef recognizer, void *context) {
  * Handler for the select button. It is same as back_click_handler() or used for debugging.
  */
 static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
-  back_click_handler(recognizer, context); // TODO: this is the final implementation.
-
-  // Test: step data re-send.
+  #if DEBUG
+  // DEBUG: step data re-send.
   //text_layer_set_text(s_main_text_layer, "reset timestamp");
   //store_write_upload_time(e_launch_time - 2 * SECONDS_PER_DAY);
 
-  // Test: reset launchexit count.
+  // DEBUG: reset launchexit count.
   int temp = 0;
   persist_write_data(PERSIST_KEY_LAUNCHEXIT_COUNT, &temp, 1);
-  store_write_upload_time(e_launch_time - 2 * SECONDS_PER_HOUR);
+  store_write_upload_time(e_launch_time - SECONDS_PER_DAY);
   
-  // Test: random messages.
+  // DEBUG: random messages.
   launch_set_random_message();
   snprintf(s_main_text_buf, sizeof(s_main_text_buf), "%s", launch_get_random_message());
   text_layer_set_text(s_main_text_layer, s_main_text_buf);
 
+  // DEBUG: current score.
   //store_reset_curr_score();
 
-  // Reset last update timestamp to 2 hour ago
+  // DEBUG: reset last update timestamp to 2 hour ago
   //store_write_config_time(time(NULL) - 2 * SECONDS_PER_DAY);
 
-  // Test: send prior week's data
-  steps_upload_prior_week();
+  // DEBUG: send prior week's data
+  //steps_upload_prior_week();
+  #else
+    back_click_handler(recognizer, context);
+  #endif
 }
 
 /* Set click event handlers. */
@@ -223,8 +253,17 @@ static void window_load(Window *window) {
   // used with text_layer_enable_screen_text_flow_and_paging(), we add an arbitrary margin
   // when creating the main TextLayer.
   
-  // We need to get a sense of the size of message to place the text layer properly 
+  // TODO: We need to get a sense of the size of message to place the text layer properly 
   // approximately at the center of the screen.
+  #if DEBUG
+  int temp_length;
+  if (e_launch_reason == LAUNCH_WAKEUP_ALERT) {
+    temp_length = strlen(launch_get_random_message());
+  } else {
+    temp_length = strlen(launch_get_random_message());
+  }
+  #endif
+/*
   if (e_launch_reason == LAUNCH_WAKEUP_ALERT) {
   //if (e_launch_reason == LAUNCH_WAKEUP_ALERT || e_launch_reason == LAUNCH_PHONE) { // DEBUG
     launch_set_random_message();
@@ -240,7 +279,10 @@ static void window_load(Window *window) {
 
     strcat(s_main_text_buf, "\n\n\n"); //TODO: workaround for scrolling issue for some long text.
   }
-  APP_LOG(APP_LOG_LEVEL_ERROR, "ABSZ. string length=%d", strlen(s_main_text_buf));
+*/
+  #if DEBUG
+  APP_LOG(APP_LOG_LEVEL_INFO, "string length=%d", temp_length);
+  #endif
  
   GSize top_text_size = text_layer_get_content_size(s_top_text_layer);
   GRect main_bounds = GRect(bounds.origin.x, bounds.origin.y + top_text_size.h, 
@@ -301,7 +343,7 @@ static void window_unload(Window *window) {
  *    WAKEUP_WINDOW_PERIOD: normal periodic wakeup message.
  */
 Window * wakeup_window_push() {
-  steps_wakeup_window_update();
+  //steps_wakeup_window_update();
   if (!s_window) {
     s_window = window_create();
 
@@ -310,6 +352,7 @@ Window * wakeup_window_push() {
       .unload = window_unload,
     });
   }
+
   window_stack_push(s_window, true);
   return s_window;
 }

@@ -83,7 +83,7 @@ static WakeupId prv_reschedule_wakeup_event(uint8_t wakeup_i, time_t wakeup_time
  */
 //void wakeup_schedule_events(int inactive_mins) {
 void wakeup_schedule_events() {
-  APP_LOG(APP_LOG_LEVEL_ERROR, "Cancelling all wakeup events! Must be rescheduled.");
+  APP_LOG(APP_LOG_LEVEL_INFO, "INFO: Cancelling all wakeup events! Must be rescheduled.");
   wakeup_cancel_all();
   
   time_t t_notify, t_wakeup;

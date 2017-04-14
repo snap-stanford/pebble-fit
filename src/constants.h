@@ -1,5 +1,8 @@
 #pragma once
 
+/* DEBUG flag to turn on more debugging message. */
+#define DEBUG 0
+
 #define SECONDS_PER_WEEK              (SECONDS_PER_DAY * 7)
 
 /* Hard limit on how long (in seconds) this app will remain on the foreground. */

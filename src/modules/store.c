@@ -1,8 +1,6 @@
 #include "store.h"
 
-//static int s_data[MAX_ENTRIES];
-static int s_num_records;
-static int latest_key;
+static int s_possible_score = -1;
 
 static uint8_t s_launchexit_count;
 static uint32_t s_launchexit_data[3];
@@ -36,8 +34,6 @@ void store_write_config_time(time_t time) {
  *   Make sure there is a non-Period Wakup scheduled daily before any Period Wakeup.
  */
 bool store_resend_config_request(time_t t_curr) {
-  //return true; // TODO: debug - delete
-
   if (!persist_exists(PERSIST_KEY_CONFIG_TIME)) {
     return true;
   }
@@ -45,7 +41,9 @@ bool store_resend_config_request(time_t t_curr) {
   time_t t_last_config_time;
 
   persist_read_data(PERSIST_KEY_CONFIG_TIME, &t_last_config_time, sizeof(time_t));
+  #if DEBUG
   APP_LOG(APP_LOG_LEVEL_ERROR, "t_config_time=%u", (unsigned) t_last_config_time);
+  #endif
 
   // TODO
   if (store_read_curr_score() == 0 && 
@@ -60,7 +58,7 @@ bool store_resend_config_request(time_t t_curr) {
  * Write the latest timestamp at which we upload steps data.
  */
 void store_write_upload_time(time_t time) {
-  APP_LOG(APP_LOG_LEVEL_INFO, "Store update time = %u", (unsigned) time);
+  APP_LOG(APP_LOG_LEVEL_ERROR, "Store update time = %u", (unsigned) time);
   persist_write_data(PERSIST_KEY_UPLOAD_TIME, &time, sizeof(time_t));
 }
 
@@ -240,7 +238,6 @@ bool store_resend_steps() {
   time_t t_last_upload; 
   time_t interval_seconds = enamel_get_break_freq() * SECONDS_PER_MINUTE;
   //t_last_upload = (t_last_upload < time_start_of_today());
-  APP_LOG(APP_LOG_LEVEL_ERROR, "DEBUG: first_config=%d",  enamel_get_first_config());
 
   if (!persist_exists(PERSIST_KEY_UPLOAD_TIME)) {
     APP_LOG(APP_LOG_LEVEL_INFO, "DEBUG: ABSZ");
@@ -318,6 +315,25 @@ int store_read_curr_score() {
   return persist_read_int(PERSIST_KEY_CURR_SCORE);
 }
 
+void store_set_possible_score() {
+  // Calculate the current position of time in a day.
+  int diff = e_launch_time - time_start_of_today() - enamel_get_daily_start_time();
+
+  if (diff <= 0) {
+    s_possible_score = 0;
+  } else {
+    s_possible_score = diff / enamel_get_break_freq() / SECONDS_PER_MINUTE;
+
+    if (s_possible_score > enamel_get_total_break()) {
+      s_possible_score = enamel_get_total_break();
+    }
+  }
+}
+
+int store_read_possible_score() {
+  return s_possible_score;
+}
+
 /**
  * Compare the current score to a reference score.
  * The reference score used depends on the mode:
@@ -334,20 +350,13 @@ int store_compare_ref_score(int mode) {
     int start, end, count, ref_score = 0;
     const char *buf;
 
-    // Calculate the current position of time in a day.
-    int possible_score = (time(NULL) - time_start_of_today() - enamel_get_daily_start_time()) / 
-        (enamel_get_break_freq() * SECONDS_PER_MINUTE);
-    if (possible_score > enamel_get_total_break()) {
-      possible_score = enamel_get_total_break();
-    }
-
     // Parse the CSV format string to get the reference score.
     if (mode == 1) {
       buf = enamel_get_score_p_average();
     } else { // mode == 3
       buf = enamel_get_score_a_average();
     }
-    for (start = 0, end = 0, count = 1; buf[end] != '\0' && count < possible_score; end++) {
+    for (start = 0, end = 0, count = 1; buf[end] != '\0' && count < s_possible_score; end++) {
       if (buf[end] == ',') {
         count++;
         start = end + 1;
@@ -356,8 +365,8 @@ int store_compare_ref_score(int mode) {
     for (int i = start; i <= end; i++) {
       ref_score = ref_score * 10 + buf[i] - '0';
     }
-    //APP_LOG(APP_LOG_LEVEL_ERROR, "possible_score=%d, curr_score=%d, ref_score=%d", 
-    //    possible_score, store_read_curr_score(), ref_score);
+    //APP_LOG(APP_LOG_LEVEL_ERROR, "s_possible_score=%d, curr_score=%d, ref_score=%d", 
+    //    s_possible_score, store_read_curr_score(), ref_score);
     return store_read_curr_score() - ref_score;
   } else {
     APP_LOG(APP_LOG_LEVEL_ERROR, "Unknown mode value %d", mode);

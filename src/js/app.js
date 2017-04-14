@@ -17,8 +17,8 @@ log.set_level(3);
 var SERVER = 'http://pebble-fit.herokuapp.com';
 
 // Local servers (use ifconfig to find out).
-var SERVER = 'http://10.30.202.74:3000';
-//var SERVER = 'http://10.34.171.70:3000';
+//var SERVER = 'http://10.30.202.74:3000';
+//var SERVER = 'http://10.35.32.99:3000';
 //var SERVER = 'http://10.34.178.45:3000';
 
 // Flag to switch off server communication
@@ -51,7 +51,7 @@ Pebble.addEventListener('appmessage', function (dict) {
   // Data related to date/timestamp.
   if (dict.payload['AppKeyDate'] !== undefined) {
     date = dict.payload['AppKeyDate']
-    log.debug('Date: ' + date + "; " + new Date(date));
+    log.debug('Date: ' + date + "; " + new Date(date*1000));
   }
 
   // Data related to step count.
@@ -111,18 +111,13 @@ Pebble.addEventListener('webviewclosed', function(e) {
 
   // Append user-defined settings and then send to the watch.
   function saveConfigToWatch(settings) {
-    //settings[messageKeys.first_config] = 0;
-    //settings[messageKeys.vibrate] = dict[messageKeys.vibrate];
-    //settings[messageKeys.daily_start_time] = dict[messageKeys.daily_start_time];
-    //settings[messageKeys.daily_end_time] = dict[messageKeys.daily_end_time];
-    //settings[messageKeys.total_break] = dict[messageKeys.total_break];
-    settings["first_config"] = 0;
-    settings["is_consent"] = dict[messageKeys.is_consent];
-    settings["activate"] = dict[messageKeys.activate];
-    settings["vibrate"] = dict[messageKeys.vibrate];
-    settings["daily_start_time"] = dict[messageKeys.daily_start_time];
-    settings["daily_end_time"] = dict[messageKeys.daily_end_time];
-    settings["total_break"] = dict[messageKeys.total_break];
+    settings["first_config"]      = dict[messageKeys.first_config];
+    settings["is_consent"]        = dict[messageKeys.is_consent];
+    settings["activate"]          = dict[messageKeys.activate];
+    settings["vibrate"]           = dict[messageKeys.vibrate];
+    settings["daily_start_time"]  = dict[messageKeys.daily_start_time];
+    settings["daily_end_time"]    = dict[messageKeys.daily_end_time];
+    settings["total_break"]       = dict[messageKeys.total_break];
     
     Pebble.sendAppMessage(settings, function(e) {
       console.log('Sent config data to Pebble (' + JSON.stringify(settings) + ').');
@@ -141,15 +136,6 @@ Pebble.addEventListener('webviewclosed', function(e) {
 
   // Prepare URL containing info to be sent to the server.
   var date = Math.floor(new Date().getTime() / 1000);
-  //console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
-  //console.log(JSON.stringify(dict));
-  //console.log(dict[messageKeys.time_zone]);
-  //console.log(dict[messageKeys.daily_start_time]);
-  //console.log(dict[messageKeys.daily_end_time]);
-  //console.log(dict[messageKeys.step_threshold]);
-  //console.log(dict[messageKeys.consent_name]);
-  //console.log(dict[messageKeys.consent_email]);
-  //console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
   var url = '/config' + '?date=' + date + 
     '&watch='       + Pebble.getWatchToken()                                  + 
     '&timezone='    + dict[messageKeys.time_zone]                             + 
@@ -205,35 +191,7 @@ Pebble.addEventListener('webviewclosed', function(e) {
       } else {
         var settings = {};
       }
-      log.info("ABSZ: " + settings["AppKeyServerReceived"]);
       saveConfigToWatch(settings);
-      /*
-      } else {
-        // Delete random messages to reduce the size of AppMessage (watch can only receive 
-        // APP_MESSAGE_INBOX_SIZE_MINIMUM amount of data, i.e. 124).
-        // TODO: we may also delete those settings that are not required on watch (e.g.
-        // survey answers, Clay page markup, etc.)
-        //delete dict[messageKeys.random_message_0];
-        //delete dict[messageKeys.random_message_1];
-        //delete dict[messageKeys.random_message_2];
-        //delete dict[messageKeys.random_message_3];
-        //delete dict[messageKeys.random_message_4];
-        //delete dict[messageKeys.random_message_5];
-        //delete dict[messageKeys.random_message_6];
-        //delete dict[messageKeys.random_message_7];
-        //delete dict[messageKeys.random_message_8];
-        //delete dict[messageKeys.random_message_9];
-        //delete dict[messageKeys.config_summary];
-        //delete dict[messageKeys.survey_sit_1];
-        //delete dict[messageKeys.survey_sit_2];
-        //delete dict[messageKeys.survey_sit_3];
-        //delete dict[messageKeys.survey_sit_4];
-        //delete dict[messageKeys.survey_sit_5];
-        //delete dict[messageKeys.survey_sit_6];
-        //delete dict[messageKeys.survey_sit_7];
-        //delete dict[messageKeys.survey_sit_8];
-        //delete dict[messageKeys.survey_sit_8_text];
-      } */
     }
   });
 });
@@ -324,7 +282,7 @@ function sendToServer (route, callback) {
 
   // TODO: The meaning of USE_OFFLINE seems to be opposite. And we might not need it.
   if (USE_OFFLINE) {
-    log.info(route);
+    log.info("sendToServer: " + route);
     send_request(SERVER + route, 'GET', callback);
     //send_request(SERVER + route, 'GET', function(err, status, response, responseText) {
     //  if (err || status !== 200) {

@@ -31,7 +31,7 @@ void launch_set_random_message();
 const char * launch_get_random_message();
 const char * launch_get_random_message_id();
 
-void wakeup_handler(WakeupId wakeup_id, int32_t wakeup_cookie);
+void launch_wakeup_handler(WakeupId wakeup_id, int32_t wakeup_cookie);
 
 void launch_handler(bool activate);
 

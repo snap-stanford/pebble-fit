@@ -10,7 +10,7 @@ static Window *s_dialog_window = NULL;
 static Window *s_wakeup_window = NULL;
 
 // Communication.
-static int s_init_stage = 2;  // Track data uploading progress. TODO: reset to 0
+static int s_init_stage = 0;  // Track data uploading progress.
 
 static int s_config_request;
 static char *s_random_message = "";
@@ -53,7 +53,7 @@ static void prv_launch_exit_data_write(DictionaryIterator * out) {
  */
 void launch_send_launch_notification() {
   s_config_request = store_resend_config_request(e_launch_time)? 1 : 0;
-	s_br = store_read_curr_score();
+        s_br = store_read_curr_score();
 
   comm_send_data(prv_launch_data_write, comm_sent_handler, comm_server_received_handler);
 }
@@ -111,7 +111,7 @@ void launch_set_random_message() {
     *c = '\0'; // Replace ':' with '\0'.
     s_random_message = ++c;
   } else { // Deal with the outcome messages specially.
-    int i, start, end, message_index, score_diff, size = 0;
+    int i, start, end, score_diff, size = 0;
     char mode = msg_ptr[1];
 
     for (s_msg_id = msg_ptr, i = 0; msg_ptr[i] != ':'; i++, size++) {}
@@ -183,6 +183,7 @@ void launch_set_random_message() {
       snprintf(s_random_message_buf, end - start, msg_ptr+start, score_diff);
 
     }
+    APP_LOG(APP_LOG_LEVEL_ERROR, "%s!", msg_ptr);
     s_random_message = s_random_message_buf;
   }
 } 
@@ -210,7 +211,6 @@ const char * launch_get_random_message_id() {
  * Otherwise, it will alert users by vibration and popping up alert window on the watch.
  */
 static void prv_wakeup_vibrate(bool force) {
-  APP_LOG(APP_LOG_LEVEL_INFO, "DEBUG: in prv_wakeup_vibrate()");
   HealthActivityMask activity = health_service_peek_current_activities();
 
   if (activity != HealthActivitySleep && activity != HealthActivityRestfulSleep &&
@@ -240,16 +240,22 @@ static void prv_wakeup_vibrate(bool force) {
 /**
  * Handle wakeup events.
  */
-void wakeup_handler(WakeupId wakeup_id, int32_t wakeup_cookie) {
+void launch_wakeup_handler(WakeupId wakeup_id, int32_t wakeup_cookie) {
   APP_LOG(APP_LOG_LEVEL_INFO, "DEBUG: wakeup=%d cookie=%d", (int)wakeup_id, (int)wakeup_cookie);
+
+  // Re-init communication and upload data. 
+  // FIXME: double check that this launch_wakeup_handler() is called before init_callback().
+  if (e_js_ready) {
+    APP_LOG(APP_LOG_LEVEL_ERROR, "should before init_callback");
+    launch_send_launch_notification();
+    s_init_stage = 1;
+  }
   
   // wakeup_cookie is the index associated to the wakeup event. It is also the wakeup type.
   if (wakeup_cookie >= LAUNCH_WAKEUP_PERIOD) {
     e_launch_reason = wakeup_cookie;
     steps_update();
   
-    prv_wakeup_vibrate(false); // TODO: consider moving into swtich statement.
-
     // This could happen if we receive wakeup event while the app has been on the foreground.
     if (s_wakeup_window) {
       window_stack_remove(s_wakeup_window, false);
@@ -264,17 +270,21 @@ void wakeup_handler(WakeupId wakeup_id, int32_t wakeup_cookie) {
           launch_set_random_message();
           s_wakeup_window = wakeup_window_push();
         } else {
-          e_exit_reason = EXIT_TIMEOUT; // TODO: or using a new coding for silent-wakeup?
+          e_exit_reason = EXIT_TIMEOUT; // FIXME: or using a new coding for silent-wakeup?
         }
         break;
       case LAUNCH_WAKEUP_PERIOD:
       case LAUNCH_WAKEUP_DAILY:
-        // TODO: For now, even for period-wakeup and goal is met, we still push window.
+        // For now, even for period-wakeup and goal is met, we still push window.
         s_wakeup_window = wakeup_window_push();
         break;
       default:
         APP_LOG(APP_LOG_LEVEL_ERROR, "\nShould NOT reach here!\n");
     }
+
+    // Vibrate after the window is displayed. Force every wakeup to vibrate to get attention.
+    //prv_wakeup_vibrate(false);
+    prv_wakeup_vibrate(true);
   } else {
     e_launch_reason = -1 * wakeup_cookie; // To distinguish from other normal launch types.
     APP_LOG(APP_LOG_LEVEL_ERROR, "Fallback wakeup! cookie=%d", (int)wakeup_cookie);
@@ -286,8 +296,8 @@ void wakeup_handler(WakeupId wakeup_id, int32_t wakeup_cookie) {
   // Always re-schedule wakeup events
   wakeup_schedule_events();
 
-  //TODO: should call init_callback() to upload data, but how should we prevent interupting
-  // the current data-upload process.
+  // FIXME: should call init_callback() to upload data? but how should we prevent interupting
+  // the current data-upload process. Or just store persistently and resend later.
   //if (e_server_ready) {
   //  init_callback();
   //}
@@ -299,7 +309,6 @@ void wakeup_handler(WakeupId wakeup_id, int32_t wakeup_cookie) {
  * Return the newly created window.
  */
 void launch_handler(bool activate) {
-  APP_LOG(APP_LOG_LEVEL_ERROR, "total_break=%d", (int)enamel_get_total_break());
   if (activate) {
     bool will_timeout = false;
     int lr = launch_reason();
@@ -313,10 +322,6 @@ void launch_handler(bool activate) {
         time_start_of_today() + (time_t)enamel_get_daily_start_time()) { 
       store_reset_curr_score();
     }
-
-    // TODO: Calculate steps only at the scheduled wakeup event? What if user accomplish goal and manually check it before the scheduled wakeup?
-    // This is redundant and for debug only, later on we will only update steps at wakeup launch, and we won't change curr_score other than notification/period launch.
-    //steps_update();
 
     // Set the message ID to be pass/fail. This will be overwritten by the true random
     // message ID if this is a LAUNCH_WAKEUP_ALERT event.
@@ -351,7 +356,7 @@ void launch_handler(bool activate) {
 
       // Call the wakeup handler.
       wakeup_get_launch_event(&wakeup_id, &wakeup_cookie);
-      wakeup_handler(wakeup_id, wakeup_cookie);
+      launch_wakeup_handler(wakeup_id, wakeup_cookie);
 
       // Only the wakeup launch will timeout.
       will_timeout = true;
@@ -368,7 +373,7 @@ void launch_handler(bool activate) {
     prv_wakeup_vibrate(true);
 
     // Still buzz user for providing consent. 
-    // TODO: maybe just a special wakeup at 1 hour frequency?
+    // FIXME: maybe just a special wakeup at 1 hour frequency?
     wakeup_schedule_events();
   }
 }
@@ -380,13 +385,20 @@ void launch_handler(bool activate) {
  * and store the current timestamp to the persistent storage.
  */
 void update_config(void *context) {
-  APP_LOG(APP_LOG_LEVEL_INFO, "DEBUG: update_config(): activate=%d", enamel_get_activate());
   // FIXME: this seems to cause the scroll window not properly response to the up/down buttons.
+  #if DEBUG
+  APP_LOG(APP_LOG_LEVEL_INFO, "DEBUG: update_config(): activate=%d", enamel_get_activate());
+  APP_LOG(APP_LOG_LEVEL_ERROR, "DEBUG: first_config=%d",  enamel_get_first_config());
+  #endif
   
   // Assuming only two states/windows (activated/non-activated)
   if (enamel_get_activate()) {
-    //TODO: double check whether this is redundant?
     if (s_wakeup_window == NULL) {
+      if (enamel_get_first_config() != 1) APP_LOG(APP_LOG_LEVEL_ERROR, "first_config must be 1");
+ 
+      // Also upload the historical data up to 7 days before.
+      store_write_upload_time(e_launch_time - 7 * SECONDS_PER_DAY);
+
       launch_handler(true); // Change from dialog_window to wakeup_window.
     } else {
       wakeup_schedule_events();
@@ -399,7 +411,7 @@ void update_config(void *context) {
     window_stack_remove(s_dialog_window, false);
     s_dialog_window = NULL;
   } else {
-    APP_LOG(APP_LOG_LEVEL_INFO, "Got inactivated. Cancelling all wakeup events.");
+    APP_LOG(APP_LOG_LEVEL_INFO, "INFO: Got inactivated. Cancelling all wakeup events.");
     wakeup_cancel_all();
 
     store_delete_all();
@@ -417,8 +429,7 @@ void update_config(void *context) {
   store_write_config_time(e_launch_time);
 
   // Reset the current progress to eliminate any inconsistency after config change.
-  APP_LOG(APP_LOG_LEVEL_ERROR, "IDSJFODSIJFOISDJGOIDSJGPOISDJG");
-  //store_reset_curr_score(); // TODO: uncomment.
+  store_reset_curr_score();
 
   // Force it to timeout.
   tick_second_subscribe(true);
@@ -436,25 +447,35 @@ void update_config(void *context) {
  * Will send the exit info of the current launch in deinit().
  */
 void init_callback(DictionaryIterator *iter, void *context) {
-  if (!enamel_get_activate()) return; // Will not response to PebbleKit JS if inactivated.
+  #if DEBUG
+  APP_LOG(APP_LOG_LEVEL_ERROR, "This is init_callback(), s_init_stage=%d!", s_init_stage);
+  #endif
 
-  if(dict_find(iter, AppKeyJSReady)) {
+  if (dict_find(iter, AppKeyJSReady)) {
     // If is possible to receive multiple ready message if the Pebble app on phone is re-
     // launched. Reset the stage variable to prevent going further in the data-upload process.
     e_js_ready = true;
-    //s_init_stage = 0; // FIXME: somehow this will enter multiple time?
     APP_LOG(APP_LOG_LEVEL_INFO, "Connected to JS!");
-  } else if (!dict_find(iter, AppKeyServerReceived)) {
-    // If this message is NOT coming from the server, it is a Clay setting message, which 
-    // has already been handled by Enamel (simply return here).
-    return;
-  } else {
+  } 
+
+  if (dict_find(iter, AppKeyServerReceived)) {
     e_server_ready = true;
+
+    #if DEBUG
+    APP_LOG(APP_LOG_LEVEL_INFO, "DEBUG: AppKeyServerReceived received");
+    #endif
+  } else if (s_init_stage >= 1) {
+    // If this message is NOT coming from the server, it is initiated from the phone alone,
+    // so we should not continue uploading more data.
+    #if DEBUG
+    APP_LOG(APP_LOG_LEVEL_INFO, "DEBUG: AppKeyServerReceived is missing");
+    #endif
+    return;
   }
 
-  bool is_finished = false;
+  if (!enamel_get_activate()) return; // Will not response to PebbleKit JS if inactivated.
 
-  APP_LOG(APP_LOG_LEVEL_INFO, "Init stage %d", s_init_stage);
+  bool is_finished = false;
 
   // Reset the timer so that app will not timeout and exit while data is transferring (assume
   // the round trip time is less than the timeout limit).
