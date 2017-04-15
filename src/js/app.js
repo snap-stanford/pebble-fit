@@ -119,6 +119,8 @@ Pebble.addEventListener('webviewclosed', function(e) {
     settings["daily_start_time"]  = dict[messageKeys.daily_start_time];
     settings["daily_end_time"]    = dict[messageKeys.daily_end_time];
     settings["total_break"]       = dict[messageKeys.total_break];
+    //settings["break_freq"]       = dict[messageKeys.break_freq];
+    //settings["break_len"]       = dict[messageKeys.break_len];
     
     Pebble.sendAppMessage(settings, function(e) {
       console.log('Sent config data to Pebble (' + JSON.stringify(settings) + ').');

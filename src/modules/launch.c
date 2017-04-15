@@ -256,6 +256,15 @@ void launch_wakeup_handler(WakeupId wakeup_id, int32_t wakeup_cookie) {
   // wakeup_cookie is the index associated to the wakeup event. It is also the wakeup type.
   if (wakeup_cookie >= LAUNCH_WAKEUP_PERIOD) {
     e_launch_reason = wakeup_cookie;
+
+    // Calculate the current period steps info, and then set the message ID to be pass/fail. 
+    // This will be overwritten by the true random message ID if this is a LAUNCH_WAKEUP_ALERT.
+    steps_update();
+    if (steps_get_pass()) {
+      s_msg_id = "pass";
+    } else {
+      s_msg_id = "fail";
+    }
   
     // This could happen if we receive wakeup event while the app has been on the foreground.
     if (s_wakeup_window) {
@@ -322,18 +331,16 @@ void launch_handler(bool activate) {
         time_start_of_today() + (time_t)enamel_get_daily_start_time()) { 
       store_reset_curr_score();
     }
-
-    // Calculate the current period steps info, and then set the message ID to be pass/fail. 
-    // This will be overwritten by the true random message ID if this is a LAUNCH_WAKEUP_ALERT.
-    steps_update();
-    if (steps_get_pass()) {
-      s_msg_id = "pass";
-    } else {
-      s_msg_id = "fail";
-    }
     
     int lr = launch_reason();
     if (lr != APP_LAUNCH_WAKEUP) {
+      steps_update();
+      if (steps_get_pass()) {
+        s_msg_id = "pass";
+      } else {
+        s_msg_id = "fail";
+      }
+ 
       switch (lr) {
         case APP_LAUNCH_USER: // When launched via the launch menu on the watch.
           e_launch_reason = LAUNCH_USER;
@@ -356,7 +363,7 @@ void launch_handler(bool activate) {
       WakeupId wakeup_id;
       int32_t wakeup_cookie;
 
-      // Call the wakeup handler.
+      // Call the wakeup handler with fetched wakeup ID and cookie.
       wakeup_get_launch_event(&wakeup_id, &wakeup_cookie);
       launch_wakeup_handler(wakeup_id, wakeup_cookie);
 

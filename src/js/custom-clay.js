@@ -343,7 +343,7 @@ module.exports = function (minified) {
       updateConfigSummary.call();
 
       clayConfig.getItemById('watchtoken').set(clayConfig.meta.watchToken);
-      clayConfig.getItemById('version').set('v1.10.0');
+      clayConfig.getItemById('version').set('v1.11.0');
     } else {
       hideConfigSection();
     }
