@@ -4,7 +4,8 @@
 // Maximum length = step count up to 3 digits + ',' = 4 bytes. 
 // However, it is unlikely a user can walk hundreds of steps in each minute for long period.
 // Here we assume in average, per-minute data takes 3 bytes. 8 hours * 60 = 480 minutes.
-#define STEP_BATCH_MAXIMUM_SIZE   480
+// At most we could upload 480*3/2 = 720 minutes of data in one batch.
+#define STEP_BATCH_MAXIMUM_SIZE   960
 #define STEP_BATCH_STRING_SIZE    STEP_BATCH_MAXIMUM_SIZE * 3
 static char s_step_batch_string[STEP_BATCH_STRING_SIZE];
 static int s_step_batch_size;
@@ -247,7 +248,7 @@ char buf[32]; // DEBUG
   s_step_batch_size = 0;
 
   if (t_last_upload == 0) {
-    APP_LOG(APP_LOG_LEVEL_INFO, "DEBUG: No upload time existed.");
+    APP_LOG(APP_LOG_LEVEL_INFO, "DEBUG: No upload time existed. This should not happend, since we set t_last_upload once user provides consent.");
 
     // TODO: only send 2 hours history. (later on 7 days)
     t_last_upload = time_start_of_today() - 2 * SECONDS_PER_HOUR;
@@ -371,6 +372,7 @@ char buf[32]; // DEBUG
     #endif
   } // End of while (true)
 
+// This is executed after the while loop to add '\0' string terminator and then send data.
 after_while:
   s_step_batch_string[fill_index-1] = '\0'; // Remove the tailing ','
 

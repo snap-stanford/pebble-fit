@@ -18,7 +18,7 @@ var SERVER = 'http://pebble-fit.herokuapp.com';
 
 // Local servers (use ifconfig to find out).
 //var SERVER = 'http://10.30.202.74:3000';
-//var SERVER = 'http://10.35.32.99:3000';
+//var SERVER = 'http://10.35.33.169:3000';
 //var SERVER = 'http://10.34.178.45:3000';
 
 // Flag to switch off server communication
@@ -58,18 +58,23 @@ Pebble.addEventListener('appmessage', function (dict) {
   if (dict.payload['AppKeyStepsData'] !== undefined) {
     if (dict.payload['AppKeyStringData'] !== undefined) {
       var string = dict.payload['AppKeyStringData'];
-      if (string !== undefined) {
-        console.log('debug string: ' + string);
-        var data = string.split(',').map(function(num) {return parseInt(num)});
-      }
-    } else {
-      var data = load_data_array();
-    }
+      //if (string !== undefined) {
+      //  var data = string.split(',').map(function(num) {return parseInt(num)});
+      //}
 
-    // If data is NaN, convert it to 0.
-    log.debug('Data: ' + data);
-    log.debug('Data length: ' + data.length);
-    sendStepData(data, date);
+      //log.debug('Data: ' + data);
+      //log.debug('Data length: ' + data.length);
+      var url = '/steps' +
+      '?date=' + date +
+      '&data=' + string +
+      '&watch=' + Pebble.getWatchToken();
+
+      sendToServer(url, receiveServerConfigACK);
+    } else {
+      console.log('Warning: should not reach here since the array data format is deprecated!');
+      var data = load_data_array();
+      sendStepData(data, date);
+    }
   }
 
   // Data related to launch and/or exit events.
@@ -217,6 +222,9 @@ function receiveServerConfigACK (err, status, response, responseText) {
     var settings = JSON.parse(response);
 
     settings = parseServerConfig(settings);
+
+    // Essential to update settings on the watch side.
+    settings["first_config"] = 0;
 
     Pebble.sendAppMessage(settings, function(e) {
       console.log('Sent config data to Pebble (' + JSON.stringify(settings) + ').');

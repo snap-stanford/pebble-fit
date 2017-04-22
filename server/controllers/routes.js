@@ -38,7 +38,7 @@ router.get(['/config'],
     'breakFreq', 'breakLen', 'group', 'threshold']),
   function (req, res, next) {
 
-    // This callback function is called after user entry is updated.
+    // This callback function is called after the user entry is updated.
     var callback = function (err) {
       if (err) return next(err);
 
@@ -67,9 +67,9 @@ router.get(['/config'],
 
     if (req.query.first) {
       // If user also upload survey contents, save them first.
-      users.save(req.query, callback);
+      users.update(req.query, callback);
         /*
-      users.save(req.query, function (err) {
+      users.update(req.query, function (err) {
         if (err) return next(err);
 
         users.getConfig(req.query.watch, function (err, config) {

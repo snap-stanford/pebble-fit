@@ -13,9 +13,20 @@ var configs = {
   'normal_messages': require('../config/normal_messages')
 };
 
-exports.save = function (query, next) {
-  var watch = query.watch
+var save = function (watch, next) {
   console.log("Creating new user: " + watch);
+
+  var obj = { watch: watch };
+  obj.group = 'real_time_random';
+
+  var user = new User(obj);
+  user.save(next);
+};
+exports.save = save;
+
+var update = function (query, next) {
+  var watch = query.watch
+  console.log("Updating the user: " + watch);
 
   User.update({ 'watch': watch }, 
     { $set: { 'group':      'real_time_random', // TODO: randomize  group assignment.
@@ -45,12 +56,13 @@ exports.save = function (query, next) {
               'sit9':       query.sit9,
               'sit9T':      query.sit9T
     } }, 
-    { upsert: true },
-    //next);
+    { upsert: true,
+      setDefaultsOnInsert: true },
+      //setDefaultsOnInsert: false },
     function (err) { // Create fake ref scores for the this user
       if (err) return next(err);
 
-
+      // TODO: Insert the fake reference score here.
       //references.save(watch, next);
       references.update(watch, [1,1,2,2,3,3,4,4,5,5,6,6], 10, next);
     });
@@ -66,6 +78,7 @@ exports.save = function (query, next) {
   //  user.save(next);
   //});
 };
+exports.update = update;
 
 /**
  * Get the new configuration settings for a given user. The settings might include general
@@ -147,20 +160,38 @@ exports.getConfig = function (watch, force, next) {
 
 /**
  * Fetch user and group info from the DB and compare their configUpdatedAt timestamp. 
+ * Create the new user if not already existed.
  * If group's configuration is newer, there is new config available.
  * Callback: function (err, groupName, isNewConfig)
  */
 var checkUpdate = function (watch, next) {
 
   var updateConfig = function (user, force, next) {
+    //console.log("user = " + JSON.stringify(user));
     groups.findGroup(user.group, function (err, group) {
-      console.log("group = " + group);
+      //console.log("group = " + group);
+      //console.log("user = " + JSON.stringify(user));
       if (err) return next(err);
   
-      if (!group) return next(null, null); // TODO: or assign a new group to user.
-  
-      if (force || group.configUpdatedAt > user.configUpdatedAt) {
-        next(null, group.name, true);
+      if (!group) {
+        // Assign the user to real_time_random.
+        var newGroup = 'real_time_random';
+        User.update({ 'watch': watch }, 
+          { $set: { 'group':                newGroup,
+                    'configUpdatedAt':      (new Date()).toISOString() } }, 
+          { },
+          function () { next(null, newGroup, true); }
+        );
+      }
+
+      if (force || !user.configUpdatedAt || !group.configUpdatedAt ||
+          group.configUpdatedAt > user.configUpdatedAt) {
+        // Update user's configUpdatedAt. 
+        User.update({ 'watch': watch }, 
+          { $set: { 'configUpdatedAt':      (new Date()).toISOString() } }, 
+          { },
+          function () { next(null, group.name, true); }
+        );
       } else {
         next(null, group.name, false);
       }
@@ -180,10 +211,9 @@ var checkUpdate = function (watch, next) {
       if (err) return next(err);
 
       if (!user) {
-        // If the user does not exist, create a new entry.
-        save(watch, null, function (err, user) {
-          console.log("save callback");
-
+        // This indicates some errors. If the user does not exist, create a new entry.
+        save(watch, function (err, user) {
+          console.log("Warning: user entry should exist at this point! res="+JSON.stringify(user));
           if (err) return next(err);
 
           updateConfig(user, true, next);

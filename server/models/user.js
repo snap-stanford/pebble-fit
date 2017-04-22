@@ -1,15 +1,15 @@
 var mongoose = require('mongoose');
 
 var userSchema = new mongoose.Schema({
-  watch             : { type: String, required: true},
-  group             : { type: String, required: true},
+  watch             : { type: String, required: true },
+  group             : { type: String, required: true },
   name              : { type: String },
   email             : { type: String },
-  age               : { type: Number },
+  age               : { type: String },
   gender            : { type: String },
   height            : { type: String },
   heightU           : { type: String },
-  weight            : { type: Number },
+  weight            : { type: String },
   weightU           : { type: String },
   race              : { type: String },
   school            : { type: String },
@@ -28,8 +28,8 @@ var userSchema = new mongoose.Schema({
   sit8              : { type: String },
   sit9              : { type: String },
   sit9T             : { type: String },
-  createdAt         : {type: Date, default: Date.now},
-  configUpdatedAt   : {type: Date, default: Date.now},
+  createdAt         : { type: Date, required: true, default: Date.now },
+  configUpdatedAt   : { type: Date, required: true, default: Date.now }
 });
 
 module.exports = mongoose.model('User', userSchema);

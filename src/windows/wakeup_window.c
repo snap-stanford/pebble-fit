@@ -141,7 +141,7 @@ static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
   // DEBUG: reset launchexit count.
   int temp = 0;
   persist_write_data(PERSIST_KEY_LAUNCHEXIT_COUNT, &temp, 1);
-  store_write_upload_time(e_launch_time - SECONDS_PER_DAY);
+  store_write_upload_time(e_launch_time - SECONDS_PER_HOUR);
   
   // DEBUG: random messages.
   launch_set_random_message();
