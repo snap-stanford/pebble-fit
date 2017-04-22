@@ -17,7 +17,7 @@ log.set_level(3);
 var SERVER = 'http://pebble-fit.herokuapp.com';
 
 // Local servers (use ifconfig to find out).
-//var SERVER = 'http://10.30.202.74:3000';
+var SERVER = 'http://10.30.202.74:3000';
 //var SERVER = 'http://10.35.33.169:3000';
 //var SERVER = 'http://10.34.178.45:3000';
 
@@ -190,7 +190,15 @@ Pebble.addEventListener('webviewclosed', function(e) {
   sendToServer(url, function receiveServerACK (err, status, response, responseText) {
     if (err || status !== 200) {
       log.info(err || status);
-      saveConfigToWatch({});
+
+      // Send settings values to watch side even if cannot logging to the server.
+      //saveConfigToWatch({});
+  	  Pebble.sendAppMessage(dict, function(e) {
+  	    console.log('Sent config data to Pebble');
+  	  }, function(e) {
+  	    console.log('Failed to send config data!');
+  	    console.log(JSON.stringify(e));
+  	  });
     } else {
       // Do not expect a response from the server?
       // TODO: server might always send a response? Or omit that for non-new user?
