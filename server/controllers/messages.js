@@ -20,7 +20,8 @@ input.forEach(function (m) {
 exports.getRandomMessages = function (count) {
   var res = []
   for (var i = 0; i < count; i++) {
-    res.push(messages[Math.floor(Math.random()*messages.length)]);
+    messageGroup = input[Math.floor(Math.random()*input.length)];
+    res.push(messageGroup[Math.floor(Math.random()*messageGroup.length)]);
   }
   return res;
 };
