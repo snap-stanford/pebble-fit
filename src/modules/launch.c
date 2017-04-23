@@ -244,18 +244,18 @@ static void prv_wakeup_vibrate(bool force) {
  */
 void launch_wakeup_handler(WakeupId wakeup_id, int32_t wakeup_cookie) {
   APP_LOG(APP_LOG_LEVEL_INFO, "DEBUG: wakeup=%d cookie=%d", (int)wakeup_id, (int)wakeup_cookie);
-
-  // Re-init communication and upload data. 
-  // FIXME: double check that this launch_wakeup_handler() is called before init_callback().
-  if (e_js_ready) {
-    APP_LOG(APP_LOG_LEVEL_ERROR, "should before init_callback");
-    launch_send_launch_notification();
-    s_init_stage = 1;
-  }
   
   // wakeup_cookie is the index associated to the wakeup event. It is also the wakeup type.
   if (wakeup_cookie >= LAUNCH_WAKEUP_PERIOD) {
     e_launch_reason = wakeup_cookie;
+
+    // Re-init communication and upload data. This is not called for the standard wakeup,
+    // but only when a wakeup event happens during the app is on.
+    if (e_js_ready) {
+      APP_LOG(APP_LOG_LEVEL_ERROR, "should before init_callback");
+      launch_send_launch_notification();
+      s_init_stage = 1;
+    }
 
     // Calculate the current period steps info, and then set the message ID to be pass/fail. 
     // This will be overwritten by the true random message ID if this is a LAUNCH_WAKEUP_ALERT.

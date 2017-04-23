@@ -17,7 +17,7 @@ log.set_level(3);
 var SERVER = 'http://pebble-fit.herokuapp.com';
 
 // Local servers (use ifconfig to find out).
-var SERVER = 'http://10.30.202.74:3000';
+//var SERVER = 'http://10.30.202.74:3000';
 //var SERVER = 'http://10.35.33.169:3000';
 //var SERVER = 'http://10.34.178.45:3000';
 
