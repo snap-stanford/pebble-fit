@@ -382,7 +382,7 @@ int store_compare_ref_score(int mode) {
     #if DEBUG
       APP_LOG(APP_LOG_LEVEL_ERROR, "buf = %s", buf);
       APP_LOG(APP_LOG_LEVEL_ERROR, "s_possible_score=%d, curr_score=%d, ref_score=%d",
-          s_possible_score, store_read_curr_score(), ref_score);
+        s_possible_score, store_read_curr_score(), ref_score);
     #endif
 
     return store_read_curr_score() - ref_score;
@@ -407,15 +407,15 @@ const char* store_read_random_message() {
 
     APP_LOG(APP_LOG_LEVEL_ERROR, "index=%d", index);
     switch (index) {
-      case 1: return enamel_get_random_message_1(); break;
-      case 2: return enamel_get_random_message_2(); break;
-      case 3: return enamel_get_random_message_3(); break;
-      case 4: return enamel_get_random_message_4(); break;
-      case 5: return enamel_get_random_message_5(); break;
-      case 6: return enamel_get_random_message_6(); break;
-      case 7: return enamel_get_random_message_7(); break;
-      case 8: return enamel_get_random_message_8(); break;
-      case 9: return enamel_get_random_message_9(); break;
+      case 1:  return enamel_get_random_message_1(); break;
+      case 2:  return enamel_get_random_message_2(); break;
+      case 3:  return enamel_get_random_message_3(); break;
+      case 4:  return enamel_get_random_message_4(); break;
+      case 5:  return enamel_get_random_message_5(); break;
+      case 6:  return enamel_get_random_message_6(); break;
+      case 7:  return enamel_get_random_message_7(); break;
+      case 8:  return enamel_get_random_message_8(); break;
+      case 9:  return enamel_get_random_message_9(); break;
       default: return enamel_get_random_message_0();
     }
   }

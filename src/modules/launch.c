@@ -96,11 +96,10 @@ void launch_set_random_message() {
 
   const char *msg_ptr = store_read_random_message();
   #if DEBUG
-    APP_LOG(APP_LOG_LEVEL_ERROR, "AAA%sAAA", msg_ptr);
+    APP_LOG(APP_LOG_LEVEL_ERROR, "%s!", msg_ptr);
   #endif
 
   snprintf(s_random_message_buf, sizeof(s_random_message_buf), msg_ptr);
-  APP_LOG(APP_LOG_LEVEL_ERROR, "Random msg: %s.", s_random_message_buf);
   s_msg_id = s_random_message_buf;
 
   // Seperate the message ID from the message content.
@@ -172,9 +171,10 @@ void launch_set_random_message() {
       s_random_message_buf[0] = 'z';
     }
     s_random_message_buf[end] = '\0';
-    APP_LOG(APP_LOG_LEVEL_ERROR, "msgid=%s, score_diff=%d", s_msg_id, score_diff);
-    APP_LOG(APP_LOG_LEVEL_ERROR, "start=%d, end=%d", start, end);
-    APP_LOG(APP_LOG_LEVEL_ERROR, "%s!", msg_ptr);
+    #if DEBUG
+      APP_LOG(APP_LOG_LEVEL_ERROR, "msgid=%s, score_diff=%d", s_msg_id, score_diff);
+      APP_LOG(APP_LOG_LEVEL_ERROR, "start=%d, end=%d", start, end);
+    #endif
   
     if (mode == 'u' || mode == 'a') {
       s_random_message = s_random_message_buf + start;
@@ -186,7 +186,6 @@ void launch_set_random_message() {
       s_random_message = s_random_message_buf + msgSize + 1;
       snprintf(s_random_message, end - start, msg_ptr + start, score_diff);
     }
-    APP_LOG(APP_LOG_LEVEL_ERROR, "%s!", msg_ptr);
   }
   #if DEBUG
     APP_LOG(APP_LOG_LEVEL_ERROR, "Random msgID: %s", s_msg_id);
@@ -275,6 +274,9 @@ void launch_wakeup_handler(WakeupId wakeup_id, int32_t wakeup_cookie) {
       window_stack_remove(s_wakeup_window, false);
     }
 
+    // Calculate the maximum possible score (used for outcome and summary message).
+    store_set_possible_score();
+
     switch (e_launch_reason) {
       case LAUNCH_WAKEUP_ALERT:
         // Get a random message from the persistent storage. This must happen before
@@ -345,6 +347,9 @@ void launch_handler(bool activate) {
         s_msg_id = "fail";
       }
  
+      // Calculate the maximum possible score (used for outcome and summary message).
+      store_set_possible_score();
+
       switch (lr) {
         case APP_LAUNCH_USER: // When launched via the launch menu on the watch.
           e_launch_reason = LAUNCH_USER;
@@ -368,6 +373,9 @@ void launch_handler(bool activate) {
       int32_t wakeup_cookie;
 
       // Call the wakeup handler with fetched wakeup ID and cookie.
+      // Note that common tasks (e.g. steps_update, store_set_possible_score, etc.) are 
+      // moved into launch_wakeup_handler since they are needed when wakeup happens during
+      // the app is on.
       wakeup_get_launch_event(&wakeup_id, &wakeup_cookie);
       launch_wakeup_handler(wakeup_id, wakeup_cookie);
 
@@ -400,12 +408,15 @@ void launch_handler(bool activate) {
 void update_config(void *context) {
   // FIXME: this seems to cause the scroll window not properly response to the up/down buttons.
   #if DEBUG
-  APP_LOG(APP_LOG_LEVEL_INFO, "DEBUG: update_config(): activate=%d", enamel_get_activate());
-  APP_LOG(APP_LOG_LEVEL_ERROR, "DEBUG: first_config=%d",  enamel_get_first_config());
+    APP_LOG(APP_LOG_LEVEL_INFO, "DEBUG: update_config(): activate=%d", enamel_get_activate());
+    APP_LOG(APP_LOG_LEVEL_ERROR, "DEBUG: first_config=%d",  enamel_get_first_config());
   #endif
   
   // Assuming only two states/windows (activated/non-activated)
   if (enamel_get_activate()) {
+    // Calculate the maximum possible score (used for outcome and summary message).
+    store_set_possible_score();
+
     if (s_wakeup_window == NULL) {
       if (enamel_get_first_config() != 1) APP_LOG(APP_LOG_LEVEL_ERROR, "first_config must be 1");
  

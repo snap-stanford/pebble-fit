@@ -74,15 +74,10 @@ static void main_text_layer_update_proc() {
   if (e_launch_reason == LAUNCH_WAKEUP_ALERT) {
   //if (e_launch_reason == LAUNCH_WAKEUP_ALERT || e_launch_reason == LAUNCH_PHONE) { // DEBUG
   //  launch_set_random_message(); // DEBUG
-    APP_LOG(APP_LOG_LEVEL_ERROR, "random_message,content=%s", launch_get_random_message());
     snprintf(s_main_text_buf, sizeof(s_main_text_buf), "%s", launch_get_random_message());
-    //snprintf(s_main_text_buf, sizeof(s_main_text_buf), "Nice outside? Talk a stroll.");
-    //snprintf(s_main_text_buf, sizeof(s_main_text_buf), "regular walking breaks can reduce risk of cardiovascular disease");
   } else {
     const char *message_summary = enamel_get_message_summary();
 
-    store_set_possible_score();
-     
     snprintf(s_main_text_buf, sizeof(s_main_text_buf), message_summary, 
       store_read_curr_score(), store_read_possible_score());
       //store_read_curr_score(), enamel_get_total_break());
@@ -117,7 +112,7 @@ static void prv_update_text() {
 
 /* Get the latest step count and update texts on the watch accordingly. */
 void wakeup_window_breathe() {
-  APP_LOG(APP_LOG_LEVEL_ERROR, "DEBUG: wakeup_window_breathe.");
+  APP_LOG(APP_LOG_LEVEL_INFO, "DEBUG: wakeup_window_breathe.");
   //steps_update();
   //steps_wakeup_window_update();
   prv_update_text();
