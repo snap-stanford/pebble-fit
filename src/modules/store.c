@@ -356,17 +356,35 @@ int store_compare_ref_score(int mode) {
     } else { // mode == 3
       buf = enamel_get_score_a_average();
     }
+
     for (start = 0, end = 0, count = 1; buf[end] != '\0' && count < s_possible_score; end++) {
       if (buf[end] == ',') {
         count++;
         start = end + 1;
       }
     }
+
+    // Eliminate trailing '\0' or ','
+    if (buf[end] == '\0') {
+      end--;
+    }
+    while (buf[end] == ',') {
+      end--;
+    }
+
     for (int i = start; i <= end; i++) {
+      #if DEBUG
+        APP_LOG(APP_LOG_LEVEL_INFO, "buf[i] = %c", buf[i]);
+      #endif
       ref_score = ref_score * 10 + buf[i] - '0';
     }
-    //APP_LOG(APP_LOG_LEVEL_ERROR, "s_possible_score=%d, curr_score=%d, ref_score=%d", 
-    //    s_possible_score, store_read_curr_score(), ref_score);
+
+    #if DEBUG
+      APP_LOG(APP_LOG_LEVEL_ERROR, "buf = %s", buf);
+      APP_LOG(APP_LOG_LEVEL_ERROR, "s_possible_score=%d, curr_score=%d, ref_score=%d",
+          s_possible_score, store_read_curr_score(), ref_score);
+    #endif
+
     return store_read_curr_score() - ref_score;
   } else {
     APP_LOG(APP_LOG_LEVEL_ERROR, "Unknown mode value %d", mode);
