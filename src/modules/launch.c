@@ -20,6 +20,7 @@ char s_random_message_buf[RANDOM_MSG_SIZE_MAX];
 static time_t s_t_launch, s_t_exit, s_curr_time;
 static uint8_t s_br, s_lr, s_er;
 static const char *s_msg_id;
+static char s_msg_id_buf[4];
 
 /* Add launch reason and date to out dict. */
 // FIXME: could combine both launch and exit packets, since they have very similar format.
@@ -91,48 +92,46 @@ void launch_resend(time_t t_launch, time_t t_exit, char *msg_id, uint8_t br, uin
  * Otherwise, set message ID to be either "pass" or "fail".
  */
 void launch_set_random_message() {
-  //char random_message[RANDOM_MSG_SIZE_MAX]; // FIXME: change to global static variable.
+  int i, msgSize;
 
   const char *msg_ptr = store_read_random_message();
   #if DEBUG
-  APP_LOG(APP_LOG_LEVEL_ERROR, "AAA%sAAA", msg_ptr);
+    APP_LOG(APP_LOG_LEVEL_ERROR, "AAA%sAAA", msg_ptr);
   #endif
 
-  //snprintf(random_message, sizeof(random_message), store_read_random_message()); // FIXME: root cause?
-  //APP_LOG(APP_LOG_LEVEL_ERROR, "%s!", random_message);
-  //printf(random_message);
-  //printf(store_read_random_message());
-  
+  snprintf(s_random_message_buf, sizeof(s_random_message_buf), msg_ptr);
+  APP_LOG(APP_LOG_LEVEL_ERROR, "Random msg: %s.", s_random_message_buf);
+  s_msg_id = s_random_message_buf;
+
+  // Seperate the message ID from the message content.
+  for (msgSize = 0; msg_ptr[msgSize] != ':'; msgSize++) {}
+  s_random_message_buf[msgSize] = '\0';
+  if (msgSize != 4) { 
+    APP_LOG(APP_LOG_LEVEL_ERROR, "msgID should be 4 characters.");
+  }
+
   if (msg_ptr[0] != 'o') { // Deal with action and health messages.
-    char *c;
-
-    snprintf(s_random_message_buf, sizeof(s_random_message_buf), msg_ptr);
-
-    // Extract msgID and message content.
-    for (s_msg_id = c = s_random_message_buf; *c != ':' && *c != '\0'; c++) {}
-    *c = '\0'; // Replace ':' with '\0'.
-    s_random_message = ++c;
+    s_random_message = s_random_message_buf + msgSize + 1;
   } else { // Deal with the outcome messages specially.
-    int i, start, end, score_diff, size = 0;
-    char mode = msg_ptr[1];
+    int start, end, score_diff;
+    char mode = s_msg_id[1];
 
-    for (s_msg_id = msg_ptr, i = 0; msg_ptr[i] != ':'; i++, size++) {}
-    if (size != 4) {
-      APP_LOG(APP_LOG_LEVEL_ERROR, "store_read_random_message provides wrong size %d.", size);
-      return;
-    }
-  
     // Parse the random message ID, which contains 4 bytes/characters:
-    // Action messages: amxx, where xx represents digits 0-9.
+    // Action messages: am**, where ** represents digits 0-9.
     //
-    // Health messages: hmxx, where xx represents digits 0-9.
+    // Health messages: hm**, where ** represents digits 0-9.
     //
-    // Outcome messages: oyxx, where xx represents digits 0-9, and y represents:
+    // Outcome messages: oy**, where ** represents digits 0-9, and y represents:
     //                   u - compare to user self's average score, without number.
     //                   v - compare to user self's average score, with a number.
     //                   w - compare to user self's best score, with a number.
     //                   a - compare to the average score of all users, without number.
     //                   b - compare to the average score of all users, with a number.
+    //   To be able to distinguish between one of three outcomes of the outcome messages,
+    //   we will change the first letter from 'o' to one of the following:
+    //                   x - current score > reference score.
+    //                   y - current score < reference score.
+    //                   z - current score = reference score.
   
     // Compare with the reference score.
     switch (mode) {
@@ -154,40 +153,45 @@ void launch_set_random_message() {
   
     // Fetch the proper message. Loop starts at index 5 assuming msgID is 4-char long and
     // ':' is used as delimiter betwee msgID and the actual message content.
+    // Add special encoding at the end of msgID (a/b/c) to indicate the message selection.
     if (score_diff > 0) {
-      start = 5;
+      start = msgSize + 1;
       for (i = start; msg_ptr[i] != '|'; i++) {}
       end = i;
+      s_random_message_buf[0] = 'x';
     } else if (score_diff < 0) {
       for (i = 5; msg_ptr[i] != '|'; i++) {}
       for (start = ++i; msg_ptr[i] != '|'; i++) {}
       end = i;
+      s_random_message_buf[0] = 'y';
     } else { // score_diff == 0
       for (i = 5; msg_ptr[i] != '|'; i++) {}
       for (++i; msg_ptr[i] != '|'; i++) {}
       for (start = ++i; msg_ptr[i] != '\0'; i++) {}
       end = i;
+      s_random_message_buf[0] = 'z';
     }
+    s_random_message_buf[end] = '\0';
     APP_LOG(APP_LOG_LEVEL_ERROR, "msgid=%s, score_diff=%d", s_msg_id, score_diff);
     APP_LOG(APP_LOG_LEVEL_ERROR, "start=%d, end=%d", start, end);
     APP_LOG(APP_LOG_LEVEL_ERROR, "%s!", msg_ptr);
   
     if (mode == 'u' || mode == 'a') {
-      //snprintf(random_message, end - start+1, msg_ptr+start);
-      snprintf(s_random_message_buf, end - start+1, msg_ptr+start);
+      s_random_message = s_random_message_buf + start;
     } else {
       // Substitute the number in the message.
-      //APP_LOG(APP_LOG_LEVEL_ERROR, "Substitute the number in the message.");
       if (score_diff < 0) {
         score_diff = -1 * score_diff;
       }
-      //snprintf(random_message, end - start, msg_ptr+start, score_diff);
-      snprintf(s_random_message_buf, end - start, msg_ptr+start, score_diff);
-
+      s_random_message = s_random_message_buf + msgSize + 1;
+      snprintf(s_random_message, end - start, msg_ptr + start, score_diff);
     }
     APP_LOG(APP_LOG_LEVEL_ERROR, "%s!", msg_ptr);
-    s_random_message = s_random_message_buf;
   }
+  #if DEBUG
+    APP_LOG(APP_LOG_LEVEL_ERROR, "Random msgID: %s", s_msg_id);
+    APP_LOG(APP_LOG_LEVEL_ERROR, "Random msg: %s", s_random_message);
+  #endif
 } 
 
 /**
