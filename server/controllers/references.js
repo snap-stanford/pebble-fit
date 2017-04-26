@@ -4,7 +4,10 @@ var Reference = require('../models/reference');
  * Create a reference score for the given user with fake data (for DEBUG purpose).
  */
 exports.save = function (watch, next) {
-  var obj = { 'watch': watch, 'average': [1,1,2,2,3,3,4,4,5,5,6,6], 'best': 10 };
+  var obj = { 'watch': watch, 
+              'average': [20,30,40,50,60,50,40,30,20,30,20,30], 
+              'count': 12,
+              'best': 10 };
 
   var reference = new Reference(obj);
   reference.save(next);
@@ -15,8 +18,9 @@ exports.save = function (watch, next) {
  */
 exports.update = function (watch, average, best, next) {
   Reference.update({ 'watch': watch }, 
-    { $set: { 'average':    average,
-              'best':       best
+    { $set: { 'average':        average,
+              'count':          average.length,
+              'best':           best
     } }, 
     { upsert: true },
     next

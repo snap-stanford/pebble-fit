@@ -860,6 +860,14 @@
     },
     {
       "type": "input",
+      "id": "score_p_count",
+      "messageKey": "score_p_count",
+      "defaultValue": 12,
+      "min": 1,
+      "step": 1
+    },
+    {
+      "type": "input",
       "id": "score_a_average",
       "messageKey": "score_a_average"
     },
@@ -869,6 +877,14 @@
       "messageKey": "score_a_best",
       "defaultValue": 0,
       "min": 0,
+      "step": 1
+    },
+    {
+      "type": "input",
+      "id": "score_a_count",
+      "messageKey": "score_a_count",
+      "defaultValue": 12,
+      "min": 1,
       "step": 1
     },
     {
@@ -893,61 +909,73 @@
       "type": "input",
       "id": "random_message_0",
       "messageKey": "random_message_0",
-      "defaultValue": ""
+      "defaultValue": "am00:Get up and move."
     },
     {
       "type": "input",
       "id": "random_message_1",
       "messageKey": "random_message_1",
-      "defaultValue": ""
+      "defaultValue": "am00:Get up and move."
     },
     {
       "type": "input",
       "id": "random_message_2",
       "messageKey": "random_message_2",
-      "defaultValue": ""
+      "defaultValue": "am00:Get up and move."
     },
     {
       "type": "input",
       "id": "random_message_3",
       "messageKey": "random_message_3",
-      "defaultValue": ""
+      "defaultValue": "am00:Get up and move."
     },
     {
       "type": "input",
       "id": "random_message_4",
       "messageKey": "random_message_4",
-      "defaultValue": ""
+      "defaultValue": "am00:Get up and move."
     },
     {
       "type": "input",
       "id": "random_message_5",
       "messageKey": "random_message_5",
-      "defaultValue": ""
+      "defaultValue": "am00:Get up and move."
     },
     {
       "type": "input",
       "id": "random_message_6",
       "messageKey": "random_message_6",
-      "defaultValue": ""
+      "defaultValue": "am00:Get up and move."
     },
     {
       "type": "input",
       "id": "random_message_7",
       "messageKey": "random_message_7",
-      "defaultValue": ""
+      "defaultValue": "am00:Get up and move."
     },
     {
       "type": "input",
       "id": "random_message_8",
       "messageKey": "random_message_8",
-      "defaultValue": ""
+      "defaultValue": "am00:Get up and move."
     },
     {
       "type": "input",
       "id": "random_message_9",
       "messageKey": "random_message_9",
-      "defaultValue": ""
+      "defaultValue": "am00:Get up and move."
+    },
+    {
+      "type": "input",
+      "id": "random_message_10",
+      "messageKey": "random_message_10",
+      "defaultValue": "am00:Get up and move."
+    },
+    {
+      "type": "input",
+      "id": "random_message_11",
+      "messageKey": "random_message_11",
+      "defaultValue": "am00:Get up and move."
     }
   ]
 },

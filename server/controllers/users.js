@@ -64,7 +64,7 @@ var update = function (query, next) {
 
       // TODO: Insert the fake reference score here.
       //references.save(watch, next);
-      references.update(watch, [1,1,2,2,3,3,4,4,5,5,6,6], 10, next);
+      references.update(watch, [20,30,40,50,60,50,40,30,20,30,20,30], 10, next);
     });
 
   // Assign user to randomly selected group.
@@ -93,12 +93,14 @@ exports.getConfig = function (watch, force, next) {
 
       newConfig['score_p_average'] = refP.average.join(','); // Convert to string
       newConfig['score_p_best'] = refP.best;
+      newConfig['score_p_count'] = refP.count;
 
       references.getAll(null, function (err, refAll) {
         if (err) return next(err);
 
         newConfig['score_a_average'] = refAll.average.join(','); // Convert to string
         newConfig['score_a_best'] = refAll.best; 
+        newConfig['score_a_count'] = refAll.count;
 
         next(null, newConfig);
       });

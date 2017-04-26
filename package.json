@@ -82,10 +82,12 @@
       "group": 3012,
       "score_p_average": 3013,
       "score_p_best": 3014,
-      "score_a_average": 3015,
-      "score_a_best": 3016,
-      "config_summary": 3017,
-      "time_zone": 3018,
+      "score_p_count": 3015,
+      "score_a_average": 3016,
+      "score_a_best": 3017,
+      "score_a_count": 3018,
+      "config_summary": 3019,
+      "time_zone": 3020,
       "message_summary": 4001,
       "message_pass": 4002,
       "message_fail": 4003,
@@ -98,7 +100,9 @@
       "random_message_6": 4016,
       "random_message_7": 4017,
       "random_message_8": 4018,
-      "random_message_9": 4019
+      "random_message_9": 4019,
+      "random_message_10": 4020,
+      "random_message_11": 4021
     },
     "resources": {
       "media": []

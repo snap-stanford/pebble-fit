@@ -4,7 +4,8 @@ var actionMessages = require('../config/action_messages.json');
 var healthMessages = require('../config/health_messages.json');
 var outcomeMessages = require('../config/outcome_messages.json');
 
-var input = [actionMessages, outcomeMessages, healthMessages];
+var input = [actionMessages, healthMessages, outcomeMessages];
+//var input = [outcomeMessages];
 var messages = [];
 //for (var m in [actionMessages, outcomeMessages, healthMessages]) {
 input.forEach(function (m) {
