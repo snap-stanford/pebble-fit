@@ -1,6 +1,7 @@
 #pragma once
 
 #include <pebble.h>
+#include <math.h>
 #include "../constants.h"
 #include "comm.h"
 #include "launch.h"

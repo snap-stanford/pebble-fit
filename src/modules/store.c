@@ -34,6 +34,8 @@ void store_write_config_time(time_t time) {
  *   Make sure there is a non-Period Wakup scheduled daily before any Period Wakeup.
  */
 bool store_resend_config_request(time_t t_curr) {
+  return true; // TODO: get the latest config for the new version.
+
   if (!persist_exists(PERSIST_KEY_CONFIG_TIME)) {
     return true;
   }
@@ -316,14 +318,18 @@ int store_read_curr_score() {
 }
 
 void store_set_possible_score() {
-  // Calculate the current position of time in a day.
+  // Calculate the current position of time in a day in seconds.
+  time_t break_freq_seconds = enamel_get_break_freq() * SECONDS_PER_MINUTE;
   int diff = e_launch_time - time_start_of_today() - enamel_get_daily_start_time();
 
   if (diff <= 0) {
     s_possible_score = 0;
   } else {
-    s_possible_score = diff / enamel_get_break_freq() / SECONDS_PER_MINUTE;
+    // +/- 1 difference.
+    //s_possible_score = (diff + break_freq_seconds - 1) / break_freq_seconds;
+    s_possible_score = diff / break_freq_seconds;
 
+    // Capped at the maximum score.
     if (s_possible_score > enamel_get_total_break()) {
       s_possible_score = enamel_get_total_break();
     }
@@ -347,19 +353,29 @@ int store_compare_ref_score(int mode) {
     APP_LOG(APP_LOG_LEVEL_ERROR, "curr_score=%d, ref_score=%d", (int)store_read_curr_score(), (int)enamel_get_score_p_best());
     return store_read_curr_score() - enamel_get_score_p_best();
   } else if (mode == 1 || mode == 3) {
-    int start, end, count, ref_score = 0;
+    int i, start, end, count, ref_count, ref_score = 0;
     const char *buf;
 
     // Parse the CSV format string to get the reference score.
     if (mode == 1) {
       buf = enamel_get_score_p_average();
+      ref_count = enamel_get_score_p_count();
     } else { // mode == 3
       buf = enamel_get_score_a_average();
+      ref_count = enamel_get_score_a_count();
     }
 
-    for (start = 0, end = 0, count = 1; buf[end] != '\0' && count < s_possible_score; end++) {
+    // Calculate the correct index for the reference scores.
+    //printf("rf=%d, p=%d, tb=%d\n", ref_count, s_possible_score, (int)enamel_get_total_break());
+    ref_count = (int)round((float)ref_count * s_possible_score / enamel_get_total_break());
+    for (start = 0, end = 0, count = 0; buf[end] != '\0'; end++) {
       if (buf[end] == ',') {
         count++;
+
+        if (count >= ref_count) {
+          break;
+        }
+
         start = end + 1;
       }
     }
@@ -371,20 +387,40 @@ int store_compare_ref_score(int mode) {
     while (buf[end] == ',') {
       end--;
     }
+    //printf("start=%d, end=%d, count=%d\n", start, end, count);
 
-    for (int i = start; i <= end; i++) {
+    // Extract the integer portion of the number.
+    float integer = 0, decimal = 0, multiplier = 10;
+    for (i = start; i <= end; i++) {
       #if DEBUG
-        APP_LOG(APP_LOG_LEVEL_INFO, "buf[i] = %c", buf[i]);
+        APP_LOG(APP_LOG_LEVEL_INFO, "buf[%d] = %c", i, buf[i]);
       #endif
-      ref_score = ref_score * 10 + buf[i] - '0';
+      if (buf[i] == '.') {
+        break;
+      }
+      integer = integer * 10 + buf[i] - '0';
     }
+    count = 10;
+
+    // Extract the decimal portion of the number.
+    for (++i ; i <= end; i++) {
+      #if DEBUG
+        APP_LOG(APP_LOG_LEVEL_INFO, "buf[%d] = %c", i, buf[i]);
+      #endif
+      decimal += (buf[i] - '0') / multiplier;
+      multiplier *= 10;
+    }
+    //APP_LOG(APP_LOG_LEVEL_ERROR, "res = %d.%d\n", (int)integer, (int)(decimal*100));
+
+    // Formula: reference_score = reference_percentage * possible_score.
+    // 0 score (before the 1st wakeup) gives ref_score = 0;
+    ref_score = (int)round((integer + decimal) * s_possible_score / 100);
 
     #if DEBUG
       APP_LOG(APP_LOG_LEVEL_ERROR, "buf = %s", buf);
       APP_LOG(APP_LOG_LEVEL_ERROR, "s_possible_score=%d, curr_score=%d, ref_score=%d",
         s_possible_score, store_read_curr_score(), ref_score);
     #endif
-
     return store_read_curr_score() - ref_score;
   } else {
     APP_LOG(APP_LOG_LEVEL_ERROR, "Unknown mode value %d", mode);
@@ -407,15 +443,17 @@ const char* store_read_random_message() {
 
     APP_LOG(APP_LOG_LEVEL_ERROR, "index=%d", index);
     switch (index) {
-      case 1:  return enamel_get_random_message_1(); break;
-      case 2:  return enamel_get_random_message_2(); break;
-      case 3:  return enamel_get_random_message_3(); break;
-      case 4:  return enamel_get_random_message_4(); break;
-      case 5:  return enamel_get_random_message_5(); break;
-      case 6:  return enamel_get_random_message_6(); break;
-      case 7:  return enamel_get_random_message_7(); break;
-      case 8:  return enamel_get_random_message_8(); break;
-      case 9:  return enamel_get_random_message_9(); break;
+      case 1:  return enamel_get_random_message_1();    break;
+      case 2:  return enamel_get_random_message_2();    break;
+      case 3:  return enamel_get_random_message_3();    break;
+      case 4:  return enamel_get_random_message_4();    break;
+      case 5:  return enamel_get_random_message_5();    break;
+      case 6:  return enamel_get_random_message_6();    break;
+      case 7:  return enamel_get_random_message_7();    break;
+      case 8:  return enamel_get_random_message_8();    break;
+      case 9:  return enamel_get_random_message_9();    break;
+      case 10: return enamel_get_random_message_10();   break;
+      case 11: return enamel_get_random_message_11();   break;
       default: return enamel_get_random_message_0();
     }
   }

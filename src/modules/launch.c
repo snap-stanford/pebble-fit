@@ -157,19 +157,21 @@ void launch_set_random_message() {
       start = msgSize + 1;
       for (i = start; msg_ptr[i] != '|'; i++) {}
       end = i;
-      s_random_message_buf[0] = 'x';
+      s_random_message_buf[3] = 'a';
     } else if (score_diff < 0) {
       for (i = 5; msg_ptr[i] != '|'; i++) {}
       for (start = ++i; msg_ptr[i] != '|'; i++) {}
       end = i;
-      s_random_message_buf[0] = 'y';
-    } else { // score_diff == 0
+      s_random_message_buf[3] = 'b';
+    } else { // score_diff == 0 (achiving the same score)
       for (i = 5; msg_ptr[i] != '|'; i++) {}
       for (++i; msg_ptr[i] != '|'; i++) {}
       for (start = ++i; msg_ptr[i] != '\0'; i++) {}
       end = i;
-      s_random_message_buf[0] = 'z';
+      s_random_message_buf[3] = 'c';
     }
+
+    // Separate it from the remaining string.
     s_random_message_buf[end] = '\0';
     #if DEBUG
       APP_LOG(APP_LOG_LEVEL_ERROR, "msgid=%s, score_diff=%d", s_msg_id, score_diff);
@@ -325,6 +327,11 @@ void launch_wakeup_handler(WakeupId wakeup_id, int32_t wakeup_cookie) {
  * Return the newly created window.
  */
 void launch_handler(bool activate) {
+    //int ref_count = 4;
+    //int s_possible_score  = 4;
+    //ref_count = (int)round((float)ref_count * s_possible_score / enamel_get_total_break());
+    //printf("aaa:%d", ref_count);
+
   if (activate) {
     bool will_timeout = false;
 
@@ -453,7 +460,7 @@ void update_config(void *context) {
   store_write_config_time(e_launch_time);
 
   // Reset the current progress to eliminate any inconsistency after config change.
-  store_reset_curr_score();
+  //store_reset_curr_score(); // TODO: temporary turn off this feature.
 
   // Force it to timeout.
   tick_second_subscribe(true);
