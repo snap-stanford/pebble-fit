@@ -5,5 +5,5 @@
   "message_summary": "default_summary",
   "message_pass": "default_pass",
   "message_fail": "default_fail",
-  "random_messages": 10
+  "random_messages": 12
 }

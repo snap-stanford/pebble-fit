@@ -51,7 +51,6 @@ fi
 # Store and keep a record of the new configuration files for future reference.
 new_storage_dir="${storage_dir}/`date +%Y%m%d-%H:%M:%S`"
 mkdir -p ${new_storage_dir}
-#cp ${DIR}/../config/* ${new_storage_dir} # Copy the old config to the storage dir.
 cp ${new_config_dir}/* ${new_storage_dir} # Copy the new config to the storage dir.
 chmod 444 ${new_storage_dir}/*
 chmod 554 ${new_storage_dir}
