@@ -11,7 +11,7 @@ static void prv_tick_step_progress_handle(struct tm *tick_time, TimeUnits units_
   //APP_LOG(APP_LOG_LEVEL_ERROR, "s_count=%d, s_will_timeout=%u, dis=%d",
   //  s_count, (unsigned) s_will_timeout, enamel_get_display_duration());
 
-  if ((s_will_timeout && s_count >= enamel_get_display_duration()) || 
+  if ((s_will_timeout && s_count >= enamel_get_display_duration() + 5) || 
       s_count >= MAX_DISPLAY_DURATION) {
     // Exit after timeout by popping out all the windows of this app 
     e_exit_reason = EXIT_TIMEOUT;

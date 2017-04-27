@@ -276,7 +276,7 @@ static void window_load(Window *window) {
   }
 */
   #if DEBUG
-  APP_LOG(APP_LOG_LEVEL_INFO, "string length=%d", temp_length);
+    APP_LOG(APP_LOG_LEVEL_INFO, "string length=%d", temp_length);
   #endif
  
   GSize top_text_size = text_layer_get_content_size(s_top_text_layer);

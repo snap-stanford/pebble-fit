@@ -290,18 +290,20 @@ void launch_wakeup_handler(WakeupId wakeup_id, int32_t wakeup_cookie) {
         } else {
           e_exit_reason = EXIT_TIMEOUT; // FIXME: or using a new coding for silent-wakeup?
         }
+        prv_wakeup_vibrate(false);
         break;
       case LAUNCH_WAKEUP_PERIOD:
       case LAUNCH_WAKEUP_DAILY:
         // For now, even for period-wakeup and goal is met, we still push window.
+        prv_wakeup_vibrate(true);
         s_wakeup_window = wakeup_window_push();
         break;
       default:
         APP_LOG(APP_LOG_LEVEL_ERROR, "\nShould NOT reach here!\n");
     }
 
-    // Vibrate after the window is displayed. Force every wakeup to vibrate to get attention.
-    prv_wakeup_vibrate(false);
+    // FIXME: Vibrate after the window is displayed. Force every wakeup to vibrate to get attention?
+    //prv_wakeup_vibrate(false);
     //prv_wakeup_vibrate(true);
   } else {
     e_launch_reason = -1 * wakeup_cookie; // To distinguish from other normal launch types.
