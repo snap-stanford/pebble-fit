@@ -59,6 +59,8 @@ done
 echo "File to be parsed:"
 echo ${HOUR_FILE}
 echo ${BEST_FILE}
+
+time_range=$(expr "$BEST_FILE" : '.*best_\([0-9_]*\).csv')
   
 while IFS=, read c1 watch c3 c4 c5 c6 c7 c8 c9 c10 best_score
 do
@@ -71,7 +73,7 @@ do
           db.references.updateOne(
             { "watch" : "'${watch}'" },
             { 
-              $set: { "best": '${best_score}' } 
+              $set: { "best": '${best_score}', "range": "'${time_range}'" } 
             }, 
             {}
           )'
@@ -121,7 +123,8 @@ do
         #done < file.txt
 
         # Complete the MongoDB query. 
-        mongo_cmd=${mongo_cmd}'],
+        mongo_cmd=${mongo_cmd}'] ,
+              "range": "'${time_range}'" ,
               "count": '${count}' } 
             }, 
             {}
