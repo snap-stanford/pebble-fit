@@ -5,9 +5,7 @@
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 MONGODB_DIR="${DIR}/../../../mongodb/bin"
 
-# TODO
-#LOCAL_REF_DIR=/datamb/pebble/configuration/reference
-LOCAL_REF_DIR=${DIR}/../reference
+LOCAL_REF_DIR=/datamb/pebble/configuration/reference
 
 MONGODB_URI="$(cat ${DIR}/db_uri.txt)"
 PASSWD_FILE=${DIR}/password.txt

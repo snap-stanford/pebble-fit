@@ -9,3 +9,4 @@ pebble-nts/build/
 *.sw*
 *.swp
 *password.txt
+*db_uri.txt
