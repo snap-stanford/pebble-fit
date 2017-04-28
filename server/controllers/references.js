@@ -42,7 +42,7 @@ exports.getUser = function (watch, numBreak, next) {
  * It is represented with a special watchID "all".
  */
 exports.getAll = function (numBreak, next) {
-  Reference.findOne({ 'watch': 'all' }).
+  Reference.findOne({ 'watch': 'median_all' }).
     select('average best').
     lean().
     exec(next);
