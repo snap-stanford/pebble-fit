@@ -34,7 +34,8 @@ if [[ ! -d ${LOCAL_REF_DIR} ]]; then
 fi
 
 # Get the actual names of the generated reference files.
-for f in ${LOCAL_REF_DIR}/hourly_*.csv; do
+# Using ls -t to get the latest file with the same pattern.
+for f in $(ls -t ${LOCAL_REF_DIR}/hourly_*.csv); do
   if [[ -e "$f" ]]; then
     HOUR_FILE=${f} 
   else 
@@ -45,7 +46,7 @@ for f in ${LOCAL_REF_DIR}/hourly_*.csv; do
   break
 done
 
-for f in ${LOCAL_REF_DIR}/best_*.csv; do
+for f in $(ls -t ${LOCAL_REF_DIR}/best_*.csv); do
   if [[ -e "$f" ]]; then
     BEST_FILE=${f} 
   else 
@@ -61,7 +62,7 @@ echo ${HOUR_FILE}
 echo ${BEST_FILE}
 
 time_range=$(expr "$BEST_FILE" : '.*best_\([0-9_]*\).csv')
-  
+
 while IFS=, read c1 watch c3 c4 c5 c6 c7 c8 c9 c10 best_score
 do
     # Skip the first title line.
