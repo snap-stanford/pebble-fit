@@ -5,7 +5,7 @@ var referenceSchema = new mongoose.Schema({
   average: {type: Array, required: true},
   count: {type: Number, required: true},
   best: {type: Number, required: true},
-  created: {type: Date, default: Date.now},
+  lastModified: {type: Date, default: Date.now},
 });
 
 module.exports = mongoose.model('Reference', referenceSchema);

@@ -5,9 +5,9 @@ var Reference = require('../models/reference');
  */
 exports.save = function (watch, next) {
   var obj = { 'watch': watch, 
-              'average': [20,30,40,50,60,50,40,30,20,30,20,30], 
+              'average': [20,30,20,30,20,30,20,30,20,30,20,30], 
               'count': 12,
-              'best': 10 };
+              'best': 5 };
 
   var reference = new Reference(obj);
   reference.save(next);
@@ -22,7 +22,8 @@ exports.update = function (watch, average, best, next) {
               'count':          average.length,
               'best':           best
     } }, 
-    { upsert: true },
+    { upsert: true,
+      setDefaultsOnInsert: true },
     next
   );
 };

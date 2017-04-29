@@ -74,6 +74,7 @@ do
           db.references.updateOne(
             { "watch" : "'${watch}'" },
             { 
+              $currentDate: { lastModified: true },
               $set: { "best": '${best_score}', "range": "'${time_range}'" } 
             }, 
             {}
@@ -103,6 +104,7 @@ do
           db.references.updateOne(
             { "watch" : "'${watch}'" },
             { 
+              $currentDate: { lastModified: true },
               $set: { "average": ['
         
         # Append the list of reference score
