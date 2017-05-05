@@ -1,0 +1,386 @@
+/**
+ * This file was generated with Enamel : http://gregoiresage.github.io/enamel
+ * This file was modified to be used in the MyMobilize app. It should overwrite the 
+ * original generated one in node_modules/enamel/templates/
+ */
+
+#include <pebble.h>
+#include <@smallstoneapps/linked-list/linked-list.h>
+#include <pebble-events/pebble-events.h>
+#include "enamel.h"
+
+#ifndef ENAMEL_MAX_STRING_LENGTH
+//#define ENAMEL_MAX_STRING_LENGTH 100 // Dean: This is too small for outcome message.
+#define ENAMEL_MAX_STRING_LENGTH 256
+#endif
+
+#define ENAMEL_PKEY 3000000000
+#define ENAMEL_DICT_PKEY (ENAMEL_PKEY+1)
+
+typedef struct {
+	EnamelSettingsReceivedHandler *handler;
+	void *context;
+} SettingsReceivedState;
+
+static LinkedRoot *s_handler_list;
+
+static EventHandle s_event_handle;
+
+static DictionaryIterator s_dict;
+static uint8_t* s_dict_buffer = NULL;
+static uint32_t s_dict_size = 0;
+
+static bool s_config_changed;
+
+{% macro item_accessors_code(item) %}
+{% if 'messageKey' in item and 'enamel-ignore' not in item %}
+{% if 'capabilities' in item %}
+#if {{ item['capabilities']|getdefines }}
+{% endif %}
+// -----------------------------------------------------
+// Getter for '{{ item|getid }}'
+{% if item['type'] == 'toggle' %}
+bool enamel_get_{{ item|getid|cvarname }}(){
+	Tuple* tuple = dict_find(&s_dict, {{ item|hashkey }});
+	return tuple ? tuple->value->int32 == 1 : {{ (item['defaultValue'] if 'defaultValue' in item else false)|lower }};
+}
+{% elif item['type'] == 'select' or item['type'] == 'radiogroup' %}
+{% if item|hasStringOptions %}
+const char* enamel_get_{{ item|getid|cvarname }}(){
+	Tuple* tuple = dict_find(&s_dict, {{ item|hashkey }});
+	return tuple ? tuple->value->cstring : "{{ item['defaultValue'] if 'defaultValue' in item else item['options'][0]['value'] }}";
+}
+{% else %}
+{{ item|getid|cvarname|upper }}Value enamel_get_{{ item|getid|cvarname }}(){
+	Tuple* tuple = dict_find(&s_dict, {{ item|hashkey }});
+	return tuple ? atoi(tuple->value->cstring) : {{ item['defaultValue'] if 'defaultValue' in item else 0 }};
+}
+{% endif %}
+{% elif item['type'] == 'input' %}
+{% if 'attributes' in item and item['attributes']['type'] == 'time' %}
+uint32_t enamel_get_{{ item|getid|cvarname }}(){
+	Tuple* tuple = dict_find(&s_dict, {{ item|hashkey }});
+	char* value =  tuple ? tuple->value->cstring : "{{ item['defaultValue'] if 'defaultValue' in item else '00:00:00' }}";
+	uint32_t sec = atoi(value) * 3600 + atoi(value+3) * 60;
+	if(strlen(value) > 6){
+		sec += atoi(value+6);
+	}
+	return sec;
+}
+{% else %}
+const char* enamel_get_{{ item|getid|cvarname }}(){
+	Tuple* tuple = dict_find(&s_dict, {{ item|hashkey }});
+	return tuple ? tuple->value->cstring : "{{ item['defaultValue'] if 'defaultValue' in item else '' }}";
+}
+{% endif %}
+{% elif item['type'] == 'color' %}
+GColor enamel_get_{{ item|getid|cvarname }}(){
+	Tuple* tuple = dict_find(&s_dict, {{ item|hashkey }});
+	{% if 'defaultValue' in item and item['defaultValue'] is string %}
+	return tuple ? GColorFromHEX(tuple->value->int32) : GColorFromHEX(0x{{ item['defaultValue'] }});
+	{% else %}
+	return tuple ? GColorFromHEX(tuple->value->int32) : GColorFromHEX({{ item['defaultValue'] if 'defaultValue' in item else 0 }});
+	{% endif %}
+}
+{% elif item['type'] == 'slider' %}
+int32_t enamel_get_{{ item|getid|cvarname }}(){
+	Tuple* tuple = dict_find(&s_dict, {{ item|hashkey }});
+	{% if 'defaultValue' in item %}
+	{% if 'step' in item and '.' in item['step']|string %}
+	return tuple ? tuple->value->int32 : {{ (item['defaultValue'] * 10**((item['step'] - item['step']|round(0, 'floor'))|string|length - 2))|int }};
+	{% else %}		
+	return tuple ? tuple->value->int32 : {{ item['defaultValue'] if 'defaultValue' in item else 0 }};
+	{% endif %}
+	{% else %}
+	return tuple ? tuple->value->int32 : 0;
+	{% endif %}
+}
+{% elif item['type'] == 'checkboxgroup' %}
+bool enamel_get_{{ item|getid|cvarname }}({{ item|getid|cvarname|upper }}Value index_){
+	Tuple* tuple = dict_find(&s_dict,  {{ item|hashkey }} + index_);
+	if(tuple){
+		return tuple->value->int32 == 1;
+	}
+	else {
+		switch(index_){
+			{% for option in item['options'] %}
+			case {{ loop.index0 }} : return {{ item['defaultValue'][loop.index0]|lower }}; break;
+			{% endfor %}
+			default : return false;
+		}
+	}
+}
+{% endif %}
+// -----------------------------------------------------
+{% if 'capabilities' in item %}
+#endif
+{% endif %}
+
+{% endif %}
+{%- endmacro -%}
+
+{% for item in config -%}
+{% if item['type'] == 'section' %}
+{% if 'capabilities' in item %}
+#if {{ item['capabilities']|getdefines }}
+{% endif %}
+{% for item in item['items'] %}
+{{ item_accessors_code(item) }}
+{%- endfor %}
+{% if 'capabilities' in item %}
+#endif
+{% endif %}
+{% else %}
+{{ item_accessors_code(item) }}
+{%- endif %}
+{% endfor %}
+
+{% macro item_dict_size(item) %}
+{% if 'messageKey' in item and 'enamel-ignore' not in item %}
+{% if item['type'] == 'input' %}
+		+ 7 + ENAMEL_MAX_STRING_LENGTH
+{% elif item['type'] == 'select' or item['type'] == 'radiogroup' %}
+		+ 7 + {{ item|maxdictsize }}
+{% elif item['type'] == 'checkboxgroup' %}
+		+ ( 7 + 4 ) * {{ item['options']|length }}
+{% elif item['type'] == 'color' or item['type'] == 'toggle' or item['type'] == 'slider' %}
+		+ 7 + 4
+{% endif %}
+{% endif %}
+{% endmacro -%}
+
+static uint16_t prv_get_inbound_size() {
+	return 1
+{% for item in config %}
+{% if item['type'] == 'section' %}
+{%- if 'capabilities' in item %}
+#if {{ item['capabilities']|getdefines }}
+{% endif -%}
+{% for item in item['items'] %}
+{%- if 'capabilities' in item %}
+#if {{ item['capabilities']|getdefines }}
+{% endif -%}
+{{ item_dict_size(item) }}
+{%- if 'capabilities' in item %}
+#endif
+{% endif -%}
+{%- endfor %}
+{%- if 'capabilities' in item %}
+#endif
+{% endif -%}
+{% else %}
+{%- if 'capabilities' in item %}
+#if {{ item['capabilities']|getdefines }}
+{% endif -%}
+{{ item_dict_size(item) }}
+{%- if 'capabilities' in item %}
+#endif
+{% endif -%}
+{%- endif %}
+{% endfor %};
+}
+
+{% macro map_messagekey(item) %}
+{% if 'messageKey' in item and 'enamel-ignore' not in item %}
+{%- if 'capabilities' in item %}
+#if {{ item['capabilities']|getdefines }}
+{% endif -%}
+{% if item['type'] == 'checkboxgroup' %}
+{% for option in item['options'] %}
+	if( key == {{ item|getmessagekey }} + {{ loop.index0 }}) return {{ item|hashkey + loop.index0 }};
+{% endfor %}
+{% else %}
+	if( key == {{ item|getmessagekey }}) return {{ item|hashkey }};
+{% endif %}
+{%- if 'capabilities' in item %}
+#endif
+{% endif -%}
+{% endif -%}
+{% endmacro -%}
+
+static uint32_t prv_map_messagekey(const uint32_t key){
+{% for item in config %}
+{% if item['type'] == 'section' %}
+{%- if 'capabilities' in item %}
+#if {{ item['capabilities']|getdefines }}
+{% endif -%}
+{% for item2 in item['items'] %}
+{{ map_messagekey(item2) }}
+{%- endfor %}
+{%- if 'capabilities' in item %}
+#endif
+{% endif -%}
+{% else %}
+{{ map_messagekey(item) }}
+{%- endif %}
+{% endfor %}
+	//return 0;
+	return key; // Dean: this allow settings not managed by Clay/Enamel to be pass through to user-defined handler (why did it return 0 previously? possibly key conflict?)
+}
+
+static void prv_key_update_cb(const uint32_t key, const Tuple *new_tuple, const Tuple *old_tuple, void *context){
+}
+
+static bool prv_each_settings_received(void *this, void *context) {
+	SettingsReceivedState *state=(SettingsReceivedState *)this;
+	state->handler(state->context);
+	return true;
+}
+
+// Dean: this function is modified to fit our need to only update specific settings.
+static void prv_inbox_received_handle(DictionaryIterator *iter, void *context) {
+	if(dict_find(iter, {{ config|getFirstMessageKey}})){
+    DictionaryResult res;
+
+    Tuple *tuple=dict_read_first(iter);
+		while(tuple){
+			tuple->key = prv_map_messagekey(tuple->key);
+			tuple=dict_read_next(iter);
+		}
+
+    // Test
+    //printf("s_dict_size=%u, iter size = %u\n", (unsigned int)s_dict_size, (unsigned int) dict_size(iter));
+    //tuple = dict_find(iter, 1240536224);
+    //if (tuple) printf("iter msg0=%s\n", tuple->value->cstring);
+    //else printf("iter msg0 not exist");
+
+    // Create a temporary pointer to the original s_dict memory.
+    DictionaryIterator temp_dict;
+    uint8_t* temp_dict_buffer = s_dict_buffer;
+
+    // Create a new buffer that is as large as s_dict and iter combined.
+    uint32_t new_dict_size = s_dict_size+dict_size(iter);
+    s_dict_size = new_dict_size;
+    s_dict_buffer = malloc(new_dict_size);
+
+    // Move the content in original s_dict to this new buffer.
+		dict_write_begin(&temp_dict, s_dict_buffer, new_dict_size);
+		dict_write_end(&temp_dict);
+		res = dict_merge(&temp_dict, &new_dict_size, &s_dict, false, prv_key_update_cb, NULL);
+    // Test
+    //printf("temp_dict size = %u", (unsigned) dict_size(&temp_dict));
+    //printf("1.res = %d", res);
+
+    // Move the content in the iter to this new buffer.
+    new_dict_size = s_dict_size;
+		res = dict_merge(&temp_dict, &new_dict_size, iter, false, prv_key_update_cb, NULL);
+    if (res != 0) {
+      printf("temp_dict size = %u", (unsigned) dict_size(&temp_dict));
+      printf("2.res = %d", res);
+    }
+
+    // Point s_dict to this new buffer and update s_dict_size according to the actual content.
+    s_dict = temp_dict;
+    s_dict_size = dict_size(&s_dict);
+    
+    free(temp_dict_buffer);
+    
+    // Test
+    //tuple = dict_find(&s_dict, 1240536224);
+    //if (tuple) printf("s_dict msg0=%s\n", tuple->value->cstring);
+    //else printf("s_dict msg0 not exist");
+
+    // Give control to the other user-defined handler.
+		if(s_handler_list){
+			linked_list_foreach(s_handler_list, prv_each_settings_received, NULL);
+		}
+
+		s_config_changed = true;
+	}
+}
+
+static uint16_t prv_save_generic_data(uint32_t startkey, const void *data, uint16_t size){
+	uint16_t offset = 0;
+	uint16_t total_w_bytes = 0;
+	uint16_t w_bytes = 0;
+	while(offset < size){
+		w_bytes = size - offset < PERSIST_DATA_MAX_LENGTH ? size - offset : PERSIST_DATA_MAX_LENGTH;
+		w_bytes = persist_write_data(startkey + offset / PERSIST_DATA_MAX_LENGTH, data + offset, w_bytes);
+		total_w_bytes += w_bytes;
+		offset += PERSIST_DATA_MAX_LENGTH;
+	}
+	return total_w_bytes; 
+}
+
+static uint16_t prv_load_generic_data(uint32_t startkey, void *data, uint16_t size){
+	uint16_t offset = 0;
+	uint16_t total_r_bytes = 0;
+	uint16_t expected_r_bytes = 0;
+	uint16_t r_bytes = 0;
+	while(offset < size){
+		if(size - offset > PERSIST_DATA_MAX_LENGTH){
+			expected_r_bytes = PERSIST_DATA_MAX_LENGTH;
+		}
+		else {
+			expected_r_bytes = size - offset;
+		}
+		r_bytes = persist_read_data(startkey + offset / PERSIST_DATA_MAX_LENGTH, data + offset, expected_r_bytes);
+		total_r_bytes += r_bytes;
+		if(r_bytes != expected_r_bytes){
+			break; 
+		}
+		offset += PERSIST_DATA_MAX_LENGTH;
+	}
+	return total_r_bytes;
+}
+
+void enamel_init(){
+	if(persist_exists(ENAMEL_PKEY) && persist_exists(ENAMEL_DICT_PKEY)) 
+	{
+		s_dict_size = persist_read_int(ENAMEL_PKEY);
+		s_dict_buffer = malloc(s_dict_size);
+		prv_load_generic_data(ENAMEL_DICT_PKEY, s_dict_buffer, s_dict_size);
+	}
+	else {
+		s_dict_size = 0;
+		s_dict_buffer = NULL;
+	}
+
+	dict_read_begin_from_buffer(&s_dict, s_dict_buffer, s_dict_size);
+	
+	s_config_changed = false;
+	s_event_handle = events_app_message_register_inbox_received(prv_inbox_received_handle, NULL);
+	events_app_message_request_inbox_size(prv_get_inbound_size());
+}
+
+void enamel_deinit(){
+	if(s_config_changed){
+		persist_write_int(ENAMEL_PKEY, s_dict_size);
+		prv_save_generic_data(ENAMEL_DICT_PKEY, s_dict_buffer, s_dict_size);
+	}
+
+	if(s_dict_buffer){
+		free(s_dict_buffer);
+		s_dict_buffer = NULL;
+	}
+
+	s_config_changed = false;
+	events_app_message_unsubscribe(s_event_handle);
+}
+
+EventHandle enamel_settings_received_subscribe(EnamelSettingsReceivedHandler *handler, void *context) {
+	if (!s_handler_list) {
+		s_handler_list = linked_list_create_root();
+	}
+
+	SettingsReceivedState *this = malloc(sizeof(SettingsReceivedState));
+	this->handler = handler;
+	this->context = context;
+	linked_list_append(s_handler_list, this);
+
+	return this;
+}
+
+void enamel_settings_received_unsubscribe(EventHandle handle) {
+	int16_t index = linked_list_find(s_handler_list, handle);
+	if (index == -1) {
+		return;
+	}
+
+	free(linked_list_get(s_handler_list, index));
+	linked_list_remove(s_handler_list, index);
+	if (linked_list_count(s_handler_list) == 0) {
+		free(s_handler_list);
+		s_handler_list = NULL;
+	}
+}
