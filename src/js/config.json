@@ -374,8 +374,9 @@
       "type": "input",
       "id": "survey_height",
       "messageKey": "survey_height",
-      "defaultValue": "6'5\\\"",
+      "defaultValue": "",
       "attributes": {
+        "placeholder": "Do not use single quotation mark. Enter 6.5 instead of 6'5",
         "maxlength": 10
       }
     },
@@ -431,8 +432,8 @@
         { "label": "Some college credit, no degree",      "value": "some_college"},
         { "label": "Trade/technical/vocational training", "value": "trade"},
         { "label": "Associate degree",                    "value": "associate"},
-        { "label": "Bachelor’s degree",                   "value": "bachelor's"},
-        { "label": "Master’s degree",                     "value": "master's"},
+        { "label": "Bachelor's degree",                   "value": "bachelor"},
+        { "label": "Master's degree",                     "value": "master"},
         { "label": "Professional degree",                 "value": "professional"},
         { "label": "Doctorate degree",                    "value": "doctorate"},
         { "label": "Choose not to answer",                "value": "not_to_answer"}
@@ -814,7 +815,7 @@
       "type": "select",
       "id": "display_duration",
       "messageKey": "display_duration",
-      "defaultValue": 30,
+      "defaultValue": 40,
       "label": "Display duration (in seconds)",
       "description": "<p align='justify'>The notification message will only be displayed for a few seconds, and then the App will automatically go back into the sleep mode. You can still press the back button to manually suppress it before this timeout.</p>",
       "options": [

@@ -480,9 +480,7 @@ void update_config(void *context) {
  * Will send the exit info of the current launch in deinit().
  */
 void init_callback(DictionaryIterator *iter, void *context) {
-  #if DEBUG
-  APP_LOG(APP_LOG_LEVEL_ERROR, "This is init_callback(), s_init_stage=%d!", s_init_stage);
-  #endif
+  APP_LOG(APP_LOG_LEVEL_INFO, "This is init_callback(), s_init_stage=%d!", s_init_stage);
 
   if (dict_find(iter, AppKeyJSReady)) {
     // If is possible to receive multiple ready message if the Pebble app on phone is re-

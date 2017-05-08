@@ -29,7 +29,7 @@ Pebble.addEventListener('ready', function () {
   log.info(packageinfo.pebble.displayName + " " + packageinfo.version + " ready !");
 
   Pebble.sendAppMessage({ 'AppKeyJSReady': 1 });
-})
+});
 
 /**
  * Receive App message from the watch.
@@ -39,8 +39,8 @@ Pebble.addEventListener('appmessage', function (dict) {
   var date;
 
   function load_data_array () {
-    var length = dict.payload['AppKeyArrayLength'];
-    var start = dict.payload['AppKeyArrayStart'];
+    var length = dict.payload.AppKeyArrayLength;
+    var start = dict.payload.AppKeyArrayStart;
     var data = [];
     for (var i = start; i < start + length; i++) {
       data.push(dict.payload[String(i)]);
@@ -49,15 +49,15 @@ Pebble.addEventListener('appmessage', function (dict) {
   }
 
   // Data related to date/timestamp.
-  if (dict.payload['AppKeyDate'] !== undefined) {
-    date = dict.payload['AppKeyDate']
+  if (dict.payload.AppKeyDate !== undefined) {
+    date = dict.payload.AppKeyDate;
     log.debug('Date: ' + date + "; " + new Date(date*1000));
   }
 
   // Data related to step count.
-  if (dict.payload['AppKeyStepsData'] !== undefined) {
-    if (dict.payload['AppKeyStringData'] !== undefined) {
-      var string = dict.payload['AppKeyStringData'];
+  if (dict.payload.AppKeyStepsData !== undefined) {
+    if (dict.payload.AppKeyStringData !== undefined) {
+      var string = dict.payload.AppKeyStringData;
       //if (string !== undefined) {
       //  var data = string.split(',').map(function(num) {return parseInt(num)});
       //}
@@ -78,15 +78,15 @@ Pebble.addEventListener('appmessage', function (dict) {
   }
 
   // Data related to launch and/or exit events.
-  if (dict.payload['AppKeyLaunchReason'] !== undefined || 
-      dict.payload['AppKeyExitReason'] !== undefined) {
-    var configRequest = dict.payload['AppKeyConfigRequest'];
-    var msgID = dict.payload['AppKeyMessageID'];
-    var launchTime = dict.payload['AppKeyLaunchTime'];
-    var exitTime = dict.payload['AppKeyExitTime'];
-    var score = dict.payload['AppKeyBreakCount'];
-    var launchReason = dict.payload['AppKeyLaunchReason'];
-    var exitReason = dict.payload['AppKeyExitReason'];
+  if (dict.payload.AppKeyLaunchReason !== undefined ||
+      dict.payload.AppKeyExitReason !== undefined) {
+    var configRequest = dict.payload.AppKeyConfigRequest;
+    var msgID = dict.payload.AppKeyMessageID;
+    var launchTime = dict.payload.AppKeyLaunchTime;
+    var exitTime = dict.payload.AppKeyExitTime;
+    var score = dict.payload.AppKeyBreakCount;
+    var launchReason = dict.payload.AppKeyLaunchReason;
+    var exitReason = dict.payload.AppKeyExitReason;
     sendLaunchExitData(configRequest, msgID, launchTime, exitTime, score, 
                        launchReason, exitReason, date);
   }
@@ -117,15 +117,15 @@ Pebble.addEventListener('webviewclosed', function(e) {
 
   // Append user-defined settings and then send to the watch.
   function saveConfigToWatch(settings) {
-    settings["first_config"]      = dict[messageKeys.first_config];
-    settings["is_consent"]        = dict[messageKeys.is_consent];
-    settings["activate"]          = dict[messageKeys.activate];
-    settings["vibrate"]           = dict[messageKeys.vibrate];
-    settings["daily_start_time"]  = dict[messageKeys.daily_start_time];
-    settings["daily_end_time"]    = dict[messageKeys.daily_end_time];
-    settings["total_break"]       = dict[messageKeys.total_break];
-    //settings["break_freq"]       = dict[messageKeys.break_freq];
-    //settings["break_len"]       = dict[messageKeys.break_len];
+    settings.first_config       = dict[messageKeys.first_config];
+    settings.is_consent         = dict[messageKeys.is_consent];
+    settings.activate           = dict[messageKeys.activate];
+    settings.vibrate            = dict[messageKeys.vibrate];
+    settings.daily_start_time   = dict[messageKeys.daily_start_time];
+    settings.daily_end_time     = dict[messageKeys.daily_end_time];
+    settings.total_break        = dict[messageKeys.total_break];
+    //settings.break_freq         = dict[messageKeys.break_freq];
+    //settings.break_len          = dict[messageKeys.break_len];
     
     Pebble.sendAppMessage(settings, function(e) {
       console.log('Sent config data to Pebble (' + JSON.stringify(settings) + ').');
@@ -203,11 +203,10 @@ Pebble.addEventListener('webviewclosed', function(e) {
       // Do not expect a response from the server?
       // TODO: server might always send a response? Or omit that for non-new user?
       if (response) {
-        var settings = parseServerConfig(JSON.parse(response));
+        saveConfigToWatch(parseServerConfig(JSON.parse(response)));
       } else {
-        var settings = {};
+        saveConfigToWatch({});
       }
-      saveConfigToWatch(settings);
     }
   });
 });
@@ -219,11 +218,11 @@ Pebble.addEventListener('webviewclosed', function(e) {
  */
 function receiveServerConfigACK (err, status, response, responseText) {
   if (err || status !== 200) {
-    log.info(err || status)
+    log.info(err || status);
   } else if (!response) {
     // No new configuration from the server, simply send ACK to the watch.
     console.log('Server response with a null.');
-    Pebble.sendAppMessage({ 'AppKeyServerReceived': 1 })
+    Pebble.sendAppMessage({ 'AppKeyServerReceived': 1 });
   } else {
     console.log('Server response.');
     // Parse the new configuration from the server, and then send to the watch.
@@ -232,7 +231,7 @@ function receiveServerConfigACK (err, status, response, responseText) {
     settings = parseServerConfig(settings);
 
     // Essential to update settings on the watch side.
-    settings["first_config"] = 0;
+    settings.first_config = 0;
 
     Pebble.sendAppMessage(settings, function(e) {
       console.log('Sent config data to Pebble (' + JSON.stringify(settings) + ').');
@@ -261,7 +260,7 @@ function parseServerConfig (settings) {
       var randomMessages = settings[key];
       for (var i = 0; i < randomMessages.length; i++) {
         var messageID = 'random_message_' + i;
-        var messageContent = randomMessages[i]['id'] + ":" + randomMessages[i]['content'];
+        var messageContent = randomMessages[i].id + ":" + randomMessages[i].content;
         log.info(messageID);
         log.info(messageContent);
         settings[messageID] = messageContent;
@@ -274,7 +273,7 @@ function parseServerConfig (settings) {
     }
   }
   
-  settings['AppKeyServerReceived'] = 1;
+  settings.AppKeyServerReceived = 1;
 
   return settings;
 }
@@ -288,15 +287,15 @@ function parseServerConfig (settings) {
 //function sendToServer (route, responseHandler) {
 function sendToServer (route, callback) {
   function send_request (url, type, callback) {
-    var xhr = new XMLHttpRequest()
+    var xhr = new XMLHttpRequest();
     xhr.onload = function () {
-      callback(null, this.status, this.response, this.responseText)
-    }
+      callback(null, this.status, this.response, this.responseText);
+    };
     xhr.onerror = function () {
-      callback('Network error. Cannot send to ' + url)
-    }
-    xhr.open(type, url)
-    xhr.send()
+      callback('Network error. Cannot send to ' + url);
+    };
+    xhr.open(type, url);
+    xhr.send();
   }
 
   // TODO: The meaning of USE_OFFLINE seems to be opposite. And we might not need it.
@@ -332,20 +331,21 @@ function sendStepData(data, date) {
 
 function sendLaunchExitData(configRequest, msgID, launchTime, exitTime, score,
                             launchReason, exitReason, date) {
+  var url;
   if (exitReason === undefined) {
     //log.debug('Uploading launch data only...')
-    var url = '/launch' + '?date=' + date + '&reason=' + launchReason +
+    url = '/launch' + '?date=' + date + '&reason=' + launchReason +
       '&configrequest=' + configRequest + 
       '&msgid=' + msgID + 
       '&score=' + score + 
       '&watch=' + Pebble.getWatchToken();
   } else if (launchReason === undefined) {
     //log.debug('Uploading exit data only...')
-    var url = '/exit' + '?date=' + date + '&reason=' + exitReason +
+    url = '/exit' + '?date=' + date + '&reason=' + exitReason +
       '&watch=' + Pebble.getWatchToken();
   } else {
     //log.debug('Uploading launch & exit data ...')
-    var url = '/launchexit' + '?date=' + date +
+    url = '/launchexit' + '?date=' + date +
       '&launchtime=' + launchTime +
       '&exittime=' + exitTime +
       '&score=' + score + 

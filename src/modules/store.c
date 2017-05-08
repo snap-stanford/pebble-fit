@@ -318,6 +318,7 @@ int store_read_curr_score() {
 }
 
 void store_set_possible_score() {
+  APP_LOG(APP_LOG_LEVEL_INFO, "in store_set_possible_score");
   // Calculate the current position of time in a day in seconds.
   time_t break_freq_seconds = enamel_get_break_freq() * SECONDS_PER_MINUTE;
   int diff = e_launch_time - time_start_of_today() - enamel_get_daily_start_time();

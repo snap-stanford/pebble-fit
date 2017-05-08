@@ -134,12 +134,12 @@ module.exports = function (minified) {
   /* Hide all the pfbutton (yes-no buttons) components. */
   function hidePFButtons () {
     var yesButtons = $('.yes');
-    for (var i = 0; i < yesButtons.length; i++) {
+    for (i = 0; i < yesButtons.length; i++) {
       yesButtons[i].style.display = 'none';
     }
-    var yesButtons = $('.no');
-    for (var i = 0; i < yesButtons.length; i++) {
-      yesButtons[i].style.display = 'none';
+    var noButtons = $('.no');
+    for (i = 0; i < noButtons.length; i++) {
+      noButtons[i].style.display = 'none';
     }
   }
 
