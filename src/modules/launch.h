@@ -24,12 +24,13 @@ void launch_send_exit_notification();
 /* Send testing message to the phone app. */
 void launch_send_test();
 
-void launch_resend(time_t t_launch, time_t t_exit, char *msg_id, uint8_t br, uint8_t lr, uint8_t er);
+void launch_resend(time_t t_launch, time_t t_exit, char *msg_id, uint8_t sd, uint8_t br, uint8_t lr, uint8_t er);
 
 void launch_set_random_message();
 
 const char * launch_get_random_message();
 const char * launch_get_random_message_id();
+uint8_t launch_get_score_diff();
 
 void launch_wakeup_handler(WakeupId wakeup_id, int32_t wakeup_cookie);
 

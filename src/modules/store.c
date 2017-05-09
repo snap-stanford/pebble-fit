@@ -8,13 +8,15 @@ static uint32_t s_launchexit_data[3];
 /* 
  * The format of launch-exit record stored persistently (compact to save space).
  * Total size: 4 bytes
- * 19 bits                  | 8 bits      | 3 bits   | 2 bits  
- * exit (secs after launch) | break count | l reason | e reason
+ * 8 bits     | 11 bits                  | 8 bits      | 3 bits   | 2 bits
+ * score diff | exit (secs after launch) | break count | l reason | e reason
  */
 #define LAUNCHEXIT_DATA_SIZE    12 
 #define LAUNCHEXIT_COUNT_SIZE   1
-#define COMPACT(es, br, lr, er) ((es&0x0007FFFF)<<13 | (br&0xFF)<<5 | (lr&0x7)<<2 | (er&0x3))
-#define GET_SECOND(x)           ((x>>13) & 0x0007FFFF)
+#define COMPACT(sd, es, br, lr, er) \
+        ((sd&0xF)<<24 | (es&0x7FF)<<13 | (br&0xFF)<<5 | (lr&0x7)<<2 | (er&0x3))
+#define GET_SCORE_DIFF(x)       ((x>>24) & 0x0000000F)
+#define GET_SECOND(x)           ((x>>13) & 0x000007FF)
 #define GET_SCORE(x)            ((x>>5)  & 0x000000FF)
 #define GET_LAUNCH_REASON(x)    ((x>>2)  & 0x00000007)
 #define GET_EXIT_REASON(x)      (x       & 0x00000003)
@@ -83,11 +85,17 @@ time_t store_read_upload_time() {
  * Write launch and exit events into the persistent storage 
  */
 void store_write_launchexit_event(time_t t_launch, time_t t_exit, uint8_t lr, uint8_t er) {
+  // Get the difference time between launch_time and exit_time. Note that this number
+  // will be clipped due to the limited storage bits allocated for it.
   time_t t_diff = t_exit - t_launch; 
 
+  // Get the current break score.
   int br = store_read_curr_score();
 
-  // Convert message ID to ascii code (assuming each ID is 4 bytes)
+  // Get the score difference.
+  uint8_t sd = launch_get_score_diff();
+
+  // Get the random message ID and convert it to ASCII (assuming each ID is 4 bytes)
   const char *msg_id = launch_get_random_message_id();
   uint32_t msg_id_ascii = 0;
   for (int i = 0; i < 4; i++) {
@@ -95,19 +103,20 @@ void store_write_launchexit_event(time_t t_launch, time_t t_exit, uint8_t lr, ui
     msg_id_ascii |= (int)msg_id[i] & 0xFF;
   }
   
+  // Read the current number of launch-exit events stored.
   if (persist_exists(PERSIST_KEY_LAUNCHEXIT_COUNT)) {
     persist_read_data(PERSIST_KEY_LAUNCHEXIT_COUNT, &s_launchexit_count, 1);
   } else {
     s_launchexit_count = 0;
   }
 
-  // TODO: should implement as circular buffer instead of linear array.
+  // TODO: should implement as circular buffer instead of linear array with head and tail pointers.
   if (s_launchexit_count > PERSIST_KEY_LAUNCH_END - PERSIST_KEY_LAUNCH_START + 1) {
     APP_LOG(APP_LOG_LEVEL_ERROR, "s_launchexit_count less than zero = %u", s_launchexit_count);
     s_launchexit_count = 0;
   }
   s_launchexit_data[0] = t_launch;
-  s_launchexit_data[1] = COMPACT(t_diff, br, lr, er);
+  s_launchexit_data[1] = COMPACT(sd, t_diff, br, lr, er);
   s_launchexit_data[2] = msg_id_ascii;
   s_launchexit_count++;
 
@@ -120,8 +129,8 @@ void store_write_launchexit_event(time_t t_launch, time_t t_exit, uint8_t lr, ui
   APP_LOG(APP_LOG_LEVEL_INFO, "Write launch and exit events to persistent storage" \
       ". new records count=%d.", s_launchexit_count);
   APP_LOG(APP_LOG_LEVEL_INFO, "t_launch=%u, t_exit=%u", (unsigned int)t_launch, (unsigned int)t_exit);
-  APP_LOG(APP_LOG_LEVEL_INFO, "msg_id=%s, msg_id_ascii=%08x, t_diff=%u, br=%d lr=%d, er=%d", 
-    msg_id, (unsigned int)msg_id_ascii, (unsigned int)t_diff, br, lr, er);
+  APP_LOG(APP_LOG_LEVEL_INFO, "msg_id=%s, msgid_ascii=%08x, t_diff=%u, sd=%d, br=%d lr=%d, er=%d",
+    msg_id, (unsigned int)msg_id_ascii, (unsigned int)t_diff, sd, br, lr, er);
 }
 
 // Deprecated.
@@ -170,7 +179,7 @@ bool store_resend_launchexit_event() {
   // FIXME: consider using a single key and sequential storage location
   uint32_t key, msg_id_ascii;
   time_t t_launch, t_exit;
-  uint8_t br, lr, er;
+  uint8_t sd, br, lr, er;
   char msg_id[5];
 
   if (persist_exists(PERSIST_KEY_LAUNCHEXIT_COUNT)) {
@@ -192,6 +201,7 @@ bool store_resend_launchexit_event() {
       t_launch = s_launchexit_data[0];
 
       t_exit = s_launchexit_data[1];
+      sd = GET_SCORE_DIFF(t_exit);
       br = GET_SCORE(t_exit);
       lr = GET_LAUNCH_REASON(t_exit);
       er = GET_EXIT_REASON(t_exit);
@@ -199,19 +209,21 @@ bool store_resend_launchexit_event() {
 
       // Convert message ID from ascii code back to char (assuming each ID is 4 bytes)
       msg_id_ascii = s_launchexit_data[2];
-      // DEBUG
-      APP_LOG(APP_LOG_LEVEL_INFO, "Resend launch and exit events to the server" \
+      #if DEBUG
+        APP_LOG(APP_LOG_LEVEL_INFO, "Resend launch and exit events to the server" \
           ". new records count=%d.", s_launchexit_count);
-      APP_LOG(APP_LOG_LEVEL_INFO, "t_launch=%u, t_exit=%u, msg_id_ascii=%04x, br=%d, lr=%d, er=%d"
-        , (unsigned int)t_launch, (unsigned int)t_exit, (unsigned int)msg_id_ascii,
-        (int)br, (int)lr, (int)er); // DEBUG
+        APP_LOG(APP_LOG_LEVEL_INFO, "t_launch=%u, t_exit=%u, msg_id_ascii=%04x, " \
+          "sd=%d, br=%d, lr=%d, er=%d",
+          (unsigned int)t_launch, (unsigned int)t_exit, (unsigned int)msg_id_ascii, (int)sd,
+          (int)br, (int)lr, (int)er); // DEBUG
+      #endif
       for (int i = 3; i >= 0; i--) {
         msg_id[i] = (char)msg_id_ascii;
         msg_id_ascii >>= 8;
       }
       msg_id[4] = '\0';
 
-      launch_resend(t_launch, t_exit, msg_id, br, lr, er);
+      launch_resend(t_launch, t_exit, msg_id, sd, br, lr, er);
 
       persist_delete(key);
       s_launchexit_count--;

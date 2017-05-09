@@ -16,11 +16,12 @@ static int s_config_request;
 static char *s_random_message = "";
 char s_random_message_buf[RANDOM_MSG_SIZE_MAX];
 
-// For resend functions.
+// For functions that upload data to the server.
 static time_t s_t_launch, s_t_exit, s_curr_time;
 static uint8_t s_br, s_lr, s_er;
 static const char *s_msg_id;
 static char s_msg_id_buf[4];
+static uint8_t s_score_diff = 255; // Assume total break is less than 256.
 
 /* Add launch reason and date to out dict. */
 // FIXME: could combine both launch and exit packets, since they have very similar format.
@@ -28,6 +29,7 @@ static void prv_launch_data_write(DictionaryIterator * out) {
   dict_write_int(out, AppKeyDate, &e_launch_time, sizeof(int), true);
   dict_write_int(out, AppKeyLaunchReason, &e_launch_reason, sizeof(int), true);
   dict_write_int(out, AppKeyConfigRequest, &s_config_request, sizeof(int), true);
+  dict_write_uint8(out, AppKeyScoreDiff, s_score_diff);
   dict_write_uint8(out, AppKeyBreakCount, s_br);
   dict_write_cstring(out, AppKeyMessageID, s_msg_id);
 }
@@ -43,6 +45,7 @@ static void prv_launch_exit_data_write(DictionaryIterator * out) {
   dict_write_int(out, AppKeyDate, &s_curr_time, sizeof(int), true);
   dict_write_int(out, AppKeyLaunchTime, &s_t_launch, sizeof(int), true);
   dict_write_int(out, AppKeyExitTime, &s_t_exit, sizeof(int), true);
+  dict_write_uint8(out, AppKeyScoreDiff, s_score_diff);
   dict_write_uint8(out, AppKeyBreakCount, s_br);
   dict_write_uint8(out, AppKeyLaunchReason, s_lr);
   dict_write_uint8(out, AppKeyExitReason, s_er);
@@ -68,12 +71,14 @@ void launch_send_exit_notification(time_t time) {
 /**
  * Resend the previous launch and exit events.
  */
-void launch_resend(time_t t_launch, time_t t_exit, char *msg_id, uint8_t br, uint8_t lr, uint8_t er) {
+void launch_resend(time_t t_launch, time_t t_exit, char *msg_id, uint8_t sd,
+                   uint8_t br, uint8_t lr, uint8_t er) {
   // The current launch record has been uploaded and the current exit reason has 
   // not yet been collected, so it is safe to modify these two varaibles here.
   s_t_launch = t_launch;
   s_t_exit = t_exit;
   s_msg_id = msg_id;
+  s_score_diff = sd;
   s_br = br;
   s_lr = lr;
   s_er = er;
@@ -177,19 +182,21 @@ void launch_set_random_message() {
       APP_LOG(APP_LOG_LEVEL_ERROR, "msgid=%s, score_diff=%d", s_msg_id, score_diff);
       APP_LOG(APP_LOG_LEVEL_ERROR, "start=%d, end=%d", start, end);
     #endif
+    if (score_diff < 0) {
+      score_diff = -1 * score_diff;
+    }
+    s_score_diff = (uint8_t)(score_diff & 0xF);
   
     if (mode == 'u' || mode == 'a') {
       s_random_message = s_random_message_buf + start;
     } else {
       // Substitute the number in the message.
-      if (score_diff < 0) {
-        score_diff = -1 * score_diff;
-      }
       s_random_message = s_random_message_buf + msgSize + 1;
       snprintf(s_random_message, end - start, msg_ptr + start, score_diff);
     }
   }
   #if DEBUG
+    APP_LOG(APP_LOG_LEVEL_ERROR, "Score diff: %u", (unsigned int)s_score_diff);
     APP_LOG(APP_LOG_LEVEL_ERROR, "Random msgID: %s", s_msg_id);
     APP_LOG(APP_LOG_LEVEL_ERROR, "Random msg: %s", s_random_message);
   #endif
@@ -211,6 +218,13 @@ const char * launch_get_random_message_id() {
   } else {
     return "nana";
   }
+}
+
+/**
+ * Return the score different (only applicable for certain outcome messages). 
+ */
+uint8_t launch_get_score_diff() {
+  return s_score_diff;
 }
 
 /* This function is called at scheduled wakeup event.

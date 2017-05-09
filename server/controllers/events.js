@@ -2,8 +2,9 @@ var Event = require('../models/event');
 var _ = require('lodash');
 var moment = require('moment');
 
-exports.save = function (type, data, time, watch_token, msgid, score, next) {
+exports.save = function (type, data, time, watch_token, msgid, scorediff, score, next) {
   var obj = {type: type, time: moment.unix(time).toDate(), watch: watch_token};
+  if (scorediff && scorediff !== 'undefined') obj.scorediff = scorediff;
   if (score && score !== 'undefined') obj.score = score;
   if (msgid) obj.msgid = msgid;
   if (data) obj.data = data;

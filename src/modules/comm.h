@@ -8,7 +8,7 @@ extern bool e_server_ready;
 typedef void (CommCallback)(void);
 typedef void (DataWriteCallback)(DictionaryIterator*);
 
-/* Message keys (consistent with package.json). */
+/* Message keys (must match with those in "messageKeys" in package.json). */
 typedef enum {
   AppKeyJSReady,
   AppKeyDate,
@@ -25,7 +25,8 @@ typedef enum {
   AppKeyConfigRequest,
   AppKeyMessageID,
   AppKeyBreakCount,
-  AppKeyStringData
+  AppKeyStringData,
+  AppKeyScoreDiff
 } AppKey;
 
 /* Init communication. */

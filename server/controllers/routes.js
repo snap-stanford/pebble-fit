@@ -23,6 +23,7 @@ function saveEvent(req, res, config, next) {
     req.query.date,
     req.query.watch,
     req.query.msgid,
+    req.query.scorediff,
     req.query.score,
     function (err) {
       if (err) return next(err);
@@ -150,7 +151,7 @@ router.get(['/launchexit'],
     'launchreason', 'exitreason']),
   function (req, res, next) {
     events.save('launch', req.query.launchreason, req.query.launchtime, 
-      req.query.watch, req.query.msgid, req.query.score,
+      req.query.watch, req.query.msgid, req.query.scorediff, req.query.score,
       function (err) {
         if (err) return next(err);
 

@@ -1,5 +1,5 @@
 {
-  "version": "1.16.0",
+  "version": "1.18.0",
   "author": "Stanford University",
   "dependencies": {
     "enamel": "^1.2.4",
@@ -40,6 +40,7 @@
       "AppKeyMessageID": 13,
       "AppKeyBreakCount": 14,
       "AppKeyStringData": 15,
+      "AppKeyScoreDiff": 16,
       "first_config": 100,
       "config_update_interval": 101,
       "is_consent": 110,
