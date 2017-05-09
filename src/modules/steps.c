@@ -5,8 +5,8 @@
 // However, it is unlikely a user can walk hundreds of steps in each minute for long period.
 // Here we assume in average, per-minute data takes 3 bytes. 8 hours * 60 = 480 minutes.
 // At most we could upload 480*3/2 = 720 minutes of data in one batch.
-//#define STEP_BATCH_MAXIMUM_SIZE   960 // Consume too much mem for Aplite
-#define STEP_BATCH_MAXIMUM_SIZE   480
+#define STEP_BATCH_MAXIMUM_SIZE   960 // Consume too much mem for Aplite
+//#define STEP_BATCH_MAXIMUM_SIZE   480
 //#define STEP_BATCH_MAXIMUM_SIZE   240
 #define STEP_BATCH_STRING_SIZE    STEP_BATCH_MAXIMUM_SIZE * 3
 static char s_step_batch_string[STEP_BATCH_STRING_SIZE];

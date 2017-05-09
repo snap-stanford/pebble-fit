@@ -84,10 +84,11 @@ Pebble.addEventListener('appmessage', function (dict) {
     var msgID = dict.payload.AppKeyMessageID;
     var launchTime = dict.payload.AppKeyLaunchTime;
     var exitTime = dict.payload.AppKeyExitTime;
+    var scoreDiff = dict.payload.AppKeyScoreDiff;
     var score = dict.payload.AppKeyBreakCount;
     var launchReason = dict.payload.AppKeyLaunchReason;
     var exitReason = dict.payload.AppKeyExitReason;
-    sendLaunchExitData(configRequest, msgID, launchTime, exitTime, score, 
+    sendLaunchExitData(configRequest, msgID, launchTime, exitTime, scoreDiff, score, 
                        launchReason, exitReason, date);
   }
 });
@@ -329,14 +330,16 @@ function sendStepData(data, date) {
   sendToServer(url, receiveServerConfigACK);
 }
 
-function sendLaunchExitData(configRequest, msgID, launchTime, exitTime, score,
+function sendLaunchExitData(configRequest, msgID, launchTime, exitTime, scoreDiff, score,
                             launchReason, exitReason, date) {
   var url;
+
   if (exitReason === undefined) {
     //log.debug('Uploading launch data only...')
     url = '/launch' + '?date=' + date + '&reason=' + launchReason +
       '&configrequest=' + configRequest + 
       '&msgid=' + msgID + 
+      '&scorediff=' + scoreDiff +
       '&score=' + score + 
       '&watch=' + Pebble.getWatchToken();
   } else if (launchReason === undefined) {
@@ -348,6 +351,7 @@ function sendLaunchExitData(configRequest, msgID, launchTime, exitTime, score,
     url = '/launchexit' + '?date=' + date +
       '&launchtime=' + launchTime +
       '&exittime=' + exitTime +
+      '&scorediff=' + scoreDiff +
       '&score=' + score + 
       '&launchreason=' + launchReason +
       '&exitreason=' + exitReason +
