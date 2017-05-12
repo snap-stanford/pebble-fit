@@ -156,7 +156,7 @@ router.get(['/launchexit'],
         if (err) return next(err);
 
         events.save('exit', req.query.exitreason, req.query.exittime, req.query.watch, 
-                    null, null,
+                    null, null, null,
           function (err) {
             if (err) return next(err);
             res.status(200).end();

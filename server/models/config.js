@@ -9,8 +9,6 @@ var configSchema = new mongoose.Schema({
   breakLen: {type: Number, required: true},
   threshold: {type: Number, required: true},
   group: {type: String, required: true},
-  name: {type: String, required: false},
-  email: {type: String, required: false},
   created: {type: Date, default: Date.now},
 });
 

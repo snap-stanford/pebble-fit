@@ -26,8 +26,7 @@ var userSchema = new mongoose.Schema({
   sit6              : { type: String },
   sit7              : { type: String },
   sit8              : { type: String },
-  sit9              : { type: String },
-  sit9T             : { type: String },
+  sit8T             : { type: String },
   createdAt         : { type: Date, required: true, default: Date.now },
   configUpdatedAt   : { type: Date, required: true, default: Date.now }
 });

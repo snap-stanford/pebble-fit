@@ -53,8 +53,7 @@ var update = function (query, next) {
               'sit6':       query.sit6,
               'sit7':       query.sit7,
               'sit8':       query.sit8,
-              'sit9':       query.sit9,
-              'sit9T':      query.sit9T
+              'sit8T':      query.sit8T
     } }, 
     { upsert: true,
       setDefaultsOnInsert: true },
