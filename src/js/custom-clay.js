@@ -34,7 +34,8 @@ module.exports = function (minified) {
   var consent_result_section = ['consent_result_text', 'consent_result_button']; 
   var survey_section = ['survey_heading_0', 'survey_text_0', 'survey_heading_1', 'survey_text_1',
     'survey_heading_2', 'survey_text_2', 'survey_text_3',
-    'survey_age_text', 'survey_age', 'survey_gender', 'survey_height', 'survey_height_unit', 
+    'survey_age_text', 'survey_age', 'survey_gender',
+    'survey_height_unit', 'survey_height_cm', 'survey_height_ft', 'survey_height_in',
     'survey_weight', 'survey_weight_unit', 'survey_race', 'survey_school', 
     'survey_occupation_text', 'survey_occupation', 'survey_deskwork', 'survey_income', 
     'survey_country_text', 'survey_country', 'survey_zipcode_text', 'survey_zipcode',
@@ -237,6 +238,7 @@ module.exports = function (minified) {
 
     hideSection(consent_result_section);
     showSection(survey_section);
+    heightUnitChange();
 
     clayConfig.getItemById('first_config').set(1); // Indicate the first config after consent.
     showConfigSection();
@@ -303,6 +305,21 @@ module.exports = function (minified) {
   }
 
   /**
+   *
+   */
+  function heightUnitChange() {
+    if (clayConfig.getItemById('survey_height_unit').get() === 'imperial') {
+      clayConfig.getItemById('survey_height_cm').hide();
+      clayConfig.getItemById('survey_height_ft').show();
+      clayConfig.getItemById('survey_height_in').show();
+    } else {
+      clayConfig.getItemById('survey_height_cm').show();
+      clayConfig.getItemById('survey_height_ft').hide();
+      clayConfig.getItemById('survey_height_in').hide();
+    }
+  }
+
+  /**
    * This function is called after the page is built (similar to the main function).
    */
   clayConfig.on(clayConfig.EVENTS.AFTER_BUILD, function () {
@@ -323,6 +340,8 @@ module.exports = function (minified) {
     clayConfig.getItemById('daily_end_time').on('change', updateConfigSummary);
     clayConfig.getItemById('break_freq').on('change', updateConfigSummary);
     clayConfig.getItemById('break_len').on('change', updateConfigSummary);
+
+    clayConfig.getItemById('survey_height_unit').on('change', heightUnitChange);
 
     // By default, every component is visible. We have to manually make some sections invisible.
     // We only want to display either the eligibility section or the configuration section.

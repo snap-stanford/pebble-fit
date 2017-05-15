@@ -18,7 +18,7 @@ var SERVER = 'http://pebble-fit.herokuapp.com';
 
 // Local servers (use ifconfig to find out).
 //var SERVER = 'http://10.30.202.74:3000';
-//var SERVER = 'http://10.34.188.76:3000';
+//var SERVER = 'http://10.31.48.129:3000';
 //var SERVER = 'http://10.34.178.45:3000';
 
 // Flag to switch off server communication
@@ -163,7 +163,9 @@ Pebble.addEventListener('webviewclosed', function(e) {
     
     '&age='         + dict[messageKeys.survey_age]                            +
     '&gender='      + dict[messageKeys.survey_gender]                         +
-    '&height='      + encodeURIComponent(dict[messageKeys.survey_height])     +
+    '&heightCM='    + encodeURIComponent(dict[messageKeys.survey_height_cm])  +
+    '&heightFT='    + encodeURIComponent(dict[messageKeys.survey_height_ft])  +
+    '&heightIN='    + encodeURIComponent(dict[messageKeys.survey_height_in])  +
     '&heightU='     + dict[messageKeys.survey_height_unit]                    +
     '&weight='      + encodeURIComponent(dict[messageKeys.survey_weight])     +
     '&weightU='     + dict[messageKeys.survey_weight_unit]                    +
