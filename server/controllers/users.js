@@ -58,13 +58,16 @@ var update = function (query, next) {
     { upsert: true,
       setDefaultsOnInsert: true },
       //setDefaultsOnInsert: false },
-    function (err) { // Create fake ref scores for the this user
+
+    /*function (err) { // Create fake ref scores for the this user
       if (err) return next(err);
 
       // TODO: Insert the fake reference score here.
       //references.save(watch, next);
       references.update(watch, [20,30,40,50,60,50,40,30,20,30,20,30], 10, next);
-    });
+    }*/
+      next
+    );
 
   // Assign user to randomly selected group.
   //TODO:  Assign everyone to real_time_random for now.
@@ -85,35 +88,65 @@ exports.update = update;
  */
 exports.getConfig = function (watch, force, next) {
 
-  var addRefScores = function (watch, newConfig, next) {
-    console.log("in addRefScores, watch=" + watch + "; force=" + force);
-    references.getUser(watch, null, function (err, refP) { // TODO: numBreak not used
+  /**
+   * Add random messages.
+   */
+  var addRandomMessages = function (newConfig, hasReference, groupName, fileName, next) {
+    var count = configs[fileName]['random_messages'];
+    newConfig['random_messages'] = messages.getRandomMessages(count, groupName, hasReference);
+
+    // Record the random messages.
+    messages.save(watch, newConfig['random_messages'], function (err) {
       if (err) return next(err);
 
-      newConfig['score_p_average'] = refP.average.join(','); // Convert to string
-      newConfig['score_p_best'] = refP.best;
-      newConfig['score_p_count'] = refP.count;
+      next(null, newConfig);
+    });
+  }
 
-      references.getAll(null, function (err, refAll) {
+  /**
+   * Add reference scores.
+   */
+  var addRefScores = function (watch, newConfig, groupName, fileName, next) {
+    console.log("in addRefScores, watch=" + watch + "; force=" + force);
+    references.getAll(null, function (err, refAll) {
+      if (err) return next(err);
+
+      newConfig['score_a_average'] = refAll.average.join(','); // Convert to string
+      newConfig['score_a_best'] = refAll.best;
+      newConfig['score_a_count'] = refAll.count;
+
+      references.getUser(watch, null, function (err, refP) { // TODO: numBreak not used
+        var hasReference = false;
         if (err) return next(err);
 
-        newConfig['score_a_average'] = refAll.average.join(','); // Convert to string
-        newConfig['score_a_best'] = refAll.best; 
-        newConfig['score_a_count'] = refAll.count;
+        if (refP) {
+          newConfig['score_p_average'] = refP.average.join(','); // Convert to string
+          newConfig['score_p_best'] = refP.best;
+          newConfig['score_p_count'] = refP.count;
 
-        next(null, newConfig);
+          hasReference = true;
+        } else {
+          // hasReference = false initially.
+        }
+
+        if (groupName.startsWith('real_time')) {
+          addRandomMessages(newConfig, hasReference, groupName, fileName, next);
+        } else {
+          next(null, newConfig);
+        }
       });
     });
   };
 
-  checkUpdate(watch, function (err, groupName, isNewConfig) {
-    //console.log("in checkUpdate callback");
+  // Check whether there is an updated config.
+  checkUpdate(watch, function (err, groupName, fileName, isNewConfig) {
+    //console.log("in checkUpdate callback. fileName=" + fileName);
     if (err) return next(err);
     
     if (force || isNewConfig) { 
     //if (true) { 
       // New update available. Read the new configuration.
-      var newConfig = Object.assign({}, configs[groupName]);
+      var newConfig = Object.assign({}, configs[fileName]);
 
       // Supply normal message with its actual content.
       for (var key in newConfig) {
@@ -125,20 +158,8 @@ exports.getConfig = function (watch, force, next) {
       var newConfig = {};
     }
 
-    // Add random messages if neccessary.
-    if (groupName === 'real_time_random') {
-      var messagesCount = configs['real_time_random']['random_messages'];
-      newConfig['random_messages'] = messages.getRandomMessages(messagesCount);
-
-      // Record the random messages.
-      messages.save(watch, newConfig['random_messages'], function (err) {
-        if (err) return next(err);
-        
-        addRefScores(watch, newConfig, next); 
-      });   
-    } else {
-      addRefScores(watch, newConfig, next); 
-    }
+    // Add reference scores, which in turn determines whether to add random messages.
+    addRefScores(watch, newConfig, groupName, fileName, next); 
   });
 };
 
@@ -163,10 +184,14 @@ exports.getConfig = function (watch, force, next) {
  * Fetch user and group info from the DB and compare their configUpdatedAt timestamp. 
  * Create the new user if not already existed.
  * If group's configuration is newer, there is new config available.
- * Callback: function (err, groupName, isNewConfig)
+ * next: function (err, groupName, filename, isNewConfig)
  */
 var checkUpdate = function (watch, next) {
 
+  /**
+   * Update config record after we find the user.
+   * next: function (err, groupName, filename, isNewConfig)
+   */
   var updateConfig = function (user, force, next) {
     //console.log("user = " + JSON.stringify(user));
     groups.findGroup(user.group, function (err, group) {
@@ -181,7 +206,7 @@ var checkUpdate = function (watch, next) {
           { $set: { 'group':                newGroup,
                     'configUpdatedAt':      (new Date()).toISOString() } }, 
           { },
-          function () { next(null, newGroup, true); }
+          function () { next(null, newGroup, 'real_time_random.json', true); }
         );
       }
 
@@ -191,10 +216,10 @@ var checkUpdate = function (watch, next) {
         User.update({ 'watch': watch }, 
           { $set: { 'configUpdatedAt':      (new Date()).toISOString() } }, 
           { },
-          function () { next(null, group.name, true); }
+          function () { next(null, group.name, group.file, true); }
         );
       } else {
-        next(null, group.name, false);
+        next(null, group.name, group.file, false);
       }
     });
     //groups.getConfigFile(user.group, user.configUpdatedAt, force, function (err, group) {

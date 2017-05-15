@@ -18,12 +18,59 @@ input.forEach(function (m) {
 });
 //console.log(messages);
 
-exports.getRandomMessages = function (count) {
-  var res = []
-  for (var i = 0; i < count; i++) {
-    messageGroup = input[Math.floor(Math.random()*input.length)];
-    res.push(messageGroup[Math.floor(Math.random()*messageGroup.length)]);
+/**
+ * Get a random message from the message pool of the messageGroup. Do not include
+ * outcome messages that comparing to self if no reference scores exist.
+ */
+var getARandomMessage = function(messageGroup, hasReference) {
+  var res;
+
+  if (hasReference) {
+    res = messageGroup[Math.floor(Math.random()*messageGroup.length)];
+  } else {
+    do {
+      res = messageGroup[Math.floor(Math.random()*messageGroup.length)];
+      resSub = res.id.substring(0,2);
+    } while (resSub === 'ou' || resSub === 'ov' || resSub === 'ow');
   }
+
+  return res;
+}
+
+/**
+ * Get some random messages.
+ */
+exports.getRandomMessages = function (count, groupName, hasReference) {
+  var res = []
+  var messageGroup;
+  if (groupName === 'real_time_random') {
+    for (var i = 0; i < count; i++) {
+      messageGroup = input[Math.floor(Math.random()*input.length)];
+      res.push(getARandomMessage(messageGroup, hasReference));
+    }
+  } else {
+    switch (groupName) {
+      case 'real_time_action':
+        messageGroup = actionMessages;
+        break;
+      case 'real_time_health':
+        messageGroup = healthMessages;
+        break;
+      case 'real_time_outcome':
+        messageGroup = outcomeMessages;
+        break;
+      default:
+        console.log("Error: unrecognized group name " + groupName);
+        messageGroup = messages;
+    }
+    for (var i = 0; i < count; i++) {
+      res.push(getARandomMessage(messageGroup, hasReference));
+    }
+  }
+  //for (var i = 0; i < res.length; i++) {
+  //  console.log(res[i].id);
+  //}
+
   return res;
 };
 
