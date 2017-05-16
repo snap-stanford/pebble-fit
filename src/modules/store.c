@@ -36,7 +36,9 @@ void store_write_config_time(time_t time) {
  *   Make sure there is a non-Period Wakup scheduled daily before any Period Wakeup.
  */
 bool store_resend_config_request(time_t t_curr) {
-  //return true; // TODO: forced to get the latest config for the new version.
+  #if DEBUG
+    //return true; // TODO: forced to get the latest config for the new version.
+  #endif
 
   if (!persist_exists(PERSIST_KEY_CONFIG_TIME)) {
     return true;

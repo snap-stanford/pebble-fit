@@ -412,7 +412,12 @@ void launch_handler(bool activate) {
     s_dialog_window = dialog_window_push();
     //dialog_text_layer_update_proc(
     //  "You must provide consent and activate this app from the 'Settings' page on your phone.");
-    dialog_text_layer_update_proc("To join the study, open the MyMobilize app on your phone (found in your Pebble app library), and click on settings to complete the Eligibility and Consent process.");
+    // Use different formats for watches with different shape.
+    #if defined(PBL_ROUND)
+      dialog_text_layer_update_proc("To join the study, open the MyMobilize app on your phone (found in your Pebble app library), and click                    on settings to complete the Eligibility and Consent process.");
+    #else
+      dialog_text_layer_update_proc("To join the study, open the MyMobilize app on your phone (found in your Pebble app library), and click ______________                                       on settings to complete the Eligibility and Consent process.");
+    #endif
 
     prv_wakeup_vibrate(true);
 
