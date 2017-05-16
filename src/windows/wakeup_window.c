@@ -26,15 +26,15 @@ static TextLayer* make_text_layer(GRect bounds, GFont font, GTextAlignment align
 
 /* Procedure for how to update s_top_text_layer. */
 static void top_text_layer_update_proc() {
-  #if DEBUG
+#if DEBUG
   APP_LOG(APP_LOG_LEVEL_ERROR, "enter top_text_layer_update_proc()");
-  #endif
+#endif
   const char *text;
 
   // Display a warning wakeup to notify the user of losing connection for 36 hours.
   if (!connection_service_peek_pebble_app_connection() && 
       store_read_upload_time() < e_launch_time - 36 * SECONDS_PER_HOUR) {
-    text = "Please launch Pebble app on the phone to synch!";
+    text = "Launch Pebble app to synch!";
     snprintf(s_top_text_buf, sizeof(s_top_text_buf), "%s", text);
   } else if (e_launch_reason == LAUNCH_WAKEUP_PERIOD) {
     if (steps_get_pass()) {
@@ -46,6 +46,12 @@ static void top_text_layer_update_proc() {
   } else { 
     // Other launch event, supposed to display nothing in this top TextLayer.
     text = "";
+
+    // Testing 
+      //text = "Launch Pebble app to synch!";
+      //text = "Break accomplished. Nice work!";
+      text = "Opps! Break missed.";
+
     snprintf(s_top_text_buf, sizeof(s_top_text_buf), "%s", text);
 
     // DEBUG BEGIN
@@ -67,9 +73,9 @@ static void top_text_layer_update_proc() {
 
 /* Procedure for how to update s_main_text_layer. */
 static void main_text_layer_update_proc() {
-  #if DEBUG
+#if DEBUG
   APP_LOG(APP_LOG_LEVEL_ERROR, "enter main_text_layer_update_proc()");
-  #endif
+#endif
 
   if (e_launch_reason == LAUNCH_WAKEUP_ALERT) {
   //if (e_launch_reason == LAUNCH_WAKEUP_ALERT || e_launch_reason == LAUNCH_PHONE) { // DEBUG
@@ -81,8 +87,13 @@ static void main_text_layer_update_proc() {
     snprintf(s_main_text_buf, sizeof(s_main_text_buf), message_summary, 
       store_read_curr_score(), store_read_possible_score());
       //store_read_curr_score(), enamel_get_total_break());
-
-    strcat(s_main_text_buf, "\n\n\n"); //TODO: workaround for scrolling issue for some long text.
+      
+    //TODO: workaround for scrolling issue for some long text.
+    #if defined(PBL_ROUND)
+      strcat(s_main_text_buf, "\n\n");
+    #else
+      strcat(s_main_text_buf, "\n");
+    #endif
   }  
 
   text_layer_set_text(s_main_text_layer, s_main_text_buf);
@@ -94,7 +105,7 @@ static void main_text_layer_update_proc() {
   APP_LOG(APP_LOG_LEVEL_ERROR, "main_text_size.w=%d, h=%d", main_text_size.w, main_text_size.h);
   #endif
   main_text_size.w += top_text_size.w;
-  main_text_size.h += top_text_size.h;
+  main_text_size.h += top_text_size.h+5;
   #if DEBUG
   APP_LOG(APP_LOG_LEVEL_ERROR, "Gsize height = %d", main_text_size.h);
   #endif
@@ -282,13 +293,18 @@ static void window_load(Window *window) {
   GSize top_text_size = text_layer_get_content_size(s_top_text_layer);
   GRect main_bounds = GRect(bounds.origin.x, bounds.origin.y + top_text_size.h, 
                             bounds.size.w, bounds.size.h); // TODO: different height value?
-  GEdgeInsets main_text_insets = {.top = 5, .right = 20, .left = 20};
-  s_main_text_font = fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD);
+
+  #if defined(PBL_ROUND)
+    GEdgeInsets main_text_insets = {.top = (top_text_size.h > 0)? 5 : 30, 
+                                    .right = 20, .left = 20};
+  #else
+    GEdgeInsets main_text_insets = {.top = (top_text_size.h > 0)? 5 : 25, .right = 0, .left = 0};
+  #endif
+  s_main_text_font = fonts_get_system_font(FONT_KEY_GOTHIC_28);
   //s_main_text_layer = make_text_layer(main_bounds, s_main_text_font, GTextAlignmentCenter);
   //s_main_text_layer = make_text_layer(grect_inset(main_bounds, GEdgeInsets(15)), 
-  s_main_text_layer = make_text_layer(
-    PBL_IF_ROUND_ELSE(grect_inset(main_bounds, main_text_insets), main_bounds), 
-    s_main_text_font, GTextAlignmentCenter);
+  s_main_text_layer = make_text_layer(grect_inset(main_bounds, main_text_insets), 
+                                      s_main_text_font, GTextAlignmentCenter);
 
   // Add TextLayer as children of the ScrollLayer.
   scroll_layer_add_child(s_scroll_layer, text_layer_get_layer(s_main_text_layer));
