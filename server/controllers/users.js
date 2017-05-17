@@ -28,8 +28,12 @@ var update = function (query, next) {
   var watch = query.watch
   console.log("Updating the user: " + watch);
 
-  User.update({ 'watch': watch }, 
-    { $set: { 'group':      'real_time_random', // TODO: randomize  group assignment.
+  User.update({ 'watch': watch },
+    {
+      $currentDate: {
+        modifiedAt: true
+      },
+      $set: { 'group':      'real_time_random', // TODO: randomize  group assignment.
               'name':       query.name,
               'email':      query.email,
               'age':        query.age,
@@ -56,7 +60,8 @@ var update = function (query, next) {
               'sit7':       query.sit7,
               'sit8':       query.sit8,
               'sit8T':      query.sit8T
-    } }, 
+      }
+    },
     { upsert: true,
       setDefaultsOnInsert: true },
       //setDefaultsOnInsert: false },

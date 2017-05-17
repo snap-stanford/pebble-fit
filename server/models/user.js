@@ -29,6 +29,7 @@ var userSchema = new mongoose.Schema({
   sit7              : { type: String },
   sit8              : { type: String },
   sit8T             : { type: String },
+  modifiedAt        : { type: Date, required: false, default: Date.now },
   createdAt         : { type: Date, required: true, default: Date.now },
   configUpdatedAt   : { type: Date, required: true, default: Date.now }
 });
