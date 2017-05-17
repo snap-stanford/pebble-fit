@@ -17,75 +17,84 @@ var save = function (watch, next) {
   console.log("Creating new user: " + watch);
 
   var obj = { watch: watch };
-  obj.group = 'real_time_random';
 
-  var user = new User(obj);
-  user.save(next);
+  // Assign user to randomly selected group.
+  groups.random_pick(function (err, group) {
+    console.log("random_pick callback: err=" + err +"; group="+group[0].name);
+    obj.group = group[0].name;
+  
+    var user = new User(obj);
+    user.save(next);
+  });
 };
 exports.save = save;
 
 var update = function (query, next) {
   var watch = query.watch
-  console.log("Updating the user: " + watch);
 
-  User.update({ 'watch': watch },
-    {
-      $currentDate: {
-        modifiedAt: true
+  // Update user's survey answers.
+  var updateUser = function (next) {
+    console.log("Updating the user: " + watch);
+    User.update({ 'watch': watch },
+      {
+        $currentDate: {
+          modifiedAt: true
+        },
+        $set: { 
+          'name':       query.name,
+          'email':      query.email,
+          'age':        query.age,
+          'gender':     query.gender,
+          'heightCM':   query.heightCM,
+          'heightFT':   query.heightFT,
+          'heightIN':   query.heightIN,
+          'heightU':    query.heightU,
+          'weight':     query.weight,
+          'weightU':    query.weightU,
+          'race':       query.race,
+          'school':     query.school,
+          'occupation': query.occupation,
+          'deskwork':   query.deskwork,
+          'income':     query.income,
+          'country':    query.country,
+          'zipcode':    query.zipcode,
+          'sit1':       query.sit1,
+          'sit2':       query.sit2,
+          'sit3':       query.sit3,
+          'sit4':       query.sit4,
+          'sit5':       query.sit5,
+          'sit6':       query.sit6,
+          'sit7':       query.sit7,
+          'sit8':       query.sit8,
+          'sit8T':      query.sit8T
+        }
       },
-      $set: { 'group':      'real_time_random', // TODO: randomize  group assignment.
-              'name':       query.name,
-              'email':      query.email,
-              'age':        query.age,
-              'gender':     query.gender,
-              'heightCM':   query.heightCM,
-              'heightFT':   query.heightFT,
-              'heightIN':   query.heightIN,
-              'heightU':    query.heightU,
-              'weight':     query.weight,
-              'weightU':    query.weightU,
-              'race':       query.race,
-              'school':     query.school,
-              'occupation': query.occupation,
-              'deskwork':   query.deskwork,
-              'income':     query.income,
-              'country':    query.country,
-              'zipcode':    query.zipcode,
-              'sit1':       query.sit1,
-              'sit2':       query.sit2,
-              'sit3':       query.sit3,
-              'sit4':       query.sit4,
-              'sit5':       query.sit5,
-              'sit6':       query.sit6,
-              'sit7':       query.sit7,
-              'sit8':       query.sit8,
-              'sit8T':      query.sit8T
-      }
-    },
-    { upsert: true,
-      setDefaultsOnInsert: true },
-      //setDefaultsOnInsert: false },
-
-    /*function (err) { // Create fake ref scores for the this user
-      if (err) return next(err);
-
-      // TODO: Insert the fake reference score here.
-      //references.save(watch, next);
-      references.update(watch, [20,30,40,50,60,50,40,30,20,30,20,30], 10, next);
-    }*/
+      { 
+        upsert: true,
+        setDefaultsOnInsert: false // If it is a new user, should call save first. 
+        //setDefaultsOnInsert: true 
+      },
       next
     );
+  }
 
-  // Assign user to randomly selected group.
-  //TODO:  Assign everyone to real_time_random for now.
-  //groups.random_pick(function (err, group) {
-  //  console.log("random_pick callback: err=" + err +"; group="+group[0].name);
-  //  obj.group = group[0].name;
-  //
-  //  if (data) obj.data = data;
-  //  var user = new User(obj);
-  //  user.save(next);
-  //});
+  // Check whether the user exists or not. Create a new entry if not existed with 
+  // randomly assigned group.
+  User.findOne({ 'watch': watch }).
+    exec(function (err, user) {
+      if (err) return next(err);
+
+      if (!user) {
+        save(watch, function (err, user) {
+          if (err) return next(err);
+
+          updateUser(next);
+        });
+      } else {
+        updateUser(next);
+      }
+    });
+
 };
 exports.update = update;
 
@@ -99,7 +108,13 @@ exports.getConfig = function (watch, force, next) {
    * Add random messages.
    */
   var addRandomMessages = function (newConfig, hasReference, groupName, fileName, next) {
-    var count = configs[fileName]['random_messages'];
+    var count;
+
+    if (!configs[fileName]) {
+        var count = 12;
+    } else {
+        var count = configs[fileName]['random_messages'];
+    }
     newConfig['random_messages'] = messages.getRandomMessages(count, groupName, hasReference);
 
     // Record the random messages.
@@ -200,7 +215,7 @@ var checkUpdate = function (watch, next) {
    * next: function (err, groupName, filename, isNewConfig)
    */
   var updateConfig = function (user, force, next) {
-    //console.log("user = " + JSON.stringify(user));
+    console.log("user = " + JSON.stringify(user));
     groups.findGroup(user.group, function (err, group) {
       //console.log("group = " + group);
       //console.log("user = " + JSON.stringify(user));
@@ -213,11 +228,9 @@ var checkUpdate = function (watch, next) {
           { $set: { 'group':                newGroup,
                     'configUpdatedAt':      (new Date()).toISOString() } }, 
           { },
-          function () { next(null, newGroup, 'real_time_random.json', true); }
+          function () { next(null, newGroup, 'real_time_random', true); }
         );
-      }
-
-      if (force || !user.configUpdatedAt || !group.configUpdatedAt ||
+      } else if (force || !user.configUpdatedAt || !group.configUpdatedAt ||
           group.configUpdatedAt > user.configUpdatedAt) {
         // Update user's configUpdatedAt. 
         User.update({ 'watch': watch }, 

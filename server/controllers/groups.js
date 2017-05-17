@@ -7,18 +7,7 @@ exports.findGroup = function (name, next) {
     exec(function (err, group) {
       if (err) return next(err);
 
-      if (!group.configUpdatedAt) {
-        // Attach a timestamp to the group if not already existed.
-        group.configUpdatedAt = new Date();
-
-        group.save(function (err) {
-          if (err) return next(err); 
-
-          next(null, group);
-        });
-      } else {
-        next(null, group);
-      }
+      next(null, group);
     });
 };
 
