@@ -64,7 +64,7 @@ bool store_resend_config_request(time_t t_curr) {
  * Write the latest timestamp at which we upload steps data.
  */
 void store_write_upload_time(time_t time) {
-  APP_LOG(APP_LOG_LEVEL_ERROR, "Store update time = %u", (unsigned) time);
+  APP_LOG(APP_LOG_LEVEL_ERROR, "Store new upload time = %u", (unsigned) time);
   persist_write_data(PERSIST_KEY_UPLOAD_TIME, &time, sizeof(time_t));
 }
 
@@ -245,10 +245,13 @@ bool store_resend_launchexit_event() {
 }
 
 /**
+ * Deprecated.
+ * Use steps_upload_steps() instead.
  * Return whether we finish resending steps data (only when we do not send any data 
  * to the server. Later in steps_send_latest()  we might resend some data that we are 
  * sending in here.
  */
+/*
 bool store_resend_steps() {
   APP_LOG(APP_LOG_LEVEL_INFO, "DEBUG: in store_resend_steps");
   time_t t_last_upload; 
@@ -256,8 +259,10 @@ bool store_resend_steps() {
   //t_last_upload = (t_last_upload < time_start_of_today());
 
   if (!persist_exists(PERSIST_KEY_UPLOAD_TIME)) {
-    APP_LOG(APP_LOG_LEVEL_INFO, "DEBUG: ABSZ");
-    t_last_upload = time_start_of_today() - 2 * SECONDS_PER_HOUR; // TODO: only send 2 hours history.
+    APP_LOG(APP_LOG_LEVEL_EROR, "Error: upload time should be set when the app is activated.");
+
+    // Upload one day of historical data in this erroneous case.
+    t_last_upload = time_start_of_today() - SECONDS_PER_DAY;
   } else {
     persist_read_data(PERSIST_KEY_UPLOAD_TIME, &t_last_upload, sizeof(time_t));
     if (t_last_upload >= e_launch_time - interval_seconds) {
@@ -271,15 +276,14 @@ bool store_resend_steps() {
   strftime(buf, sizeof(buf), "%d %H:%M", localtime(&t_last_upload));
   APP_LOG(APP_LOG_LEVEL_ERROR, "t_last_upload=%u, %s",  (unsigned)t_last_upload, buf);
   //DEBUG
-  /*
-  if (t_last_upload  < time_start_of_today() - 2 * SECONDS_PER_DAY) {
-    // If last upload time is ealier than 2 days ago, only upload starting at 2 days ago
-    t_last_upload = time_start_of_today() - 2 * SECONDS_PER_DAY;
-  } else if (t_last_upload >= e_launch_time - interval_seconds) {
-    // Data in the lastest 60 minutes will be sent by the normal data upload routine.
-    return true;
-  }
-  */
+  
+  //if (t_last_upload  < time_start_of_today() - 2 * SECONDS_PER_DAY) {
+  //  // If last upload time is ealier than 2 days ago, only upload starting at 2 days ago
+  //  t_last_upload = time_start_of_today() - 2 * SECONDS_PER_DAY;
+  //} else if (t_last_upload >= e_launch_time - interval_seconds) {
+  //  // Data in the lastest 60 minutes will be sent by the normal data upload routine.
+  //  return true;
+  //}
 
   steps_send_in_between(t_last_upload, t_last_upload + interval_seconds, true);
 
@@ -289,6 +293,7 @@ bool store_resend_steps() {
   //return t_last_upload < t_curr - interval_seconds;
   return false;
 }
+*/
 
 /**
  * Reset the break count to 0. This should be performed in the first wakeup daily.

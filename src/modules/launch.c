@@ -2,6 +2,7 @@
 
 // Global variables for the current launch.
 time_t e_launch_time;
+time_t e_step_upload_time = 0;
 int e_launch_reason;
 int e_exit_reason;
 
@@ -508,17 +509,23 @@ void init_callback(DictionaryIterator *iter, void *context) {
     e_server_ready = true;
 
     #if DEBUG
-    APP_LOG(APP_LOG_LEVEL_INFO, "DEBUG: AppKeyServerReceived received");
+      APP_LOG(APP_LOG_LEVEL_INFO, "DEBUG: AppKeyServerReceived received");
     #endif
+
+    // Update the last upload time covered by the previous data upload.
+    if (e_step_upload_time > store_read_upload_time()) {
+      store_write_upload_time(e_step_upload_time);
+    }
   } else if (s_init_stage >= 1) {
     // If this message is NOT coming from the server, it is initiated from the phone alone,
     // so we should not continue uploading more data.
     #if DEBUG
-    APP_LOG(APP_LOG_LEVEL_INFO, "DEBUG: AppKeyServerReceived is missing");
+      APP_LOG(APP_LOG_LEVEL_INFO, "DEBUG: AppKeyServerReceived is missing");
     #endif
     return;
   } else if (e_launch_reason == LAUNCH_WAKEUP_ALERT && !steps_get_pass()) { 
-    // Do not communicate with the phone if we do not display any message on the screen.
+    // Do not communicate with the phone if we do not display any message on the screen,
+    // Since there is no enough time for the communication to complete.
     return;
   }
 

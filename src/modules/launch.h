@@ -12,7 +12,11 @@
 #include "steps.h"
 
 extern time_t e_launch_time;
+
+extern time_t e_step_upload_time;
+
 extern int e_launch_reason;
+
 extern int e_exit_reason;
 
 /* Send launch events to the phone app. */

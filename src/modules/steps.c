@@ -391,19 +391,22 @@ after_while:
   
   // Update the last upload time stored persistently.
   #if DEBUG
-  strftime(buf, sizeof(buf), "%d %H:%M", localtime(&t_last_upload));
-  APP_LOG(APP_LOG_LEVEL_ERROR, "t_last_upload set to=%u, %s",  (unsigned)t_last_upload, buf);
+    strftime(buf, sizeof(buf), "%d %H:%M", localtime(&t_last_upload));
+    APP_LOG(APP_LOG_LEVEL_ERROR, "t_last_upload set to=%u, %s",  (unsigned)t_last_upload, buf);
   #endif
 
   // Update the last upload time on the persistent storage.
   t_last_upload = t_start;
 
   #if DEBUG
-  strftime(buf, sizeof(buf), "%d %H:%M", localtime(&t_last_upload));
-  APP_LOG(APP_LOG_LEVEL_ERROR, "t_last_upload set to=%u, %s",  (unsigned)t_last_upload, buf);
+    strftime(buf, sizeof(buf), "%d %H:%M", localtime(&t_last_upload));
+    APP_LOG(APP_LOG_LEVEL_ERROR, "t_last_upload set to=%u, %s",  (unsigned)t_last_upload, buf);
   #endif
 
-  persist_write_data(PERSIST_KEY_UPLOAD_TIME, &t_last_upload, sizeof(time_t));
+  // TODO: should wait for server ACK before update this value. And use store_write_upload_time()
+  //void store_write_upload_time(time_t time);
+  //persist_write_data(PERSIST_KEY_UPLOAD_TIME, &t_last_upload, sizeof(time_t));
+  e_step_upload_time = t_last_upload;
 
   return false;
 }
