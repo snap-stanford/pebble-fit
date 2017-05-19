@@ -6,7 +6,7 @@
 #define SECONDS_PER_WEEK              (SECONDS_PER_DAY * 7)
 
 /* Hard limit on how long (in seconds) this app will remain on the foreground. */
-#define MAX_DISPLAY_DURATION          (SECONDS_PER_MINUTE * 10)
+#define MAX_DISPLAY_DURATION          (SECONDS_PER_MINUTE * 5)
 /* Number of data items of health history to be obtained in terms of minutes. */
 #define MAX_ENTRIES                   60
 

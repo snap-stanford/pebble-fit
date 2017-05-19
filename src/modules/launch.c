@@ -421,8 +421,7 @@ void launch_handler(bool activate) {
 
     prv_wakeup_vibrate(true);
 
-    // Still buzz user for providing consent. 
-    // FIXME: maybe just a special wakeup at 1 hour frequency?
+    // Still buzz user for providing consent otherwise user might just forget.
     wakeup_schedule_events();
   }
 }
@@ -482,9 +481,6 @@ void update_config(void *context) {
 
   // Reset the current progress to eliminate any inconsistency after config change.
   //store_reset_curr_score(); // TODO: temporary turn off this feature.
-
-  // Force it to timeout.
-  tick_second_subscribe(true);
 }
 
 /* Received message from the Pebble phone app (i.e. PebbleKit JS). 

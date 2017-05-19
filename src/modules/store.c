@@ -48,7 +48,7 @@ bool store_resend_config_request(time_t t_curr) {
 
   persist_read_data(PERSIST_KEY_CONFIG_TIME, &t_last_config_time, sizeof(time_t));
   #if DEBUG
-  APP_LOG(APP_LOG_LEVEL_ERROR, "t_config_time=%u", (unsigned) t_last_config_time);
+    APP_LOG(APP_LOG_LEVEL_ERROR, "t_config_time=%u", (unsigned) t_last_config_time);
   #endif
 
   // TODO

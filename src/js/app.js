@@ -18,7 +18,7 @@ var SERVER = 'http://pebble-fit.herokuapp.com';
 
 // Local servers (use ifconfig to find out).
 //var SERVER = 'http://10.30.202.74:3000';
-//var SERVER = 'http://10.31.48.129:3000';
+//var SERVER = 'http://10.34.187.43:3000';
 //var SERVER = 'http://10.34.178.45:3000';
 
 // Flag to switch off server communication
@@ -104,7 +104,7 @@ Pebble.addEventListener('showConfiguration', function(e) {
  * Override Clay settings Save event. Send information to both the server and the watch.
  */
 Pebble.addEventListener('webviewclosed', function(e) {
-  log.info("in webviewclosed!!!!!!!!!!!!!!!!!!!!!!");
+  log.info("webviewclosed.");
   if (!e) {
     log.debug("Do not obtain Clay settings properly.");
   }
@@ -146,45 +146,45 @@ Pebble.addEventListener('webviewclosed', function(e) {
   // Prepare URL containing info to be sent to the server.
   var date = Math.floor(new Date().getTime() / 1000);
   var url = '/config' + '?date=' + date + 
-    '&watch='       + Pebble.getWatchToken()                                  + 
-    '&timezone='    + dict[messageKeys.time_zone]                             + 
-    '&startTime='   + dict[messageKeys.daily_start_time]                      + 
-    '&endTime='     + dict[messageKeys.daily_end_time]                        + 
-    '&breakFreq='   + dict[messageKeys.break_freq]                            + 
-    '&breakLen='    + dict[messageKeys.break_len]                             + 
-    '&threshold='   + dict[messageKeys.step_threshold]                        + 
-    '&group='       + dict[messageKeys.group]; 
+    '&watch='       + Pebble.getWatchToken()                                    + 
+    '&timezone='    + encodeURIComponent(dict[messageKeys.time_zone])           +
+    '&startTime='   + encodeURIComponent(dict[messageKeys.daily_start_time])    +
+    '&endTime='     + encodeURIComponent(dict[messageKeys.daily_end_time])      +
+    '&breakFreq='   + encodeURIComponent(dict[messageKeys.break_freq])          +
+    '&breakLen='    + encodeURIComponent(dict[messageKeys.break_len])           +
+    '&threshold='   + encodeURIComponent(dict[messageKeys.step_threshold])      +
+    '&group='       + encodeURIComponent(dict[messageKeys.group]); 
 
   if (dict[messageKeys.first_config]) {
     url = url +
-    '&first='       + dict[messageKeys.first_config]                          + 
-    '&name='        + encodeURIComponent(dict[messageKeys.consent_name])      + 
-    '&email='       + encodeURIComponent(dict[messageKeys.consent_email])     +
+    '&first='       + dict[messageKeys.first_config]                            +
+    '&name='        + encodeURIComponent(dict[messageKeys.consent_name])        +
+    '&email='       + encodeURIComponent(dict[messageKeys.consent_email])       +
     
-    '&age='         + dict[messageKeys.survey_age]                            +
-    '&gender='      + dict[messageKeys.survey_gender]                         +
-    '&heightCM='    + encodeURIComponent(dict[messageKeys.survey_height_cm])  +
-    '&heightFT='    + encodeURIComponent(dict[messageKeys.survey_height_ft])  +
-    '&heightIN='    + encodeURIComponent(dict[messageKeys.survey_height_in])  +
-    '&heightU='     + dict[messageKeys.survey_height_unit]                    +
-    '&weight='      + encodeURIComponent(dict[messageKeys.survey_weight])     +
-    '&weightU='     + dict[messageKeys.survey_weight_unit]                    +
-    '&race='        + dict[messageKeys.survey_race]                           +
-    '&school='      + dict[messageKeys.survey_school]                         +
-    '&occupation='  + dict[messageKeys.survey_occupation]                     +
-    '&deskwork='    + dict[messageKeys.survey_deskwork]                       +
-    '&income='      + dict[messageKeys.survey_income]                         +
-    '&country='     + encodeURIComponent(dict[messageKeys.survey_country])    +
-    '&zipcode='     + encodeURIComponent(dict[messageKeys.survey_zipcode])    +
+    '&age='         + encodeURIComponent(dict[messageKeys.survey_age])          +
+    '&gender='      + encodeURIComponent(dict[messageKeys.survey_gender])       +
+    '&heightCM='    + encodeURIComponent(dict[messageKeys.survey_height_cm])    +
+    '&heightFT='    + encodeURIComponent(dict[messageKeys.survey_height_ft])    +
+    '&heightIN='    + encodeURIComponent(dict[messageKeys.survey_height_in])    +
+    '&heightU='     + encodeURIComponent(dict[messageKeys.survey_height_unit])  +
+    '&weight='      + encodeURIComponent(dict[messageKeys.survey_weight])       +
+    '&weightU='     + encodeURIComponent(dict[messageKeys.survey_weight_unit])  +
+    '&race='        + encodeURIComponent(dict[messageKeys.survey_race])         +
+    '&school='      + encodeURIComponent(dict[messageKeys.survey_school])       +
+    '&occupation='  + encodeURIComponent(dict[messageKeys.survey_occupation])   +
+    '&deskwork='    + encodeURIComponent(dict[messageKeys.survey_deskwork])     +
+    '&income='      + encodeURIComponent(dict[messageKeys.survey_income])       +
+    '&country='     + encodeURIComponent(dict[messageKeys.survey_country])      +
+    '&zipcode='     + encodeURIComponent(dict[messageKeys.survey_zipcode])      +
 
-    '&sit1='        + encodeURIComponent(dict[messageKeys.survey_sit_1])      +
-    '&sit2='        + encodeURIComponent(dict[messageKeys.survey_sit_2])      +
-    '&sit3='        + encodeURIComponent(dict[messageKeys.survey_sit_3])      +
-    '&sit4='        + encodeURIComponent(dict[messageKeys.survey_sit_4])      +
-    '&sit5='        + encodeURIComponent(dict[messageKeys.survey_sit_5])      +
-    '&sit6='        + encodeURIComponent(dict[messageKeys.survey_sit_6])      +
-    '&sit7='        + encodeURIComponent(dict[messageKeys.survey_sit_7])      +
-    '&sit8='        + encodeURIComponent(dict[messageKeys.survey_sit_8])      +
+    '&sit1='        + encodeURIComponent(dict[messageKeys.survey_sit_1])        +
+    '&sit2='        + encodeURIComponent(dict[messageKeys.survey_sit_2])        +
+    '&sit3='        + encodeURIComponent(dict[messageKeys.survey_sit_3])        +
+    '&sit4='        + encodeURIComponent(dict[messageKeys.survey_sit_4])        +
+    '&sit5='        + encodeURIComponent(dict[messageKeys.survey_sit_5])        +
+    '&sit6='        + encodeURIComponent(dict[messageKeys.survey_sit_6])        +
+    '&sit7='        + encodeURIComponent(dict[messageKeys.survey_sit_7])        +
+    '&sit8='        + encodeURIComponent(dict[messageKeys.survey_sit_8])        +
     '&sit8T='       + encodeURIComponent(dict[messageKeys.survey_sit_8_text])
     ;
   }
