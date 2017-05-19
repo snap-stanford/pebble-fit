@@ -34,7 +34,7 @@ static void top_text_layer_update_proc() {
   // Display a warning wakeup to notify the user of losing connection for 36 hours.
   if (!connection_service_peek_pebble_app_connection() && 
       store_read_upload_time() < e_launch_time - 36 * SECONDS_PER_HOUR) {
-    text = "Launch Pebble app to synch!";
+    text = "Lost connection to phone";
     snprintf(s_top_text_buf, sizeof(s_top_text_buf), "%s", text);
   } else if (e_launch_reason == LAUNCH_WAKEUP_PERIOD) {
     if (steps_get_pass()) {
@@ -49,8 +49,8 @@ static void top_text_layer_update_proc() {
 
     // Testing 
       //text = "Launch Pebble app to synch!";
-      //text = "Break accomplished. Nice work!";
-      text = "Opps! Break missed.";
+      //text = "Nice work! Break accomplished.";
+      //text = "Opps! Break missed.";
 
     snprintf(s_top_text_buf, sizeof(s_top_text_buf), "%s", text);
 
@@ -83,6 +83,7 @@ static void main_text_layer_update_proc() {
     snprintf(s_main_text_buf, sizeof(s_main_text_buf), "%s", launch_get_random_message());
   } else {
     const char *message_summary = enamel_get_message_summary();
+    //const char *message_summary = "5 of 7                  today";
 
     snprintf(s_main_text_buf, sizeof(s_main_text_buf), message_summary, 
       store_read_curr_score(), store_read_possible_score());
@@ -300,7 +301,7 @@ static void window_load(Window *window) {
   #else
     GEdgeInsets main_text_insets = {.top = (top_text_size.h > 0)? 5 : 25, .right = 0, .left = 0};
   #endif
-  s_main_text_font = fonts_get_system_font(FONT_KEY_GOTHIC_28);
+  s_main_text_font = fonts_get_system_font(FONT_KEY_GOTHIC_24);
   //s_main_text_layer = make_text_layer(main_bounds, s_main_text_font, GTextAlignmentCenter);
   //s_main_text_layer = make_text_layer(grect_inset(main_bounds, GEdgeInsets(15)), 
   s_main_text_layer = make_text_layer(grect_inset(main_bounds, main_text_insets), 
