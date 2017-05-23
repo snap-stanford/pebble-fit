@@ -9,7 +9,11 @@ exports.save = function (data, start_time, watch_token, next) {
   var end = moment.unix(start_time).add(data.length - 1, 'minutes');
   var start = moment.unix(start_time);
 
-  if (!data[data.length-1] || isNaN(parseInt(data[data.length-1]))) {
+  if (data.length == 1 && isNaN(parseInt(data[0]))) {
+    // Re-request one minute piror to start.
+    stepUploadTime = end.add(-1, 'minutes').unix();
+  } else if (!data[data.length-1] || isNaN(parseInt(data[data.length-1]))) {
+    // Re-request the same start time.
     stepUploadTime = end.unix();
   } else {
     stepUploadTime = end.add(1, 'minutes').unix();
