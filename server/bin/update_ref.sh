@@ -11,8 +11,8 @@ MONGODB_URI="$(cat ${DIR}/db_uri.txt)"
 PASSWD_FILE=${DIR}/password.txt
 
 if [[ $# -ne 0 ]]; then
-    echo "Usage: ./update_ref.sh"
-    exit 1
+  echo "Usage: ./update_ref.sh"
+  exit 1
 fi
 
 # Choose the correct command.
@@ -85,7 +85,7 @@ do
         #${cmd} pebble-fit --eval "${mongo_cmd}"
         
         # Leave -p as the last argument will force mongo to prompt for a password
-        # Here we supply password stored in a local file defined by the variable $PASSWD
+        # Here we supply password stored in a local file defined by the variable $PASSWD_FILE
         ${cmd} ${MONGODB_URI} --eval "${mongo_cmd}" -u admin -p < ${PASSWD_FILE}
     fi
 done < "${BEST_FILE}"
@@ -138,7 +138,7 @@ do
         #${cmd} pebble-fit --eval "${mongo_cmd}"
         
         # Leave -p as the last argument will force mongo to prompt for a password
-        # Here we supply password stored in a local file defined by the variable $PASSWD
+        # Here we supply password stored in a local file defined by the variable $PASSWD_FILE
         ${cmd} ${MONGODB_URI} --eval "${mongo_cmd}" -u admin -p < ${PASSWD_FILE}
     fi
 done < "${HOUR_FILE}"
