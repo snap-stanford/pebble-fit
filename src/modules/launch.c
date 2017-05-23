@@ -449,7 +449,7 @@ void update_config(void *context) {
       if (enamel_get_first_config() != 1) APP_LOG(APP_LOG_LEVEL_ERROR, "first_config must be 1");
  
       // Also upload the historical data up to 7 days before.
-      store_write_upload_time(e_launch_time - 7 * SECONDS_PER_DAY);
+      //store_write_upload_time(e_launch_time - 7 * SECONDS_PER_DAY);
 
       launch_handler(true); // Change from dialog_window to wakeup_window.
     } else {
@@ -513,9 +513,9 @@ void init_callback(DictionaryIterator *iter, void *context) {
     #endif
 
     // Update the last upload time covered by the previous data upload.
-    if (e_step_upload_time > store_read_upload_time()) {
-      store_write_upload_time(e_step_upload_time);
-    }
+    //if (e_step_upload_time > store_read_upload_time()) {
+    //  store_write_upload_time(e_step_upload_time);
+    //}
   } else if (s_init_stage >= 1) {
     // If this message is NOT coming from the server, it is initiated from the phone alone,
     // so we should not continue uploading more data.
@@ -527,6 +527,13 @@ void init_callback(DictionaryIterator *iter, void *context) {
     // Do not communicate with the phone if we do not display any message on the screen,
     // Since there is no enough time for the communication to complete.
     return;
+  }
+
+  APP_LOG(APP_LOG_LEVEL_ERROR, "ABSZ!");
+  Tuple* tuple = dict_find(iter, MESSAGE_KEY_step_upload_time);
+  if (tuple) {
+    APP_LOG(APP_LOG_LEVEL_ERROR, "absz=%u", (unsigned) tuple->value->int32);
+    store_write_upload_time(tuple->value->int32);
   }
 
   if (!enamel_get_activate()) return; // Will not response to PebbleKit JS if inactivated.

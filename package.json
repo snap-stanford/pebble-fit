@@ -1,5 +1,5 @@
 {
-  "version": "1.22.0",
+  "version": "1.23.0",
   "author": "Stanford University",
   "dependencies": {
     "enamel": "^1.2.4",
@@ -91,6 +91,7 @@
       "score_a_count": 3018,
       "config_summary": 3019,
       "time_zone": 3020,
+      "step_upload_time": 3021,
       "message_summary": 4001,
       "message_pass": 4002,
       "message_fail": 4003,

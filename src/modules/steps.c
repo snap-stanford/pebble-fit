@@ -189,7 +189,9 @@ void steps_update() {
     // Convert to human readable time for the display purpose.
     //APP_LOG(APP_LOG_LEVEL_ERROR, "enamel_get_sleep_minutes=%d", enamel_get_sleep_minutes());
     if (s_pass) {
+#if DEBUG
       APP_LOG(APP_LOG_LEVEL_ERROR, "pass");
+#endif
       prv_report_steps(right);
       
       // Only increment score if this is a period-wakeup.
@@ -243,9 +245,26 @@ bool steps_upload_steps() {
   int fill_index = 0;
   time_t t_start, t_end;
   time_t t_final = e_launch_time - SECONDS_PER_MINUTE; // Exclude the current minute.
-  time_t t_last_upload = store_read_upload_time();
   //time_t break_freq_seconds = enamel_get_break_freq() * SECONDS_PER_MINUTE;
   time_t max_entries_seconds = MAX_ENTRIES * SECONDS_PER_MINUTE;
+
+  // If server response with the last recorded time and it is within the last 7 days, use
+  // this, otherwise, fetch data up to 7 days prior to the current launch time.
+  time_t t_last_upload = store_read_upload_time();
+  time_t server_recorded_time = enamel_get_step_upload_time();
+  if (server_recorded_time > t_last_upload) {
+    t_last_upload = server_recorded_time;
+  }
+  APP_LOG(APP_LOG_LEVEL_ERROR, "server_recorded_time = %u", (unsigned) server_recorded_time);
+  //time_t t_last_upload = store_read_upload_time(); // deprecated
+  //time_t t_last_upload = (server_recorded_time == 0 || 
+  //                        server_recorded_time < e_launch_time - 7 * SECONDS_PER_DAY)?
+  //                       e_launch_time - 7 * SECONDS_PER_DAY : server_recorded_time;
+  //time_t t_last_upload = store_read_upload_time();
+  APP_LOG(APP_LOG_LEVEL_ERROR, "t_last_upload = %u", (unsigned) t_last_upload);
+  if (t_last_upload < e_launch_time - 7 * SECONDS_PER_DAY) {
+    t_last_upload = e_launch_time - 7 * SECONDS_PER_DAY;
+  }
 
 char buf[32]; // DEBUG
 
@@ -286,13 +305,13 @@ char buf[32]; // DEBUG
     char bs[32], be[32];
     strftime(bs, sizeof(bs), "%d/%H:%M", localtime(&t_start));
     strftime(be, sizeof(be), "%d/%H:%M", localtime(&t_end));
-    APP_LOG(APP_LOG_LEVEL_INFO, "DEBUG: before loading data between %s-%s", bs, be);
+    APP_LOG(APP_LOG_LEVEL_INFO, "DEBUG: before loading data, %s-%s", bs, be);
     #endif
   prv_load_data(&t_start, &t_end);
     #if DEBUG
     strftime(bs, sizeof(bs), "%d/%H:%M", localtime(&t_start));
     strftime(be, sizeof(be), "%d/%H:%M", localtime(&t_end));
-    APP_LOG(APP_LOG_LEVEL_INFO, "DEBUG: before loading data between %s-%s", bs, be);
+    APP_LOG(APP_LOG_LEVEL_INFO, "DEBUG: after loading data, %s-%s", bs, be);
     #endif
   s_start = t_start;
 

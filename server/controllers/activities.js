@@ -1,26 +1,48 @@
 var Activity = require('../models/activity');
+var users = require('./users');
 var moment = require('moment');
 var async = require('async');
 
 exports.save = function (data, start_time, watch_token, next) {
-  var end = moment.unix(start_time).add(data.length - 1, 'minutes').toDate();
+  var stepUploadTime;
+
+  var end = moment.unix(start_time).add(data.length - 1, 'minutes');
   var start = moment.unix(start_time);
 
-  // Remove data we already have for this
-  Activity.remove({time: {$lte: end, $gte: start}, watch: watch_token}, function (err) {
-    if (err) return next(err);
+  if (!data[data.length-1] || isNaN(parseInt(data[data.length-1]))) {
+    stepUploadTime = end.unix();
+  } else {
+    stepUploadTime = end.add(1, 'minutes').unix();
+  }
 
-    async.forEachOf(data, function (steps, index, cb) {
-      var data_point_time = moment.unix(start_time).add(index, 'minutes').toDate();
+  end = end.toDate();
 
-      steps = parseInt(steps, 10);
-      if (isNaN(steps)) { steps = 0; }
+  // Update user's step_upload_time to the end timestampe.
+  users.setStepUploadedAt(
+    watch_token,
+    stepUploadTime,
+    function(err) {
+      if (err) return next(err);
 
-      var data_point = new Activity({time: data_point_time, steps: steps, watch: watch_token});
+      // Remove data we already have for this
+      Activity.remove({time: {$lte: end, $gte: start}, watch: watch_token}, function (err) {
+        if (err) return next(err);
 
-      data_point.save(cb);
-    }, next);
-  })
+        async.forEachOf(data, function (steps, index, cb) {
+          var data_point_time = moment.unix(start_time).add(index, 'minutes').toDate();
+
+          steps = parseInt(steps, 10);
+          if (isNaN(steps)) { steps = 0; }
+
+          var data_point = new Activity({time: data_point_time, steps: steps, watch: watch_token});
+
+          data_point.save(cb);
+        }, function (err) {
+          next(err, stepUploadTime);
+        });
+      });
+    }
+  );
 }
 
 exports.get_last_recorded_time = function (watch_token, next) {

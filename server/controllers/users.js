@@ -302,5 +302,21 @@ var fetchConfig = function (req, res, file, next) {
   });
 }
 
+exports.setStepUploadedAt = function (watch, time, next) {
+  User.update(
+    { 'watch': watch },
+    {
+      $set: { 'stepUploadedAt': time }
+    },
+    { },
+    next
+  );
+};
 
+exports.getStepUploadedAt = function (watch, next) {
+  User.findOne({ 'watch': watch }).
+    select('stepUploadedAt').
+    lean().
+    exec(next);
+};
 

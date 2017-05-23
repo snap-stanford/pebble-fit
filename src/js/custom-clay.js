@@ -61,6 +61,7 @@ module.exports = function (minified) {
     'message_summary', 'message_pass', 'message_fail', 
     'total_break', 'group', 'score_p_average', 'score_p_best', 'score_p_count',
     'score_a_average', 'score_a_best', 'score_a_count', 'time_zone',
+    'step_upload_time',
     'random_message_0', 'random_message_1', 'random_message_2',  'random_message_3', 
     'random_message_4', 'random_message_5', 'random_message_6',  'random_message_7', 
     'random_message_8', 'random_message_9', 'random_message_10', 'random_message_11',
@@ -362,7 +363,7 @@ module.exports = function (minified) {
       updateConfigSummary.call();
 
       clayConfig.getItemById('watchtoken').set(clayConfig.meta.watchToken);
-      clayConfig.getItemById('version').set('v1.22.0');
+      clayConfig.getItemById('version').set('v1.23.0');
     } else {
       hideConfigSection();
     }

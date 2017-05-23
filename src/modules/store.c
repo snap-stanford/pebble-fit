@@ -61,10 +61,12 @@ bool store_resend_config_request(time_t t_curr) {
 }
 
 /**
+ * Deprecated.
  * Write the latest timestamp at which we upload steps data.
  */
 void store_write_upload_time(time_t time) {
   APP_LOG(APP_LOG_LEVEL_ERROR, "Store new upload time = %u", (unsigned) time);
+
   persist_write_data(PERSIST_KEY_UPLOAD_TIME, &time, sizeof(time_t));
 }
 

@@ -19,7 +19,7 @@ var SERVER = 'http://pebble-fit.herokuapp.com';
 // Local servers (use ifconfig to find out).
 //var SERVER = 'http://10.30.202.74:3000';
 //var SERVER = 'http://10.34.187.43:3000';
-//var SERVER = 'http://10.35.114.105:3000';
+//var SERVER = 'http://10.35.40.70:3000';
 
 // Flag to switch off server communication
 var USE_OFFLINE = true;
@@ -51,7 +51,7 @@ Pebble.addEventListener('appmessage', function (dict) {
   // Data related to date/timestamp.
   if (dict.payload.AppKeyDate !== undefined) {
     date = dict.payload.AppKeyDate;
-    log.debug('Date: ' + date + "; " + new Date(date*1000));
+    //log.debug('Date: ' + date + "; " + new Date(date*1000));
   }
 
   // Data related to step count.
@@ -62,18 +62,63 @@ Pebble.addEventListener('appmessage', function (dict) {
       //  var data = string.split(',').map(function(num) {return parseInt(num)});
       //}
 
-      //log.debug('Data: ' + data);
-      //log.debug('Data length: ' + data.length);
       var url = '/steps' +
       '?date=' + date +
       '&data=' + string +
       '&watch=' + Pebble.getWatchToken();
 
-      sendToServer(url, receiveServerConfigACK);
+      // Send step data to the server and expect server response with next timestamp
+      // it expects.
+      //sendToServer(url, receiveServerConfigACK); // Deprecated.
+      sendToServer(url, function (err, status, response, responseText) {
+        if (err || status !== 200) {
+          log.info(err || status);
+        } else {
+          var settings = JSON.parse(response);
+
+          if (settings.step_upload_time === undefined) {
+            settings.step_upload_time = 0;
+          } else {
+            settings.step_upload_time = parseInt(settings.step_upload_time, 10);
+          }
+
+          //console.log("---------------------------------------");
+          //console.log(JSON.stringify(settings));
+          //console.log("---------------------------------------");
+
+          // Flag for Enamel to save the settings and flag for data uploading to proceed.
+          //settings.first_config = 0;
+          settings.AppKeyServerReceived = 1;
+
+          Pebble.sendAppMessage(settings, function(e) {
+            console.log('Update upload time to Pebble (' + JSON.stringify(settings) + ').');
+          }, function(e) {
+            console.log('Failed to send upload time to Pebble! data = ' + JSON.stringify(e));
+          });
+            /*
+          // Send settings values to watch side even if cannot logging to the server.
+          //saveConfigToWatch({});
+          Pebble.sendAppMessage(dict, function(e) {
+            console.log('Sent config data to Pebble');
+          }, function(e) {
+            console.log('Failed to send config data!');
+            console.log(JSON.stringify(e));
+          });
+        //} else {
+          // Do not expect a response from the server?
+          // TODO: server might always send a response? Or omit that for non-new user?
+          if (response) {
+            saveConfigToWatch(parseServerConfig(JSON.parse(response)));
+          } else {
+            saveConfigToWatch({});
+          }
+          */
+        }
+      });
     } else {
-      console.log('Warning: should not reach here since the array data format is deprecated!');
-      var data = load_data_array();
-      sendStepData(data, date);
+      console.log('Error: should not reach here since the array data format is deprecated!');
+      //var data = load_data_array();
+      //sendStepData(data, date);
     }
   }
 
@@ -117,6 +162,7 @@ Pebble.addEventListener('webviewclosed', function(e) {
   var dict = clay.getSettings(e.response);
 
   // Append user-defined settings and then send to the watch.
+  // Do not want ot modify those settings that can only be set by the server.
   function saveConfigToWatch(settings) {
     settings.first_config       = dict[messageKeys.first_config];
     settings.is_consent         = dict[messageKeys.is_consent];
@@ -190,18 +236,18 @@ Pebble.addEventListener('webviewclosed', function(e) {
   }
 
   // Send to the server first and then to the watch.
-  sendToServer(url, function receiveServerACK (err, status, response, responseText) {
+  sendToServer(url, function (err, status, response, responseText) {
     if (err || status !== 200) {
       log.info(err || status);
 
       // Send settings values to watch side even if cannot logging to the server.
       //saveConfigToWatch({});
-  	  Pebble.sendAppMessage(dict, function(e) {
-  	    console.log('Sent config data to Pebble');
-  	  }, function(e) {
-  	    console.log('Failed to send config data!');
-  	    console.log(JSON.stringify(e));
-  	  });
+      Pebble.sendAppMessage(dict, function(e) {
+        console.log('Sent config data to Pebble');
+      }, function(e) {
+        console.log('Failed to send config data!');
+        console.log(JSON.stringify(e));
+      });
     } else {
       // Do not expect a response from the server?
       // TODO: server might always send a response? Or omit that for non-new user?
@@ -231,10 +277,14 @@ function receiveServerConfigACK (err, status, response, responseText) {
     // Parse the new configuration from the server, and then send to the watch.
     var settings = JSON.parse(response);
 
-    settings = parseServerConfig(settings);
-
-    // Essential to update settings on the watch side.
-    settings.first_config = 0;
+    if (parseServerConfig(settings)) {
+      // Essential to update settings on the watch side. Not need if there is only
+      // 'step_upload_time' in the settings from the server.
+      settings.first_config = 0;
+    }
+    console.log("AAAAAAAAAAAAAAAAAAAAAAAA");
+    console.log(JSON.stringify(settings));
+    console.log("AAAAAAAAAAAAAAAAAAAAAAAA");
 
     Pebble.sendAppMessage(settings, function(e) {
       console.log('Sent config data to Pebble (' + JSON.stringify(settings) + ').');
@@ -250,13 +300,18 @@ function receiveServerConfigACK (err, status, response, responseText) {
  * @param {Object} settings The object containing the Clay configuration settings.
  */
 function parseServerConfig (settings) {
+  // Whether the settings contain more than just step_upload_time.
+  var res = false;
+
+  if (settings.step_upload_time === undefined) {
+    settings.step_upload_time = 0;
+  } else {
+    settings.step_upload_time = parseInt(settings.step_upload_time, 10);
+  }
+
   for (var key in settings) {
     if (key === 'messages') {
-      log.info("SHOULD NOT HAVE KEY messages!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-      log.info(JSON.stringify(settings[key]));
-      for (var m in settings[key]) {
-        log.info(m + ":" + settings[key][m]);
-      }
+      log.info("SHOULD NOT HAVE KEY messages!");
     } else if (key === 'random_messages') {
       log.info(JSON.stringify(settings[key]));
       //for (var id in settings[key]) {
@@ -270,15 +325,19 @@ function parseServerConfig (settings) {
         clay.setSettings(messageID, messageContent);
       }
       delete settings[key];
+      res = true;
     } else {
       log.info(key + ":" + settings[key]);
       clay.setSettings(key, settings[key]);
+      if (key !== 'step_upload_time') {
+        res = true;
+      }
     }
   }
   
   settings.AppKeyServerReceived = 1;
 
-  return settings;
+  return res;
 }
 
 /**
@@ -317,6 +376,7 @@ function sendToServer (route, callback) {
   }
 }
 
+/*
 function sendStepData(data, date) {
   log.debug('Uploading steps data...');
   // Convert to string
@@ -331,6 +391,7 @@ function sendStepData(data, date) {
 
   sendToServer(url, receiveServerConfigACK);
 }
+*/
 
 function sendLaunchExitData(configRequest, msgID, launchTime, exitTime, scoreDiff, score,
                             launchReason, exitReason, date) {

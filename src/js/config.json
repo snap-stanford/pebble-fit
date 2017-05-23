@@ -746,6 +746,14 @@
       ]
     },
     {
+      "type": "slider",
+      "id": "step_upload_time",
+      "messageKey": "step_upload_time",
+      "defaultvalue": 0,
+      "min": 0,
+      "step": 1
+    },
+    {
       "type": "input",
       "id": "time_zone",
       "messageKey": "time_zone",
