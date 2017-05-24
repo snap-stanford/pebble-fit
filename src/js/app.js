@@ -19,7 +19,7 @@ var SERVER = 'http://pebble-fit.herokuapp.com';
 // Local servers (use ifconfig to find out).
 //var SERVER = 'http://10.30.202.74:3000';
 //var SERVER = 'http://10.34.187.43:3000';
-//var SERVER = 'http://10.34.185.112:3000';
+var SERVER = 'http://10.34.22.156:3000';
 
 // Flag to switch off server communication
 var USE_OFFLINE = true;
@@ -171,6 +171,7 @@ Pebble.addEventListener('webviewclosed', function(e) {
   // Append user-defined settings and then send to the watch.
   // Do not want ot modify those settings that can only be set by the server.
   function saveConfigToWatch(settings) {
+      console.log(JSON.stringify(settings));
     settings.first_config       = dict[messageKeys.first_config];
     settings.is_consent         = dict[messageKeys.is_consent];
     settings.activate           = dict[messageKeys.activate];
@@ -181,8 +182,12 @@ Pebble.addEventListener('webviewclosed', function(e) {
     
     // Uncomment these lines if want to change break_freq/break_len on watch side for
     // debugging purpose.
-    //settings.break_freq         = dict[messageKeys.break_freq];
-    //settings.break_len          = dict[messageKeys.break_len];
+    settings.break_freq         = dict[messageKeys.break_freq];
+    settings.break_len          = dict[messageKeys.break_len];
+
+      console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+      console.log(JSON.stringify(settings));
+      console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
     
     Pebble.sendAppMessage(settings, function(e) {
       console.log('Sent config data to Pebble (' + JSON.stringify(settings) + ').');
@@ -262,7 +267,9 @@ Pebble.addEventListener('webviewclosed', function(e) {
       // Do not expect a response from the server?
       // TODO: server might always send a response? Or omit that for non-new user?
       if (response) {
-        saveConfigToWatch(parseServerConfig(JSON.parse(response)));
+        var s = JSON.parse(response);
+        parseServerConfig(s);
+        saveConfigToWatch(s);
       } else {
         saveConfigToWatch({});
       }
@@ -292,9 +299,6 @@ function receiveServerConfigACK (err, status, response, responseText) {
       // 'step_upload_time' in the settings from the server.
       settings.first_config = 0;
     }
-    console.log("AAAAAAAAAAAAAAAAAAAAAAAA");
-    console.log(JSON.stringify(settings));
-    console.log("AAAAAAAAAAAAAAAAAAAAAAAA");
 
     Pebble.sendAppMessage(settings, function(e) {
       console.log('Sent config data to Pebble (' + JSON.stringify(settings) + ').');
@@ -308,14 +312,12 @@ function receiveServerConfigACK (err, status, response, responseText) {
 /**
  * Parse the settings associated with Clay config.json and then send them to the watch.
  * @param {Object} settings The object containing the Clay configuration settings.
+ * @return Boolean whether the settings contain more than just step_upload_time.
  */
 function parseServerConfig (settings) {
-  // Whether the settings contain more than just step_upload_time.
   var res = false;
 
-  if (settings.step_upload_time === undefined) {
-    settings.step_upload_time = 0;
-  } else {
+  if (settings.step_upload_time !== undefined) {
     settings.step_upload_time = parseInt(settings.step_upload_time, 10);
   }
 
@@ -385,23 +387,6 @@ function sendToServer (route, callback) {
     callback();
   }
 }
-
-/*
-function sendStepData(data, date) {
-  log.debug('Uploading steps data...');
-  // Convert to string
-  var str = '' + data[0];
-  for (var i = 1; i < data.length; i++) {
-    str += ',' + data[i];
-  }
-  var url = '/steps' +
-  '?date=' + date +
-  '&data=' + str +
-  '&watch=' + Pebble.getWatchToken();
-
-  sendToServer(url, receiveServerConfigACK);
-}
-*/
 
 function sendLaunchExitData(configRequest, msgID, launchTime, exitTime, scoreDiff, score,
                             launchReason, exitReason, date) {
