@@ -19,6 +19,10 @@ extern int e_launch_reason;
 
 extern int e_exit_reason;
 
+extern bool e_waiting_launchexit_ack;
+
+extern bool e_force_to_save;
+
 /* Send launch events to the phone app. */
 void launch_send_launch_notification();
 
@@ -37,6 +41,8 @@ const char * launch_get_random_message_id();
 uint8_t launch_get_score_diff();
 
 void launch_wakeup_handler(WakeupId wakeup_id, int32_t wakeup_cookie);
+
+void launch_wakeup_handler_wrapper(WakeupId wakeup_id, int32_t wakeup_cookie);
 
 void launch_handler(bool activate);
 

@@ -49,7 +49,9 @@ static void prv_load_data(time_t *start, time_t *end) {
   #endif
 
   if (result != HealthServiceAccessibilityMaskAvailable) {
+  #if DEBUG
     APP_LOG(APP_LOG_LEVEL_ERROR, "No steps data available from %u to %u!", (unsigned) *start, (unsigned) *end);
+  #endif
     return;
   }
 
@@ -61,7 +63,7 @@ static void prv_load_data(time_t *start, time_t *end) {
 
   s_num_records = health_service_get_minute_history(minute_data, MAX_ENTRIES, start, end);
   #if DEBUG
-  APP_LOG(APP_LOG_LEVEL_ERROR, "s_num_records = %d!", s_num_records);
+    APP_LOG(APP_LOG_LEVEL_ERROR, "s_num_records = %d!", s_num_records);
   #endif
 
   for (int i = 0; i < s_num_records; i++) {
@@ -82,9 +84,11 @@ static void prv_load_data(time_t *start, time_t *end) {
 /* TODO: debugging function to report the nonsed periods. */
 void prv_report_steps(int i) {
   //for (int j = i-enamel_get_break_len()-enamel_get_sliding_window()+1; j<=i; j++) {
+#if DEBUG
   for (int j = i-enamel_get_break_len()+1; j<=i; j++) {
     APP_LOG(APP_LOG_LEVEL_INFO, "prv_report_steps: j = %d, steps = %d", j, s_step_records[j]);
   }
+#endif
 }
 
 /** 
@@ -369,7 +373,7 @@ char buf[32]; // DEBUG
       #if DEBUG
       strftime(bs, sizeof(bs), "%y-%m-%d/%H:%M", localtime(&t_start));
       strftime(be, sizeof(be), "%y-%m-%d/%H:%M", localtime(&t_end));
-      APP_LOG(APP_LOG_LEVEL_INFO, "DEBUG: before loading data between %s-%s", bs, be);
+      APP_LOG(APP_LOG_LEVEL_INFO, "DEBUG: after loading data between %s-%s", bs, be);
       #endif
 
     // This will happen if data is unavailable at t_start.

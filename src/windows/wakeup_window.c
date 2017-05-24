@@ -146,9 +146,9 @@ static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
   //store_write_upload_time(e_launch_time - 2 * SECONDS_PER_DAY);
 
   // DEBUG: reset launchexit count.
-  int temp = 0;
-  persist_write_data(PERSIST_KEY_LAUNCHEXIT_COUNT, &temp, 1);
-  store_write_upload_time(e_launch_time - 3*SECONDS_PER_HOUR);
+  //int temp = 0;
+  //persist_write_data(PERSIST_KEY_LAUNCHEXIT_COUNT, &temp, 1);
+  //store_write_upload_time(e_launch_time - 3*SECONDS_PER_HOUR);
   
   // DEBUG: random messages.
   launch_set_random_message();
@@ -301,7 +301,7 @@ static void window_load(Window *window) {
   #else
     GEdgeInsets main_text_insets = {.top = (top_text_size.h > 0)? 5 : 25, .right = 0, .left = 0};
   #endif
-  s_main_text_font = fonts_get_system_font(FONT_KEY_GOTHIC_24);
+  s_main_text_font = fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD);
   //s_main_text_layer = make_text_layer(main_bounds, s_main_text_font, GTextAlignmentCenter);
   //s_main_text_layer = make_text_layer(grect_inset(main_bounds, GEdgeInsets(15)), 
   s_main_text_layer = make_text_layer(grect_inset(main_bounds, main_text_insets), 

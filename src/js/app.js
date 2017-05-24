@@ -19,7 +19,7 @@ var SERVER = 'http://pebble-fit.herokuapp.com';
 // Local servers (use ifconfig to find out).
 //var SERVER = 'http://10.30.202.74:3000';
 //var SERVER = 'http://10.34.187.43:3000';
-//var SERVER = 'http://10.35.40.70:3000';
+//var SERVER = 'http://10.34.185.112:3000';
 
 // Flag to switch off server communication
 var USE_OFFLINE = true;
@@ -58,9 +58,16 @@ Pebble.addEventListener('appmessage', function (dict) {
   if (dict.payload.AppKeyStepsData !== undefined) {
     if (dict.payload.AppKeyStringData !== undefined) {
       var string = dict.payload.AppKeyStringData;
-      //if (string !== undefined) {
-      //  var data = string.split(',').map(function(num) {return parseInt(num)});
-      //}
+
+      // Do not send the data to the server if it is empty?
+      if (!string) {
+        console.log("=================================");
+        // TODO: right now server handle this case by re-request data one minute earlier.
+          // Should we just not sending the data to server in this case and wait for next time?
+        console.log("Data is empty. ");
+        console.log("=================================");
+        return;
+      }
 
       var url = '/steps' +
       '?date=' + date +
@@ -171,6 +178,9 @@ Pebble.addEventListener('webviewclosed', function(e) {
     settings.daily_start_time   = dict[messageKeys.daily_start_time];
     settings.daily_end_time     = dict[messageKeys.daily_end_time];
     settings.total_break        = dict[messageKeys.total_break];
+    
+    // Uncomment these lines if want to change break_freq/break_len on watch side for
+    // debugging purpose.
     //settings.break_freq         = dict[messageKeys.break_freq];
     //settings.break_len          = dict[messageKeys.break_len];
     

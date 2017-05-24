@@ -20,7 +20,12 @@ static void init(void) {
   e_launch_time = time(NULL); // FIXME: rounded to minute?
 
   e_js_ready = false;
+
   e_server_ready = false;
+
+  e_waiting_launchexit_ack = false;
+
+  e_force_to_save = false;
 
   //health_subscribe();
   enamel_init();
@@ -41,7 +46,7 @@ static void init(void) {
   events_app_message_open(); // Call pebble-events app_message_open function
 
   // subscribe to wakeup service to get wakeup events while app is running
-  wakeup_service_subscribe(launch_wakeup_handler);
+  wakeup_service_subscribe(launch_wakeup_handler_wrapper);
 
   // Handle this launch event.
   launch_handler(enamel_get_activate());
@@ -51,7 +56,7 @@ static void deinit(void) {
   // FIXME: if app remains active, steps data keep sending to the server?
   s_exit_time = time(NULL);
   if (enamel_get_activate()) {
-    if (e_server_ready) {
+    if (e_server_ready && !e_force_to_save) {
       // Send the exit record (the launch record has already been uploaded).
       // TODO: there is some chance (might be rare) the connection is down suddenly.
       // Maybe we should always store this info for safe (server receive duplicate packets.

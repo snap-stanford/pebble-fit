@@ -5,6 +5,8 @@ time_t e_launch_time;
 time_t e_step_upload_time = 0;
 int e_launch_reason;
 int e_exit_reason;
+bool e_waiting_launchexit_ack;
+bool e_force_to_save;
 
 // Display windows.
 static Window *s_dialog_window = NULL; 
@@ -338,6 +340,16 @@ void launch_wakeup_handler(WakeupId wakeup_id, int32_t wakeup_cookie) {
   //}
 }
 
+/**
+ * Wrapper for launch_wakeup_handler. 
+ * Force to save the current launch event to persistent storage.
+ */
+void launch_wakeup_handler_wrapper(WakeupId wakeup_id, int32_t wakeup_cookie) {
+  e_force_to_save = true;
+
+  launch_wakeup_handler(wakeup_id, wakeup_cookie);
+}
+
 /** 
  * Handle launch events. 
  * Push a window depends on whether this App is activated or not.
@@ -509,7 +521,7 @@ void init_callback(DictionaryIterator *iter, void *context) {
     e_server_ready = true;
 
     #if DEBUG
-      APP_LOG(APP_LOG_LEVEL_INFO, "DEBUG: AppKeyServerReceived received");
+      APP_LOG(APP_LOG_LEVEL_ERROR, "DEBUG: AppKeyServerReceived received!!!!!!!");
     #endif
 
     // Update the last upload time covered by the previous data upload.
@@ -523,9 +535,12 @@ void init_callback(DictionaryIterator *iter, void *context) {
       APP_LOG(APP_LOG_LEVEL_INFO, "DEBUG: AppKeyServerReceived is missing");
     #endif
     return;
-  } else if (e_launch_reason == LAUNCH_WAKEUP_ALERT && !steps_get_pass()) { 
+  } else if (e_launch_reason == LAUNCH_WAKEUP_ALERT && steps_get_pass()) { 
     // Do not communicate with the phone if we do not display any message on the screen,
     // Since there is no enough time for the communication to complete.
+    #if DEBUG
+      APP_LOG(APP_LOG_LEVEL_INFO, "DEBUG: ALERT wakeup and pass.");
+    #endif
     return;
   }
 

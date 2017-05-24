@@ -189,14 +189,27 @@ bool store_resend_launchexit_event() {
   if (persist_exists(PERSIST_KEY_LAUNCHEXIT_COUNT)) {
     persist_read_data(PERSIST_KEY_LAUNCHEXIT_COUNT, &s_launchexit_count, LAUNCHEXIT_COUNT_SIZE);
 
+    // Decrement count if this function is called previously and data is sent to server.
+    if (e_waiting_launchexit_ack) {
+      key = PERSIST_KEY_LAUNCH_START + s_launchexit_count - 1;
+      persist_delete(key);
+
+      s_launchexit_count--;
+      key--;
+
+      persist_write_data(PERSIST_KEY_LAUNCHEXIT_COUNT, &s_launchexit_count, 
+        LAUNCHEXIT_COUNT_SIZE);
+      
+      e_waiting_launchexit_ack = false;
+    } else {
+      key = PERSIST_KEY_LAUNCH_START + s_launchexit_count - 1;
+    }
+
     if (s_launchexit_count <= 0) {
       return true;
     }
 
-    // Read each record and try to resend to the server; decrement count.
-    // FIXME: instead of sending all records to the server, only send one at a time.
-    // When ACK comes back, this function will be called again.
-    key = PERSIST_KEY_LAUNCH_START + s_launchexit_count - 1;
+    // Read launch-exit record and try to resend to the server
     if (persist_exists(key) && 
         key >= PERSIST_KEY_LAUNCH_START && 
         key <= PERSIST_KEY_LAUNCH_END) {
@@ -204,6 +217,7 @@ bool store_resend_launchexit_event() {
 
       t_launch = s_launchexit_data[0];
 
+      // Decompose stored information.
       t_exit = s_launchexit_data[1];
       sd = GET_SCORE_DIFF(t_exit);
       br = GET_SCORE(t_exit);
@@ -229,11 +243,12 @@ bool store_resend_launchexit_event() {
 
       launch_resend(t_launch, t_exit, msg_id, sd, br, lr, er);
 
-      persist_delete(key);
-      s_launchexit_count--;
+      e_waiting_launchexit_ack = true;
+      //persist_delete(key);
+      //s_launchexit_count--;
 
-      persist_write_data(PERSIST_KEY_LAUNCHEXIT_COUNT, &s_launchexit_count, 
-        LAUNCHEXIT_COUNT_SIZE);
+      //persist_write_data(PERSIST_KEY_LAUNCHEXIT_COUNT, &s_launchexit_count, 
+      //  LAUNCHEXIT_COUNT_SIZE);
       return false;
     } else {
       s_launchexit_count--;
@@ -426,9 +441,9 @@ int store_compare_ref_score(int mode) {
 
     // Extract the decimal portion of the number.
     for (++i ; i <= end; i++) {
-      #if DEBUG
-        APP_LOG(APP_LOG_LEVEL_INFO, "buf[%d] = %c", i, buf[i]);
-      #endif
+      //#if DEBUG
+      //  APP_LOG(APP_LOG_LEVEL_INFO, "buf[%d] = %c", i, buf[i]);
+      //#endif
       decimal += (buf[i] - '0') / multiplier;
       multiplier *= 10;
     }
