@@ -104,20 +104,23 @@ static void top_text_layer2_update_proc() {
   text_layer_set_text(s_top_text_layer2, s_top_text_buf2);
 }
 
-/* Procedure for how to update s_main_text_layer. */
+/**
+ * Procedure for how to update s_main_text_layer. 
+ * Note: do not change the random message within this function, since we will
+ *       call this twice to estimate the proper display size.
+ */
 static void main_text_layer_update_proc() {
 #if DEBUG
   APP_LOG(APP_LOG_LEVEL_INFO, "enter main_text_layer_update_proc()");
 #endif
 
-  if (e_launch_reason == LAUNCH_WAKEUP_ALERT) {
-  //if (e_launch_reason == LAUNCH_WAKEUP_ALERT || e_launch_reason == LAUNCH_PHONE) { // DEBUG
-  //  launch_set_random_message(); // DEBUG
+  //if (e_launch_reason == LAUNCH_WAKEUP_ALERT) {
+  if (true) { // DEBUG
     snprintf(s_main_text_buf, sizeof(s_main_text_buf), "%s", launch_get_random_message());
   } else {
     //const char *message_summary = enamel_get_message_summary();
     //const char *message_summary = "%d of %d";
-    const char *message_summary = "11 of 14";
+    const char *message_summary = "11 of 14"; // TODO: delete.
 
     // TODO: remove the second one.
     //snprintf(s_main_text_buf, sizeof(s_main_text_buf), message_summary, 
@@ -152,15 +155,66 @@ static void main_text_layer_update_proc() {
   */
 }
 
+/**
+ * Call main_text_layer_update_proc twice. First time to estimate how much
+ * space needed, and create a new main_text_layer with the proper bounds.
+ */
+static void main_text_layer_update_proc_improved() {
+    GRect main_bounds;
+
+    Layer *window_layer = window_get_root_layer(s_window);
+    GRect bounds = layer_get_bounds(window_layer);
+
+    int padding = 10;
+
+    if (s_main_text_layer) {
+      text_layer_destroy(s_main_text_layer);
+    }
+
+    s_main_text_font = fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD);
+    main_bounds = GRect(bounds.origin.x, bounds.origin.y, bounds.size.w, bounds.size.h);
+    s_main_text_layer = make_text_layer(main_bounds, s_main_text_font, GTextAlignmentCenter);
+
+    main_text_layer_update_proc();
+
+    GSize main_text_size = text_layer_get_content_size(s_main_text_layer);
+
+    if (s_main_text_layer) {
+      text_layer_destroy(s_main_text_layer);
+    }
+
+#if DEBUG
+    APP_LOG(APP_LOG_LEVEL_ERROR, "h = %d, h = %d, res = %d",
+      bounds.size.h, main_text_size.h, (bounds.size.h - main_text_size.h) / 2);
+#endif
+    main_bounds = GRect(bounds.origin.x, 
+                        (bounds.size.h - main_text_size.h) / 2 - padding,
+                        bounds.size.w, bounds.size.h);
+    s_main_text_layer = make_text_layer(main_bounds, s_main_text_font, GTextAlignmentCenter);
+
+    layer_add_child(window_layer, text_layer_get_layer(s_main_text_layer));
+
+    text_layer_enable_screen_text_flow_and_paging(s_main_text_layer, 5);
+
+    main_text_layer_update_proc(); 
+}
 
 /**
  * Make sure to update the top text TextLayer before the main TextLayer. 
  */
 static void prv_update_text() {
-  top_text_layer1_update_proc();
-  top_text_layer2_update_proc();
-  main_text_layer_update_proc();
-  bottom_text_layer_update_proc();
+  if (s_top_text_layer1) {
+    top_text_layer1_update_proc();
+  }
+  if (s_top_text_layer2) {
+    top_text_layer2_update_proc();
+  }
+  if (s_main_text_layer) {
+    main_text_layer_update_proc();
+  }
+  if (s_bottom_text_layer) {
+    bottom_text_layer_update_proc();
+  }
 }
 
 /* Get the latest step count and update texts on the watch accordingly. */
@@ -192,11 +246,8 @@ static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
   //store_write_upload_time(e_launch_time - 3*SECONDS_PER_HOUR);
   
   // DEBUG: random messages.
-  if (s_main_text_layer) {
-    launch_set_random_message();
-    snprintf(s_main_text_buf, sizeof(s_main_text_buf), "%s", launch_get_random_message());
-    text_layer_set_text(s_main_text_layer, s_main_text_buf);
-  }
+  launch_set_random_message();
+  main_text_layer_update_proc_improved();
 
   // DEBUG: current score.
   //store_reset_curr_score();
@@ -218,27 +269,32 @@ static void click_config_provider(void *context) {
 }
 
 static void window_load(Window *window) {
-  Layer *window_layer = window_get_root_layer(window);
-  GRect bounds = layer_get_bounds(window_layer);
+  //if (e_launch_reason != LAUNCH_WAKEUP_ALERT) { // 4 layers message format. 
+  if (false) { // TODO: delete
+    Layer *window_layer = window_get_root_layer(window);
+    GRect bounds = layer_get_bounds(window_layer);
 
-  int current_y = bounds.origin.y;
-  GRect top_bounds1, top_bounds2, main_bounds, bottom_bounds;
-  GSize top_text_size;
+    int current_y = bounds.origin.y;
 
-  int center = bounds.size.h / 2;
+    int center = PBL_IF_ROUND_ELSE(bounds.size.h / 2 - 20, bounds.size.h / 2 - 20);
 
-  //int top_text_y1 = PBL_IF_ROUND_ELSE(25, 10);
-  //int top_text_y2 = PBL_IF_ROUND_ELSE(45, 30);
-  int main_text_height_half = 15; // Assume font size is fixed at 28.
+    //int top_text_y1 = PBL_IF_ROUND_ELSE(25, 10);
+    //int top_text_y2 = PBL_IF_ROUND_ELSE(45, 30);
+    int main_text_height_half = 15; // Assume font size is fixed at 28.
 
-  if (e_launch_reason != LAUNCH_WAKEUP_ALERT) { // 4 layers message format. 
+    GSize main_text_size;
+    GRect top_bounds1, top_bounds2, main_bounds, bottom_bounds;
     APP_LOG(APP_LOG_LEVEL_ERROR, "x = %d; y = %d; w = %d; h = %d", 
         bounds.origin.x, bounds.origin.y, bounds.size.w, bounds.size.h);
+
+    s_top_text_font = fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD);
+    //s_main_text_font = fonts_get_system_font(FONT_KEY_GOTHIC_28_BOLD);
+    s_main_text_font = fonts_get_system_font(FONT_KEY_BITHAM_30_BLACK);
+    s_bottom_text_font = fonts_get_system_font(FONT_KEY_GOTHIC_28); 
 
     // First TextLayer.
     current_y += PBL_IF_ROUND_ELSE(25, 10);
     top_bounds1 = GRect(bounds.origin.x, current_y, bounds.size.w, bounds.size.h);
-    s_top_text_font = fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD);
     s_top_text_layer1 = make_text_layer(top_bounds1, s_top_text_font, GTextAlignmentCenter);
     layer_add_child(window_layer, text_layer_get_layer(s_top_text_layer1));
 
@@ -250,7 +306,6 @@ static void window_load(Window *window) {
     // Second TextLayer.
     current_y += text_layer_get_content_size(s_top_text_layer1).h;
     top_bounds2 = GRect(bounds.origin.x, current_y, bounds.size.w, bounds.size.h);
-    s_top_text_font = fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD);
     s_top_text_layer2 = make_text_layer(top_bounds2, s_top_text_font, GTextAlignmentCenter);
     layer_add_child(window_layer, text_layer_get_layer(s_top_text_layer2));
 
@@ -259,11 +314,12 @@ static void window_load(Window *window) {
 
     // Create the main TextLayer that is at the center.
     current_y += text_layer_get_content_size(s_top_text_layer2).h;
+    if (current_y < center) {
+      current_y = center;
+    }
     main_bounds = GRect(bounds.origin.x, current_y, bounds.size.w, bounds.size.h);
     //GRect main_bounds = GRect(bounds.origin.x, center - main_text_height_half, bounds.size.w, bounds.size.h);
 
-    //s_main_text_font = fonts_get_system_font(FONT_KEY_GOTHIC_28_BOLD);
-    s_main_text_font = fonts_get_system_font(FONT_KEY_BITHAM_30_BLACK);
     s_main_text_layer = make_text_layer(main_bounds, s_main_text_font, GTextAlignmentCenter);
     //s_main_text_layer = make_text_layer(grect_inset(main_bounds, GEdgeInsets(15)),
     //s_main_text_layer = make_text_layer(grect_inset(main_bounds, main_text_insets),
@@ -271,10 +327,12 @@ static void window_load(Window *window) {
 
     // Add TextLayer as children of the ScrollLayer.
     //scroll_layer_add_child(s_scroll_layer, text_layer_get_layer(s_main_text_layer));
-    layer_add_child(window_layer, text_layer_get_layer(s_main_text_layer));
 
     // Enable paging and text flow with an inset of 5 pixels
     // Note that if there is too much text in the top TextLayer, this pagination might cause 
+
+    layer_add_child(window_layer, text_layer_get_layer(s_main_text_layer));
+
     // unneccessary line spaces and clipped texts.
     text_layer_enable_screen_text_flow_and_paging(s_main_text_layer, 5);
 
@@ -288,9 +346,9 @@ static void window_load(Window *window) {
     current_y += PBL_IF_ROUND_ELSE(text_layer_get_content_size(s_main_text_layer).h/2, 
                                    text_layer_get_content_size(s_main_text_layer).h);
     bottom_bounds = GRect(bounds.origin.x, current_y, bounds.size.w, bounds.size.h);
-    s_bottom_text_font = fonts_get_system_font(FONT_KEY_GOTHIC_28); 
     s_bottom_text_layer = make_text_layer(bottom_bounds, s_bottom_text_font, 
                                           GTextAlignmentCenter);
+
     layer_add_child(window_layer, text_layer_get_layer(s_bottom_text_layer));
 
     // Enable paging and text flow with an inset of 5 pixels
@@ -298,45 +356,15 @@ static void window_load(Window *window) {
 
     bottom_text_layer_update_proc(); 
   } else { // Single layer message format. 
-   
-    // TODO: We need to get a sense of the size of message to place the text layer properly 
-    // approximately at the center of the screen.
-    /*
-    #if DEBUG
-    int temp_length;
-    if (e_launch_reason == LAUNCH_WAKEUP_ALERT) {
-      temp_length = strlen(launch_get_random_message());
-    } else {
-      temp_length = strlen(launch_get_random_message());
-    }
-    #endif
-
-    #if DEBUG
-      APP_LOG(APP_LOG_LEVEL_INFO, "string length=%d", temp_length);
-    #endif
-    */
     APP_LOG(APP_LOG_LEVEL_INFO, "Single layer of message.");
 
-    GRect main_bounds = GRect(bounds.origin.x, bounds.origin.y, bounds.size.w, bounds.size.h);
-
-    s_main_text_font = fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD);
-    //s_main_text_layer = make_text_layer(main_bounds, s_main_text_font, GTextAlignmentCenter);
-    //s_main_text_layer = make_text_layer(grect_inset(main_bounds, GEdgeInsets(15)), 
-    s_main_text_layer = make_text_layer(main_bounds, s_main_text_font, GTextAlignmentCenter);
-
-    // Add TextLayer as children of the ScrollLayer.
-    //scroll_layer_add_child(s_scroll_layer, text_layer_get_layer(s_main_text_layer));
-
-    layer_add_child(window_layer, text_layer_get_layer(s_main_text_layer));
-
-    // Enable paging and text flow with an inset of 5 pixels
-    // Note that if there is too much text in the top TextLayer, this pagination might cause 
-    // unneccessary line spaces and clipped texts.
-    text_layer_enable_screen_text_flow_and_paging(s_main_text_layer, 5);
-
-    main_text_layer_update_proc();
+    main_text_layer_update_proc_improved();
   }
+
+  window_set_click_config_provider(s_window, click_config_provider);
 }
+
+
 
 /**
  * Deprecated
