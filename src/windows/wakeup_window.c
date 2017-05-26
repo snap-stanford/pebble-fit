@@ -1,16 +1,18 @@
 #include "wakeup_window.h"
 
 static Window *s_window;
-static TextLayer *s_main_text_layer, *s_top_text_layer;
+static TextLayer *s_main_text_layer, *s_top_text_layer1, *s_top_text_layer2,
+                 *s_bottom_text_layer;
 static ScrollLayer *s_scroll_layer;
 static ContentIndicator *s_indicator;
 static Layer *s_indicator_up_layer, *s_indicator_down_layer;
-static GFont s_main_text_font, s_top_text_font;
+static GFont s_main_text_font, s_top_text_font, s_bottom_text_font;
 
 static int s_steps;
 static char s_start[12], s_end[12];
-static char s_top_text_buf[64];
-static char s_main_text_buf[512];
+static char s_top_text_buf1[32];
+static char s_top_text_buf2[32];
+static char s_main_text_buf[256];
 static int s_inactive_mins;
 
 /* Set standard attributes on new text layer in this window. */
@@ -24,57 +26,88 @@ static TextLayer* make_text_layer(GRect bounds, GFont font, GTextAlignment align
   return this;
 }
 
-/* Procedure for how to update s_top_text_layer. */
-static void top_text_layer_update_proc() {
+/* Procedure for how to update s_bottom_text_layer. */
+static void bottom_text_layer_update_proc() {
+  text_layer_set_text(s_bottom_text_layer, "today");
+}
+
+/* Procedure for how to update s_top_text_layer1 and s_top_text_layer2. */
+static void top_text_layer1_update_proc() {
 #if DEBUG
-  APP_LOG(APP_LOG_LEVEL_ERROR, "enter top_text_layer_update_proc()");
+  APP_LOG(APP_LOG_LEVEL_ERROR, "enter top_text_layer1_update_proc()");
 #endif
   const char *text;
 
   // Display a warning wakeup to notify the user of losing connection for 36 hours.
-  if (!connection_service_peek_pebble_app_connection() && 
+  if (!connection_service_peek_pebble_app_connection() &&
       store_read_upload_time() < e_launch_time - 36 * SECONDS_PER_HOUR) {
-    text = "Lost connection to phone";
-    snprintf(s_top_text_buf, sizeof(s_top_text_buf), "%s", text);
+    text = "Connection Lost !";
+    snprintf(s_top_text_buf1, sizeof(s_top_text_buf1), "%s", text);
   } else if (e_launch_reason == LAUNCH_WAKEUP_PERIOD) {
     if (steps_get_pass()) {
-      text = enamel_get_message_pass();
+      //text = enamel_get_message_pass();
+      text = "Nice Work!";
+      snprintf(s_top_text_buf1, sizeof(s_top_text_buf1), "%s", text);
     } else {
-      text = enamel_get_message_fail();
+      //text = enamel_get_message_fail();
+      text = "Opps!";
+      snprintf(s_top_text_buf1, sizeof(s_top_text_buf1), "%s", text);
     }
-    snprintf(s_top_text_buf, sizeof(s_top_text_buf), "%s", text);
-  } else { 
-    // Other launch event, supposed to display nothing in this top TextLayer.
+  } else {
+    // Other launch events should not have top text layers.
+    APP_LOG(APP_LOG_LEVEL_ERROR, "Not supposed to enter here!");
     text = "";
 
-    // Testing 
-      //text = "Launch Pebble app to synch!";
-      //text = "Nice work! Break accomplished.";
-      //text = "Opps! Break missed.";
-
-    snprintf(s_top_text_buf, sizeof(s_top_text_buf), "%s", text);
-
-    // DEBUG BEGIN
-/*
-    if (!steps_get_pass()) {
-      snprintf(s_top_text_buf, sizeof(s_top_text_buf), 
-               "sedentary %d steps during \n%s-%s", s_steps, s_start, s_end);
-    } else {
-      snprintf(s_top_text_buf, sizeof(s_top_text_buf), 
-               "non-sedentary during \n%s-%s", s_start, s_end);
-    }
-*/
-
-    // DEBUG END
+    // Testing
+    //text = "Nice Work !";
+    //text = "Opps !";
+    //text = "Connection Lost !";
+    snprintf(s_top_text_buf1, sizeof(s_top_text_buf1), "%s", text);
   }
 
-  text_layer_set_text(s_top_text_layer, s_top_text_buf);
+  text_layer_set_text(s_top_text_layer1, s_top_text_buf1);
+}
+
+static void top_text_layer2_update_proc() {
+#if DEBUG
+  APP_LOG(APP_LOG_LEVEL_ERROR, "enter top_text_layer2_update_proc()");
+#endif
+  const char *text;
+
+  // Display a warning wakeup to notify the user of losing connection for 36 hours.
+  if (!connection_service_peek_pebble_app_connection() &&
+      store_read_upload_time() < e_launch_time - 36 * SECONDS_PER_HOUR) {
+    text = "Launch Pebble App";
+    snprintf(s_top_text_buf2, sizeof(s_top_text_buf2), "%s", text);
+  } else if (e_launch_reason == LAUNCH_WAKEUP_PERIOD) {
+    if (steps_get_pass()) {
+      //text = enamel_get_message_pass();
+      text = "Break Accomplished";
+      snprintf(s_top_text_buf2, sizeof(s_top_text_buf2), "%s", text);
+    } else {
+      //text = enamel_get_message_fail();
+      text = " Break Missed";
+      snprintf(s_top_text_buf2, sizeof(s_top_text_buf2), "%s", text);
+    }
+  } else {
+    // Other launch events should not have top text layers.
+    APP_LOG(APP_LOG_LEVEL_ERROR, "Not supposed to enter here!");
+    text = "";
+
+   // Testing
+    //text = "Break Accomplished";
+    //text = "Break Missed";
+    //text = "Launch Pebble App";
+    snprintf(s_top_text_buf2, sizeof(s_top_text_buf2), "%s", text);
+  }
+
+  text_layer_set_text(s_top_text_layer2, s_top_text_buf2);
 }
 
 /* Procedure for how to update s_main_text_layer. */
 static void main_text_layer_update_proc() {
 #if DEBUG
-  APP_LOG(APP_LOG_LEVEL_ERROR, "enter main_text_layer_update_proc()");
+  APP_LOG(APP_LOG_LEVEL_INFO, "enter main_text_layer_update_proc()");
 #endif
 
   if (e_launch_reason == LAUNCH_WAKEUP_ALERT) {
@@ -82,12 +115,15 @@ static void main_text_layer_update_proc() {
   //  launch_set_random_message(); // DEBUG
     snprintf(s_main_text_buf, sizeof(s_main_text_buf), "%s", launch_get_random_message());
   } else {
-    const char *message_summary = enamel_get_message_summary();
-    //const char *message_summary = "5 of 7                  today";
+    //const char *message_summary = enamel_get_message_summary();
+    //const char *message_summary = "%d of %d";
+    const char *message_summary = "11 of 14";
 
+    // TODO: remove the second one.
+    //snprintf(s_main_text_buf, sizeof(s_main_text_buf), message_summary, 
+    //  store_read_curr_score(), store_read_possible_score());
     snprintf(s_main_text_buf, sizeof(s_main_text_buf), message_summary, 
-      store_read_curr_score(), store_read_possible_score());
-      //store_read_curr_score(), enamel_get_total_break());
+      store_read_curr_score(), enamel_get_total_break());
       
     //TODO: workaround for scrolling issue for some long text.
     #if defined(PBL_ROUND)
@@ -100,6 +136,7 @@ static void main_text_layer_update_proc() {
   text_layer_set_text(s_main_text_layer, s_main_text_buf);
 
   // Set up ScrollLayer according to the text size (assuming top_text_layer_update_proc done).
+  /*
   GSize top_text_size = text_layer_get_content_size(s_top_text_layer);
   GSize main_text_size = text_layer_get_content_size(s_main_text_layer);
   #if DEBUG
@@ -112,14 +149,18 @@ static void main_text_layer_update_proc() {
   #endif
 
   scroll_layer_set_content_size(s_scroll_layer, main_text_size);
+  */
 }
+
 
 /**
  * Make sure to update the top text TextLayer before the main TextLayer. 
  */
 static void prv_update_text() {
-  top_text_layer_update_proc();
+  top_text_layer1_update_proc();
+  top_text_layer2_update_proc();
   main_text_layer_update_proc();
+  bottom_text_layer_update_proc();
 }
 
 /* Get the latest step count and update texts on the watch accordingly. */
@@ -151,9 +192,11 @@ static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
   //store_write_upload_time(e_launch_time - 3*SECONDS_PER_HOUR);
   
   // DEBUG: random messages.
-  launch_set_random_message();
-  snprintf(s_main_text_buf, sizeof(s_main_text_buf), "%s", launch_get_random_message());
-  text_layer_set_text(s_main_text_layer, s_main_text_buf);
+  if (s_main_text_layer) {
+    launch_set_random_message();
+    snprintf(s_main_text_buf, sizeof(s_main_text_buf), "%s", launch_get_random_message());
+    text_layer_set_text(s_main_text_layer, s_main_text_buf);
+  }
 
   // DEBUG: current score.
   //store_reset_curr_score();
@@ -174,6 +217,131 @@ static void click_config_provider(void *context) {
   window_single_click_subscribe(BUTTON_ID_SELECT, select_click_handler);
 }
 
+static void window_load(Window *window) {
+  Layer *window_layer = window_get_root_layer(window);
+  GRect bounds = layer_get_bounds(window_layer);
+
+  int current_y = bounds.origin.y;
+  GRect top_bounds1, top_bounds2, main_bounds, bottom_bounds;
+  GSize top_text_size;
+
+  int center = bounds.size.h / 2;
+
+  //int top_text_y1 = PBL_IF_ROUND_ELSE(25, 10);
+  //int top_text_y2 = PBL_IF_ROUND_ELSE(45, 30);
+  int main_text_height_half = 15; // Assume font size is fixed at 28.
+
+  if (e_launch_reason != LAUNCH_WAKEUP_ALERT) { // 4 layers message format. 
+    APP_LOG(APP_LOG_LEVEL_ERROR, "x = %d; y = %d; w = %d; h = %d", 
+        bounds.origin.x, bounds.origin.y, bounds.size.w, bounds.size.h);
+
+    // First TextLayer.
+    current_y += PBL_IF_ROUND_ELSE(25, 10);
+    top_bounds1 = GRect(bounds.origin.x, current_y, bounds.size.w, bounds.size.h);
+    s_top_text_font = fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD);
+    s_top_text_layer1 = make_text_layer(top_bounds1, s_top_text_font, GTextAlignmentCenter);
+    layer_add_child(window_layer, text_layer_get_layer(s_top_text_layer1));
+
+    top_text_layer1_update_proc();
+
+    // Enable paging and text flow with an inset of 5 pixels
+    //text_layer_enable_screen_text_flow_and_paging(s_top_text_layer, 5);
+
+    // Second TextLayer.
+    current_y += text_layer_get_content_size(s_top_text_layer1).h;
+    top_bounds2 = GRect(bounds.origin.x, current_y, bounds.size.w, bounds.size.h);
+    s_top_text_font = fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD);
+    s_top_text_layer2 = make_text_layer(top_bounds2, s_top_text_font, GTextAlignmentCenter);
+    layer_add_child(window_layer, text_layer_get_layer(s_top_text_layer2));
+
+    top_text_layer2_update_proc();
+
+
+    // Create the main TextLayer that is at the center.
+    current_y += text_layer_get_content_size(s_top_text_layer2).h;
+    main_bounds = GRect(bounds.origin.x, current_y, bounds.size.w, bounds.size.h);
+    //GRect main_bounds = GRect(bounds.origin.x, center - main_text_height_half, bounds.size.w, bounds.size.h);
+
+    //s_main_text_font = fonts_get_system_font(FONT_KEY_GOTHIC_28_BOLD);
+    s_main_text_font = fonts_get_system_font(FONT_KEY_BITHAM_30_BLACK);
+    s_main_text_layer = make_text_layer(main_bounds, s_main_text_font, GTextAlignmentCenter);
+    //s_main_text_layer = make_text_layer(grect_inset(main_bounds, GEdgeInsets(15)),
+    //s_main_text_layer = make_text_layer(grect_inset(main_bounds, main_text_insets),
+    //                                    s_main_text_font, GTextAlignmentCenter);
+
+    // Add TextLayer as children of the ScrollLayer.
+    //scroll_layer_add_child(s_scroll_layer, text_layer_get_layer(s_main_text_layer));
+    layer_add_child(window_layer, text_layer_get_layer(s_main_text_layer));
+
+    // Enable paging and text flow with an inset of 5 pixels
+    // Note that if there is too much text in the top TextLayer, this pagination might cause 
+    // unneccessary line spaces and clipped texts.
+    text_layer_enable_screen_text_flow_and_paging(s_main_text_layer, 5);
+
+    main_text_layer_update_proc();
+
+
+
+    // Create the bottom TextLayer that is below the main TextLayer.
+    // Note: text_layer_get_content_size is not accurate. For round shape,
+    // divided by 2 to avoid large gap.
+    current_y += PBL_IF_ROUND_ELSE(text_layer_get_content_size(s_main_text_layer).h/2, 
+                                   text_layer_get_content_size(s_main_text_layer).h);
+    bottom_bounds = GRect(bounds.origin.x, current_y, bounds.size.w, bounds.size.h);
+    s_bottom_text_font = fonts_get_system_font(FONT_KEY_GOTHIC_28); 
+    s_bottom_text_layer = make_text_layer(bottom_bounds, s_bottom_text_font, 
+                                          GTextAlignmentCenter);
+    layer_add_child(window_layer, text_layer_get_layer(s_bottom_text_layer));
+
+    // Enable paging and text flow with an inset of 5 pixels
+    text_layer_enable_screen_text_flow_and_paging(s_bottom_text_layer, 5);
+
+    bottom_text_layer_update_proc(); 
+  } else { // Single layer message format. 
+   
+    // TODO: We need to get a sense of the size of message to place the text layer properly 
+    // approximately at the center of the screen.
+    /*
+    #if DEBUG
+    int temp_length;
+    if (e_launch_reason == LAUNCH_WAKEUP_ALERT) {
+      temp_length = strlen(launch_get_random_message());
+    } else {
+      temp_length = strlen(launch_get_random_message());
+    }
+    #endif
+
+    #if DEBUG
+      APP_LOG(APP_LOG_LEVEL_INFO, "string length=%d", temp_length);
+    #endif
+    */
+    APP_LOG(APP_LOG_LEVEL_INFO, "Single layer of message.");
+
+    GRect main_bounds = GRect(bounds.origin.x, bounds.origin.y, bounds.size.w, bounds.size.h);
+
+    s_main_text_font = fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD);
+    //s_main_text_layer = make_text_layer(main_bounds, s_main_text_font, GTextAlignmentCenter);
+    //s_main_text_layer = make_text_layer(grect_inset(main_bounds, GEdgeInsets(15)), 
+    s_main_text_layer = make_text_layer(main_bounds, s_main_text_font, GTextAlignmentCenter);
+
+    // Add TextLayer as children of the ScrollLayer.
+    //scroll_layer_add_child(s_scroll_layer, text_layer_get_layer(s_main_text_layer));
+
+    layer_add_child(window_layer, text_layer_get_layer(s_main_text_layer));
+
+    // Enable paging and text flow with an inset of 5 pixels
+    // Note that if there is too much text in the top TextLayer, this pagination might cause 
+    // unneccessary line spaces and clipped texts.
+    text_layer_enable_screen_text_flow_and_paging(s_main_text_layer, 5);
+
+    main_text_layer_update_proc();
+  }
+}
+
+/**
+ * Deprecated
+ */
+/*
 static void window_load(Window *window) {
   Layer *window_layer = window_get_root_layer(window);
   GRect bounds = layer_get_bounds(window_layer);
@@ -270,23 +438,7 @@ static void window_load(Window *window) {
     temp_length = strlen(launch_get_random_message());
   }
   #endif
-/*
-  if (e_launch_reason == LAUNCH_WAKEUP_ALERT) {
-  //if (e_launch_reason == LAUNCH_WAKEUP_ALERT || e_launch_reason == LAUNCH_PHONE) { // DEBUG
-    launch_set_random_message();
-    APP_LOG(APP_LOG_LEVEL_ERROR, "random_message,content=%s", launch_get_random_message());
-    snprintf(s_main_text_buf, sizeof(s_main_text_buf), "%s", launch_get_random_message());
-    //snprintf(s_main_text_buf, sizeof(s_main_text_buf), "Nice outside? Talk a stroll.");
-    //snprintf(s_main_text_buf, sizeof(s_main_text_buf), "regular walking breaks can reduce risk of cardiovascular disease");
-  } else {
-    const char *daily_summary = enamel_get_message_summary();
-     
-    snprintf(s_main_text_buf, sizeof(s_main_text_buf), daily_summary, 
-      store_read_curr_score(), enamel_get_total_break());
 
-    strcat(s_main_text_buf, "\n\n\n"); //TODO: workaround for scrolling issue for some long text.
-  }
-*/
   #if DEBUG
     APP_LOG(APP_LOG_LEVEL_INFO, "string length=%d", temp_length);
   #endif
@@ -319,6 +471,7 @@ static void window_load(Window *window) {
 
   main_text_layer_update_proc();
 }
+*/
 
 static void window_unload(Window *window) {
   if (s_scroll_layer) {
@@ -329,9 +482,13 @@ static void window_unload(Window *window) {
     text_layer_destroy(s_main_text_layer);
     s_main_text_layer = NULL;
   }
-  if (s_top_text_layer) {
-    text_layer_destroy(s_top_text_layer);
-    s_top_text_layer = NULL;
+  if (s_top_text_layer1) {
+    text_layer_destroy(s_top_text_layer1);
+    s_top_text_layer1 = NULL;
+  }
+  if (s_top_text_layer2) {
+    text_layer_destroy(s_top_text_layer2);
+    s_top_text_layer2 = NULL;
   }
   if (s_indicator_up_layer) {
     layer_destroy(s_indicator_up_layer);
@@ -374,7 +531,10 @@ void wakeup_window_remove() {
   window_stack_remove(s_window, false);
 }
 
-/* Called by the steps module to update the information related to step count. */
+/**
+ * Deprecated.
+ * Called by the steps module to update the information related to step count. 
+ */
 void wakeup_window_update(int steps, char *start, char *end, int inactive_mins) {
   s_steps = steps;
   strncpy(s_start, start, sizeof(s_start));
