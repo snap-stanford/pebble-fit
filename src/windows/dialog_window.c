@@ -6,9 +6,6 @@ static ScrollLayer *s_scroll_layer;
 static ContentIndicator *s_indicator;
 static Layer *s_indicator_up_layer, *s_indicator_down_layer;
 
-
-static int s_offset = 10;
-
 /** 
  * Update the text displayed on this dialog window.
  */
@@ -18,10 +15,10 @@ void dialog_text_layer_update_proc(char *text) {
   // Set up ScrollLayer according to the text size (assuming top_text_layer_update_proc done).
   GSize text_size = text_layer_get_content_size(s_text_layer);
 
-  GSize temp = scroll_layer_get_content_size(s_scroll_layer);
-  
-  GPoint gp = scroll_layer_get_content_offset(s_scroll_layer);
 #if DEBUG
+  GSize temp = scroll_layer_get_content_size(s_scroll_layer);
+  GPoint gp = scroll_layer_get_content_offset(s_scroll_layer);
+
   APP_LOG(APP_LOG_LEVEL_ERROR, "scroll_size.w=%d, h=%d", temp.w, temp.h);
   APP_LOG(APP_LOG_LEVEL_ERROR, "main_text_size.w=%d, h=%d", text_size.w, text_size.h);
   APP_LOG(APP_LOG_LEVEL_ERROR, "absz.w=%d, h=%d", gp.x, gp.y);

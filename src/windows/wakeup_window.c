@@ -4,7 +4,7 @@ static Window *s_window;
 static TextLayer *s_main_text_layer, *s_top_text_layer1, *s_top_text_layer2,
                  *s_bottom_text_layer;
 static ScrollLayer *s_scroll_layer;
-static ContentIndicator *s_indicator;
+//static ContentIndicator *s_indicator;
 static Layer *s_indicator_up_layer, *s_indicator_down_layer;
 static GFont s_main_text_font, s_top_text_font, s_bottom_text_font;
 
@@ -114,21 +114,19 @@ static void main_text_layer_update_proc() {
   APP_LOG(APP_LOG_LEVEL_INFO, "enter main_text_layer_update_proc()");
 #endif
 
-  //if (e_launch_reason == LAUNCH_WAKEUP_ALERT) {
-  if (true) { // DEBUG
+  if (e_launch_reason == LAUNCH_WAKEUP_ALERT) {
     snprintf(s_main_text_buf, sizeof(s_main_text_buf), "%s", launch_get_random_message());
   } else {
     //const char *message_summary = enamel_get_message_summary();
-    //const char *message_summary = "%d of %d";
-    const char *message_summary = "11 of 14"; // TODO: delete.
+    const char *message_summary = "%d of %d";
 
     // TODO: remove the second one.
-    //snprintf(s_main_text_buf, sizeof(s_main_text_buf), message_summary, 
-    //  store_read_curr_score(), store_read_possible_score());
     snprintf(s_main_text_buf, sizeof(s_main_text_buf), message_summary, 
-      store_read_curr_score(), enamel_get_total_break());
+      store_read_curr_score(), store_read_possible_score());
+    //snprintf(s_main_text_buf, sizeof(s_main_text_buf), message_summary, 
+    //  store_read_curr_score(), enamel_get_total_break());
       
-    //TODO: workaround for scrolling issue for some long text.
+    // Arbitrary line space added for proper display.
     #if defined(PBL_ROUND)
       strcat(s_main_text_buf, "\n\n");
     #else
@@ -210,7 +208,11 @@ static void prv_update_text() {
     top_text_layer2_update_proc();
   }
   if (s_main_text_layer) {
-    main_text_layer_update_proc();
+    if (e_launch_reason == LAUNCH_WAKEUP_ALERT) {
+      main_text_layer_update_proc_improved();
+    } else {
+      main_text_layer_update_proc();
+    }
   }
   if (s_bottom_text_layer) {
     bottom_text_layer_update_proc();
@@ -247,7 +249,9 @@ static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
   
   // DEBUG: random messages.
   launch_set_random_message();
+  e_launch_reason = LAUNCH_WAKEUP_ALERT; 
   main_text_layer_update_proc_improved();
+  text_layer_set_text(s_bottom_text_layer, "");
 
   // DEBUG: current score.
   //store_reset_curr_score();
@@ -269,8 +273,7 @@ static void click_config_provider(void *context) {
 }
 
 static void window_load(Window *window) {
-  //if (e_launch_reason != LAUNCH_WAKEUP_ALERT) { // 4 layers message format. 
-  if (false) { // TODO: delete
+  if (e_launch_reason != LAUNCH_WAKEUP_ALERT) { // 4 layers message format. 
     Layer *window_layer = window_get_root_layer(window);
     GRect bounds = layer_get_bounds(window_layer);
 
@@ -278,11 +281,7 @@ static void window_load(Window *window) {
 
     int center = PBL_IF_ROUND_ELSE(bounds.size.h / 2 - 20, bounds.size.h / 2 - 20);
 
-    //int top_text_y1 = PBL_IF_ROUND_ELSE(25, 10);
-    //int top_text_y2 = PBL_IF_ROUND_ELSE(45, 30);
-    int main_text_height_half = 15; // Assume font size is fixed at 28.
 
-    GSize main_text_size;
     GRect top_bounds1, top_bounds2, main_bounds, bottom_bounds;
     APP_LOG(APP_LOG_LEVEL_ERROR, "x = %d; y = %d; w = %d; h = %d", 
         bounds.origin.x, bounds.origin.y, bounds.size.w, bounds.size.h);
@@ -318,7 +317,6 @@ static void window_load(Window *window) {
       current_y = center;
     }
     main_bounds = GRect(bounds.origin.x, current_y, bounds.size.w, bounds.size.h);
-    //GRect main_bounds = GRect(bounds.origin.x, center - main_text_height_half, bounds.size.w, bounds.size.h);
 
     s_main_text_layer = make_text_layer(main_bounds, s_main_text_font, GTextAlignmentCenter);
     //s_main_text_layer = make_text_layer(grect_inset(main_bounds, GEdgeInsets(15)),

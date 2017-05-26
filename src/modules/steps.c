@@ -8,7 +8,7 @@
 #if DEBUG
   #define STEP_BATCH_MAXIMUM_SIZE   60
 #else
-  #define STEP_BATCH_MAXIMUM_SIZE   960
+  #define STEP_BATCH_MAXIMUM_SIZE   900
 #endif
 #define STEP_BATCH_STRING_SIZE    STEP_BATCH_MAXIMUM_SIZE * 3
 static char s_step_batch_string[STEP_BATCH_STRING_SIZE];

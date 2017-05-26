@@ -546,10 +546,8 @@ void init_callback(DictionaryIterator *iter, void *context) {
     return;
   }
 
-  APP_LOG(APP_LOG_LEVEL_ERROR, "ABSZ!");
   Tuple* tuple = dict_find(iter, MESSAGE_KEY_step_upload_time);
   if (tuple) {
-    APP_LOG(APP_LOG_LEVEL_ERROR, "absz=%u", (unsigned) tuple->value->int32);
     store_write_upload_time(tuple->value->int32);
   }
 
