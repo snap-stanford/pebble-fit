@@ -23,7 +23,6 @@ char s_random_message_buf[RANDOM_MSG_SIZE_MAX];
 static time_t s_t_launch, s_t_exit, s_curr_time;
 static uint8_t s_br, s_lr, s_er;
 static const char *s_msg_id;
-static char s_msg_id_buf[4];
 static uint8_t s_score_diff = 255; // Assume total break is less than 256.
 
 /* Add launch reason and date to out dict. */
@@ -195,7 +194,7 @@ void launch_set_random_message() {
     } else {
       // Substitute the number in the message.
       s_random_message = s_random_message_buf + msgSize + 1;
-      snprintf(s_random_message, end - start, msg_ptr + start, score_diff);
+      snprintf(s_random_message, end - start + score_diff / 10, msg_ptr + start, score_diff);
     }
   }
   #if DEBUG
@@ -265,7 +264,9 @@ static void prv_wakeup_vibrate(bool force) {
  * Handle wakeup events.
  */
 void launch_wakeup_handler(WakeupId wakeup_id, int32_t wakeup_cookie) {
+#if DEBUG
   APP_LOG(APP_LOG_LEVEL_INFO, "DEBUG: wakeup=%d cookie=%d", (int)wakeup_id, (int)wakeup_cookie);
+#endif
   
   // wakeup_cookie is the index associated to the wakeup event. It is also the wakeup type.
   if (wakeup_cookie >= LAUNCH_WAKEUP_PERIOD) {
@@ -274,7 +275,7 @@ void launch_wakeup_handler(WakeupId wakeup_id, int32_t wakeup_cookie) {
     // Re-init communication and upload data. This is not called for the standard wakeup,
     // but only when a wakeup event happens during the app is on.
     if (e_js_ready) {
-      APP_LOG(APP_LOG_LEVEL_ERROR, "should before init_callback");
+      //APP_LOG(APP_LOG_LEVEL_ERROR, "should before init_callback");
       launch_send_launch_notification();
       s_init_stage = 1;
     }
@@ -300,7 +301,7 @@ void launch_wakeup_handler(WakeupId wakeup_id, int32_t wakeup_cookie) {
       case LAUNCH_WAKEUP_ALERT:
         // Get a random message from the persistent storage. This must happen before
         // wakeup_window_push() and the first call to init_callback. 
-        APP_LOG(APP_LOG_LEVEL_ERROR, "Make sure this happens before init_callback()!");
+        //APP_LOG(APP_LOG_LEVEL_ERROR, "Make sure this happens before init_callback()!");
         if (!steps_get_pass()) { // Only push the window if step goal is not met.
           launch_set_random_message();
           s_wakeup_window = wakeup_window_push();
@@ -324,7 +325,7 @@ void launch_wakeup_handler(WakeupId wakeup_id, int32_t wakeup_cookie) {
     //prv_wakeup_vibrate(true);
   } else {
     e_launch_reason = -1 * wakeup_cookie; // To distinguish from other normal launch types.
-    APP_LOG(APP_LOG_LEVEL_ERROR, "Fallback wakeup! cookie=%d", (int)wakeup_cookie);
+    APP_LOG(APP_LOG_LEVEL_INFO, "Fallback wakeup! cookie=%d", (int)wakeup_cookie);
   }
   
   // Start timer
@@ -458,7 +459,8 @@ void update_config(void *context) {
     store_set_possible_score();
 
     if (s_wakeup_window == NULL) {
-      if (enamel_get_first_config() != 1) APP_LOG(APP_LOG_LEVEL_ERROR, "first_config must be 1");
+      if (enamel_get_first_config() != 1)
+        APP_LOG(APP_LOG_LEVEL_ERROR, "first_config must be 1");
  
       // Also upload the historical data up to 7 days before.
       //store_write_upload_time(e_launch_time - 7 * SECONDS_PER_DAY);

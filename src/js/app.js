@@ -19,7 +19,7 @@ var SERVER = 'http://pebble-fit.herokuapp.com';
 // Local servers (use ifconfig to find out).
 //var SERVER = 'http://10.30.202.74:3000';
 //var SERVER = 'http://10.34.187.43:3000';
-var SERVER = 'http://10.34.22.156:3000';
+//var SERVER = 'http://10.34.22.156:3000';
 
 // Flag to switch off server communication
 var USE_OFFLINE = true;
@@ -171,7 +171,6 @@ Pebble.addEventListener('webviewclosed', function(e) {
   // Append user-defined settings and then send to the watch.
   // Do not want ot modify those settings that can only be set by the server.
   function saveConfigToWatch(settings) {
-      console.log(JSON.stringify(settings));
     settings.first_config       = dict[messageKeys.first_config];
     settings.is_consent         = dict[messageKeys.is_consent];
     settings.activate           = dict[messageKeys.activate];
@@ -182,12 +181,8 @@ Pebble.addEventListener('webviewclosed', function(e) {
     
     // Uncomment these lines if want to change break_freq/break_len on watch side for
     // debugging purpose.
-    settings.break_freq         = dict[messageKeys.break_freq];
-    settings.break_len          = dict[messageKeys.break_len];
-
-      console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
-      console.log(JSON.stringify(settings));
-      console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+    //settings.break_freq         = dict[messageKeys.break_freq];
+    //settings.break_len          = dict[messageKeys.break_len];
     
     Pebble.sendAppMessage(settings, function(e) {
       console.log('Sent config data to Pebble (' + JSON.stringify(settings) + ').');
@@ -376,13 +371,6 @@ function sendToServer (route, callback) {
   if (USE_OFFLINE) {
     log.info("sendToServer: " + route);
     send_request(SERVER + route, 'GET', callback);
-    //send_request(SERVER + route, 'GET', function(err, status, response, responseText) {
-    //  if (err || status !== 200) {
-    //    log.info(err || status)
-    //  } else {
-    //    responseHandler(response);
-    //  }
-    //})
   } else {
     callback();
   }
