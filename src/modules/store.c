@@ -51,9 +51,10 @@ bool store_resend_config_request(time_t t_curr) {
     APP_LOG(APP_LOG_LEVEL_ERROR, "t_config_time=%u", (unsigned) t_last_config_time);
   #endif
 
-  // TODO
-  if (store_read_curr_score() == 0 && 
-      t_curr-t_last_config_time > atoi(enamel_get_config_update_interval()) * SECONDS_PER_DAY) {
+  // Request new config from the server every day.
+  time_t t_user_start = time_start_of_today() + enamel_get_daily_start_time();
+  if (store_read_curr_score() == 0 && t_last_config_time < t_user_start) {
+      //t_curr-t_last_config_time > atoi(enamel_get_config_update_interval()) * SECONDS_PER_DAY) {
     return true;
   } else {
     return false;

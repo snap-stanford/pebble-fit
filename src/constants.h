@@ -23,7 +23,7 @@
 /* Launch reasons (3 bits - up to 7. Change store.c if this is modified). */
 #define LAUNCH_OTHER                  0
 #define LAUNCH_USER                   1
-#define LAUNCH_PHONE                  2
+#define LAUNCH_PHONE                  2     // Also could the special fallback wakeup.
 #define LAUNCH_WAKEUP_PERIOD          3
 #define LAUNCH_WAKEUP_ALERT           4
 #define LAUNCH_WAKEUP_DAILY           5

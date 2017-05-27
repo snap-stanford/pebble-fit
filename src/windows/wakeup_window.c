@@ -54,9 +54,8 @@ static void top_text_layer1_update_proc() {
       snprintf(s_top_text_buf1, sizeof(s_top_text_buf1), "%s", text);
     }
   } else {
-    // Other launch events should not have top text layers.
-    APP_LOG(APP_LOG_LEVEL_ERROR, "Not supposed to enter here!");
-    text = "";
+    // Placeholder.
+    text = " ";
 
     // Testing
     //text = "Nice Work !";
@@ -90,9 +89,7 @@ static void top_text_layer2_update_proc() {
       snprintf(s_top_text_buf2, sizeof(s_top_text_buf2), "%s", text);
     }
   } else {
-    // Other launch events should not have top text layers.
-    APP_LOG(APP_LOG_LEVEL_ERROR, "Not supposed to enter here!");
-    text = "";
+    text = "Walking Breaks";
 
    // Testing
     //text = "Break Accomplished";
@@ -289,7 +286,7 @@ static void window_load(Window *window) {
     s_top_text_font = fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD);
     //s_main_text_font = fonts_get_system_font(FONT_KEY_GOTHIC_28_BOLD);
     s_main_text_font = fonts_get_system_font(FONT_KEY_BITHAM_30_BLACK);
-    s_bottom_text_font = fonts_get_system_font(FONT_KEY_GOTHIC_28); 
+    s_bottom_text_font = fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD); 
 
     // First TextLayer.
     current_y += PBL_IF_ROUND_ELSE(25, 10);

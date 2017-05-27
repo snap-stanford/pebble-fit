@@ -74,9 +74,9 @@ static WakeupId prv_reschedule_wakeup_event(uint8_t wakeup_i, time_t wakeup_time
  * There are in total 4 wakeup events being scheduled.
  *  Cookie / Index         | Description
  *  0                      | Fallback wakeup: break_freq after the next Type 3 wakeup for the
- *                         | real_time group; daily_start_time of 1 day later for other groups. 
- *  1                      | Fallback wakeup: daily_start_time of 2 days later.
- *  2                      | Fallback wakeup: daily_start_time of 3 days later.
+ *                           real_time group; daily_start_time at 1 day later for other groups. 
+ *  1                      | Fallback wakeup: daily_start_time at 2 days later.
+ *  2                      | Fallback wakeup (special): next user-defined start time).
  *  3/LAUNCH_WAKEUP_PERIOD | Type 3 - Next periodic wakeup: rounded to the break_freq minutes. 
  *  4/LAUNCH_WAKEUP_ALERT  | Type 4 - Notification wakeup: 2 * break_len before Type 3 wakeup. 
  *  5/LAUNCH_WAKEUP_DAILY  | Type 5 - Daily/End-of-day wakeup: at the end time of the day. 
@@ -94,7 +94,8 @@ void wakeup_schedule_events() {
   // If end time is smaller than start time, treat it as overnight exercise...
   // Another alternative is to prevent this kind of input on Clay settings.
   time_t t_sod = time_start_of_today();
-  time_t t_start = t_sod + enamel_get_daily_start_time() + break_freq_seconds;
+  time_t t_user_start = t_sod + enamel_get_daily_start_time();
+  time_t t_start = t_user_start + break_freq_seconds;
   time_t t_end = t_sod + enamel_get_daily_end_time();
   if (t_end <= t_start) { t_end += SECONDS_PER_DAY; }
 
@@ -151,5 +152,10 @@ void wakeup_schedule_events() {
 
   // Schedule the fallback wakeup events
   prv_reschedule_wakeup_event(1, t_start + 2 * SECONDS_PER_DAY);
-  prv_reschedule_wakeup_event(2, t_start + 3 * SECONDS_PER_DAY);
+
+  if (e_launch_time > t_user_start) {
+    prv_reschedule_wakeup_event(2, t_user_start + SECONDS_PER_DAY);
+  } else {
+    prv_reschedule_wakeup_event(2, t_user_start);
+  }
 }
