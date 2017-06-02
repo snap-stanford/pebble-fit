@@ -12,7 +12,8 @@ collections=( events activities configs users groups messages references )
 HOST=ds111748.mlab.com:11748
 DB=heroku_0cbvznft
 username=user
-PASSWD=${DIR}/password.txt
+PASSWD_FILE=${DIR}/password.txt
+PASSWD=$(cat ${PASSWD_FILE})
 
 # Input arguments check.
 if [[ $# -gt 1 ]]; then
@@ -45,21 +46,47 @@ export_json() {
     
     out_file=${out_dir}/${output_name}/${collection}.json
     if [[ ${collection} == 'events' || ${collection} == 'activities' || \
-          ${collection} == 'configs' || ${collection} == 'messages' ]]; then
+          ${collection} == 'messages' ]]; then
       # Will only dump the data that has been uploaded within the specified range time.
       query="--query \"{\\\"created\\\":{\\\$gt:new Date(${ts_start}),\\\$lte:new Date(${ts_end})}}\""
+      cmd_final=${cmd}" -h ${HOST} -d ${DB} -u ${username} -c ${collection} \
+        -o ${out_file} ${query} < ${PASSWD_FILE}"
+
+      echo ${cmd_final}
+      eval ${cmd_final}
+ 
+    elif [[ ${collection} == 'configs' ]]; then
+      mongo_cmd='db.configs.aggregate([
+        { $sort: { created: 1 } }, 
+        { $group: {
+            _id: "$watch", 
+            id: {$last: "$_id"},
+            watch: {$last: "$watch"},
+            timeZone: {$last: "$timeZone"},
+            startTime: {$last: "$startTime"},
+            endTime: {$last: "$endTime"},
+            breakFreq: {$last: "$breakFreq"},
+            breakLen: {$last: "$breakLen"},
+            threshold: {$last: "$threshold"},
+            group: {$last: "$group"},
+            created: {$last: "$created"} 
+        }}]);'
+
+      ${cmd} ${MONGODB_URI} --eval "${mongo_cmd}" -u ${username} -p ${PASSWD} \
+        > ${out_dir}/${output_name}/${collection}.json
+
     else # groups, users and references collections
       # Will dump every user and group in the DB currently.
       #query="--query \"{\\\"configUpdatedAt\\\":{\\\$gt:new Date(${ts_start}),\\\$lte:new Date(${ts_end})}}\""
       query=""
-    fi
   
-    cmd_final=${cmd}" -h ${HOST} -d ${DB} -u ${username} -c ${collection} \
-      -o ${out_file} ${query} < ${PASSWD}"
+      cmd_final=${cmd}" -h ${HOST} -d ${DB} -u ${username} -c ${collection} \
+        -o ${out_file} ${query} < ${PASSWD_FILE}"
 
-    echo ${cmd_final}
-    eval ${cmd_final}
-
+      echo ${cmd_final}
+      eval ${cmd_final}
+      jj
+    fi
     # Change permission of the output files to read-only.
     chmod 444 ${out_file}
   done
