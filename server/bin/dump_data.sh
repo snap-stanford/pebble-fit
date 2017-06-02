@@ -12,6 +12,7 @@ collections=( events activities configs users groups messages references )
 HOST=ds111748.mlab.com:11748
 DB=heroku_0cbvznft
 username=user
+MONGODB_URI="$(cat ${DIR}/db_uri.txt)"
 PASSWD_FILE=${DIR}/password.txt
 PASSWD=$(cat ${PASSWD_FILE})
 
@@ -28,7 +29,7 @@ export_json() {
   ts_end=$2
   output_name=$3
 
-  # Choose the correct command.
+  # Choose the correct mongoexport command.
   hash mongoexport >/dev/null 2>&1
   if [[ $? -eq 0 ]]; then
     # Use the system installation of mongoexport.
@@ -40,6 +41,20 @@ export_json() {
     echo "Error: could not find mongoexport!"
     exit 1
   fi
+
+  # Choose the correct mongo command.
+  hash mongoexport >/dev/null 2>&1
+  if [[ $? -eq 0 ]]; then
+    # Use the system installation of mongo.
+    cmd_mongo="mongo"
+  elif [[ -x ${MONGODB_DIR}/mongo ]]; then 
+    # Use the local installation of mongo.
+    cmd_mongo="${MONGODB_DIR}/mongo"
+  else
+    echo "Error: could not find mongo!"
+    exit 1
+  fi
+
 
   for collection in "${collections[@]}"; do
     echo; echo "Try dumping database \"${DB}\", collection \"${collection}\" to ${out_dir}......"
@@ -72,8 +87,13 @@ export_json() {
             created: {$last: "$created"} 
         }}]);'
 
-      ${cmd} ${MONGODB_URI} --eval "${mongo_cmd}" -u ${username} -p ${PASSWD} \
+      ${cmd_mongo} ${MONGODB_URI} --eval "${mongo_cmd}" -u ${username} -p ${PASSWD} \
         > ${out_dir}/${output_name}/${collection}.json
+
+      # Clean up the format for backward compatibility of downstream analysis scripts.
+      python parse_configs_json.py "${out_dir}/${output_name}/${collection}.json" newfile.json
+      rm -f "${out_dir}/${output_name}/${collection}.json"
+      mv newfile.json "${out_dir}/${output_name}/${collection}.json"
 
     else # groups, users and references collections
       # Will dump every user and group in the DB currently.
@@ -85,14 +105,14 @@ export_json() {
 
       echo ${cmd_final}
       eval ${cmd_final}
-      jj
+      
     fi
     # Change permission of the output files to read-only.
-    chmod 444 ${out_file}
+    #chmod 444 ${out_file}
   done
 
   # Change permission of the output directory to read-only.
-  chmod 554 ${out_dir}/${output_name}
+  #chmod 554 ${out_dir}/${output_name}
 }
 
 # Dump the daliy data. This should be scheduled to run after midnight to dump the data
