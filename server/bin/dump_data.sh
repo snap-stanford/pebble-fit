@@ -91,7 +91,7 @@ export_json() {
         > ${out_dir}/${output_name}/${collection}.json
 
       # Clean up the format for backward compatibility of downstream analysis scripts.
-      python parse_configs_json.py "${out_dir}/${output_name}/${collection}.json" newfile.json
+      python ${DIR}/parse_configs_json.py "${out_dir}/${output_name}/${collection}.json" newfile.json
       rm -f "${out_dir}/${output_name}/${collection}.json"
       mv newfile.json "${out_dir}/${output_name}/${collection}.json"
 
