@@ -61,7 +61,7 @@ export_json() {
     
     out_file=${out_dir}/${output_name}/${collection}.json
     if [[ ${collection} == 'events' || ${collection} == 'activities' || \
-          ${collection} == 'messages' ]]; then
+          ${collection} == 'configs' || ${collection} == 'messages' ]]; then
       # Will only dump the data that has been uploaded within the specified range time.
       query="--query \"{\\\"created\\\":{\\\$gt:new Date(${ts_start}),\\\$lte:new Date(${ts_end})}}\""
       cmd_final=${cmd}" -h ${HOST} -d ${DB} -u ${username} -c ${collection} \
@@ -70,30 +70,30 @@ export_json() {
       echo ${cmd_final}
       eval ${cmd_final}
  
-    elif [[ ${collection} == 'configs' ]]; then
-      mongo_cmd='db.configs.aggregate([
-        { $sort: { created: 1 } }, 
-        { $group: {
-            _id: "$watch", 
-            id: {$last: "$_id"},
-            watch: {$last: "$watch"},
-            timeZone: {$last: "$timeZone"},
-            startTime: {$last: "$startTime"},
-            endTime: {$last: "$endTime"},
-            breakFreq: {$last: "$breakFreq"},
-            breakLen: {$last: "$breakLen"},
-            threshold: {$last: "$threshold"},
-            group: {$last: "$group"},
-            created: {$last: "$created"} 
-        }}]);'
+    #elif [[ ${collection} == 'configs' ]]; then
+    #  mongo_cmd='db.configs.aggregate([
+    #    { $sort: { created: 1 } }, 
+    #    { $group: {
+    #        _id: "$watch", 
+    #        id: {$last: "$_id"},
+    #        watch: {$last: "$watch"},
+    #        timeZone: {$last: "$timeZone"},
+    #        startTime: {$last: "$startTime"},
+    #        endTime: {$last: "$endTime"},
+    #        breakFreq: {$last: "$breakFreq"},
+    #        breakLen: {$last: "$breakLen"},
+    #        threshold: {$last: "$threshold"},
+    #        group: {$last: "$group"},
+    #        created: {$last: "$created"} 
+    #    }}]);'
 
-      ${cmd_mongo} ${MONGODB_URI} --eval "${mongo_cmd}" -u ${username} -p ${PASSWD} \
-        > ${out_dir}/${output_name}/${collection}.json
+    #  ${cmd_mongo} ${MONGODB_URI} --eval "${mongo_cmd}" -u ${username} -p ${PASSWD} \
+    #    > ${out_dir}/${output_name}/${collection}.json
 
-      # Clean up the format for backward compatibility of downstream analysis scripts.
-      python ${DIR}/parse_configs_json.py "${out_dir}/${output_name}/${collection}.json" newfile.json
-      rm -f "${out_dir}/${output_name}/${collection}.json"
-      mv newfile.json "${out_dir}/${output_name}/${collection}.json"
+    #  # Clean up the format for backward compatibility of downstream analysis scripts.
+    #  python ${DIR}/parse_configs_json.py "${out_dir}/${output_name}/${collection}.json" newfile.json
+    #  rm -f "${out_dir}/${output_name}/${collection}.json"
+    #  mv newfile.json "${out_dir}/${output_name}/${collection}.json"
 
     else # groups, users and references collections
       # Will dump every user and group in the DB currently.
