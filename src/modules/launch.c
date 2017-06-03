@@ -495,7 +495,8 @@ void update_config(void *context) {
   store_write_config_time(e_launch_time);
 
   // Reset the current progress to eliminate any inconsistency after config change.
-  //store_reset_curr_score(); // TODO: temporary turn off this feature.
+  // TODO: temporary turn off this feature.
+  //store_reset_curr_score();
 }
 
 /* Received message from the Pebble phone app (i.e. PebbleKit JS). 

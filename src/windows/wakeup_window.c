@@ -276,12 +276,9 @@ static void window_load(Window *window) {
 
     int current_y = bounds.origin.y;
 
-    int center = PBL_IF_ROUND_ELSE(bounds.size.h / 2 - 20, bounds.size.h / 2 - 20);
-
+    int center = bounds.size.h / 2 - 20;
 
     GRect top_bounds1, top_bounds2, main_bounds, bottom_bounds;
-    APP_LOG(APP_LOG_LEVEL_ERROR, "x = %d; y = %d; w = %d; h = %d", 
-        bounds.origin.x, bounds.origin.y, bounds.size.w, bounds.size.h);
 
     s_top_text_font = fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD);
     //s_main_text_font = fonts_get_system_font(FONT_KEY_GOTHIC_28_BOLD);

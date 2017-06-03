@@ -265,7 +265,7 @@ bool steps_upload_steps() {
   //                        server_recorded_time < e_launch_time - 7 * SECONDS_PER_DAY)?
   //                       e_launch_time - 7 * SECONDS_PER_DAY : server_recorded_time;
   //time_t t_last_upload = store_read_upload_time();
-  APP_LOG(APP_LOG_LEVEL_ERROR, "t_last_upload = %u", (unsigned) t_last_upload);
+  //APP_LOG(APP_LOG_LEVEL_ERROR, "t_last_upload = %u", (unsigned) t_last_upload);
   if (t_last_upload < e_launch_time - 7 * SECONDS_PER_DAY) {
     t_last_upload = e_launch_time - 7 * SECONDS_PER_DAY;
   }
