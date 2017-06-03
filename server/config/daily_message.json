@@ -1,7 +1,0 @@
-{
-  "group": "daily_message",
-  "break_len": "5", 
-  "break_freq": "60",
-  "display_duration": "40",
-  "message_summary": "default_summary"
-}
