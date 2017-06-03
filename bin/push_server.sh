@@ -1,1 +1,2 @@
-git subtree push --prefix server heroku master
+# Deprecated.
+#git subtree push --prefix server heroku master
