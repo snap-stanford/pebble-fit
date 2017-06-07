@@ -139,6 +139,8 @@ void wakeup_schedule_events() {
 
     // Schedule the fallback wakeup events
     prv_reschedule_wakeup_event(0, t_wakeup + break_freq_seconds);
+    prv_reschedule_wakeup_event(1, t_wakeup + 2 * break_freq_seconds);
+    prv_reschedule_wakeup_event(2, t_wakeup + 3 * break_freq_seconds);
   } else {
     if (strncmp(enamel_get_group(), "daily_message", strlen("daily_message")) == 1) {
       // Schedule end-of-day wakeup only
@@ -148,14 +150,14 @@ void wakeup_schedule_events() {
 
     // Schedule the fallback wakeup events
     prv_reschedule_wakeup_event(0, t_start + SECONDS_PER_DAY);
+    prv_reschedule_wakeup_event(1, t_start + 2 * SECONDS_PER_DAY);
+    prv_reschedule_wakeup_event(2, t_start + 3 * SECONDS_PER_DAY);
   } // else the group must be "passive_tracking, so no normal wakeup scheduled.
 
-  // Schedule the fallback wakeup events
-  prv_reschedule_wakeup_event(1, t_start + 2 * SECONDS_PER_DAY);
-
+  // Schedule the silent wakeup.
   if (e_launch_time > t_user_start) {
-    prv_reschedule_wakeup_event(2, t_user_start + SECONDS_PER_DAY);
+    prv_reschedule_wakeup_event(LAUNCH_WAKEUP_SILENT, t_user_start + SECONDS_PER_DAY);
   } else {
-    prv_reschedule_wakeup_event(2, t_user_start);
+    prv_reschedule_wakeup_event(LAUNCH_WAKEUP_SILENT, t_user_start);
   }
 }

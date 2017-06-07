@@ -316,6 +316,8 @@ void launch_wakeup_handler(WakeupId wakeup_id, int32_t wakeup_cookie) {
         prv_wakeup_vibrate(true);
         s_wakeup_window = wakeup_window_push();
         break;
+      case LAUNCH_WAKEUP_SILENT:
+        APP_LOG(APP_LOG_LEVEL_INFO, "Silent wakeup.\n");
       default:
         APP_LOG(APP_LOG_LEVEL_ERROR, "\nShould NOT reach here!\n");
     }
@@ -324,7 +326,6 @@ void launch_wakeup_handler(WakeupId wakeup_id, int32_t wakeup_cookie) {
     //prv_wakeup_vibrate(false);
     //prv_wakeup_vibrate(true);
   } else {
-    e_launch_reason = -1 * wakeup_cookie; // To distinguish from other normal launch types.
     APP_LOG(APP_LOG_LEVEL_INFO, "Fallback wakeup! cookie=%d", (int)wakeup_cookie);
   }
   

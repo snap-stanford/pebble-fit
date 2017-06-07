@@ -8,5 +8,3 @@ pebble-nts/build/
 *.bak
 *.sw*
 *.swp
-*password.txt
-*db_uri.txt
