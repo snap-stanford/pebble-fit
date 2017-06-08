@@ -267,6 +267,9 @@ void launch_wakeup_handler(WakeupId wakeup_id, int32_t wakeup_cookie) {
 #if DEBUG
   APP_LOG(APP_LOG_LEVEL_INFO, "DEBUG: wakeup=%d cookie=%d", (int)wakeup_id, (int)wakeup_cookie);
 #endif
+
+  // Always re-schedule wakeup events
+  wakeup_schedule_events();
   
   // wakeup_cookie is the index associated to the wakeup event. It is also the wakeup type.
   if (wakeup_cookie >= LAUNCH_WAKEUP_PERIOD) {
@@ -311,7 +314,6 @@ void launch_wakeup_handler(WakeupId wakeup_id, int32_t wakeup_cookie) {
         prv_wakeup_vibrate(false);
         break;
       case LAUNCH_WAKEUP_PERIOD:
-      case LAUNCH_WAKEUP_DAILY:
         // For now, even for period-wakeup and goal is met, we still push window.
         prv_wakeup_vibrate(true);
         s_wakeup_window = wakeup_window_push();
@@ -327,13 +329,11 @@ void launch_wakeup_handler(WakeupId wakeup_id, int32_t wakeup_cookie) {
     //prv_wakeup_vibrate(true);
   } else {
     APP_LOG(APP_LOG_LEVEL_INFO, "Fallback wakeup! cookie=%d", (int)wakeup_cookie);
+    e_launch_reason = LAUNCH_WAKEUP_FALLBACK;
   }
   
   // Start timer
   tick_second_subscribe(true);
-
-  // Always re-schedule wakeup events
-  wakeup_schedule_events();
 
   // FIXME: should call init_callback() to upload data? but how should we prevent interupting
   // the current data-upload process. Or just store persistently and resend later.

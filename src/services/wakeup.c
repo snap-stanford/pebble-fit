@@ -83,10 +83,10 @@ static WakeupId prv_reschedule_wakeup_event(uint8_t wakeup_i, time_t wakeup_time
  */
 //void wakeup_schedule_events(int inactive_mins) {
 void wakeup_schedule_events() {
-  APP_LOG(APP_LOG_LEVEL_INFO, "INFO: Cancelling all wakeup events! Must be rescheduled.");
+  //APP_LOG(APP_LOG_LEVEL_INFO, "INFO: Cancelling all wakeup events! Must be rescheduled.");
   wakeup_cancel_all();
   
-  time_t t_notify, t_wakeup;
+  time_t t_notify, t_wakeup, t_fallback;
   time_t break_freq_seconds = (time_t)enamel_get_break_freq() * SECONDS_PER_MINUTE;
   time_t break_len_seconds = (time_t)enamel_get_break_len() * SECONDS_PER_MINUTE;
 
@@ -99,13 +99,26 @@ void wakeup_schedule_events() {
   time_t t_end = t_sod + enamel_get_daily_end_time();
   if (t_end <= t_start) { t_end += SECONDS_PER_DAY; }
 
+  // Schedule the fallback wakeup (7-8).
+  prv_reschedule_wakeup_event(6, t_start + 2 * SECONDS_PER_DAY);
+  prv_reschedule_wakeup_event(7, t_start + 3 * SECONDS_PER_DAY);
+
+  // Schedule the silent wakeup.
+  if (e_launch_time > t_user_start) {
+    prv_reschedule_wakeup_event(LAUNCH_WAKEUP_SILENT, t_user_start + SECONDS_PER_DAY);
+  } else {
+    prv_reschedule_wakeup_event(LAUNCH_WAKEUP_SILENT, t_user_start);
+  }
+
   // Debug messages
+#if DEBUG
   char curr_buf[12], start_buf[12], end_buf[12];
   strftime(curr_buf, sizeof(curr_buf),"%H:%M:%S", localtime(&e_launch_time));
   strftime(start_buf, sizeof(start_buf),"%H:%M:%S", localtime(&t_start));
   strftime(end_buf, sizeof(end_buf), "%H:%M:%S", localtime(&t_end));
   APP_LOG(APP_LOG_LEVEL_INFO,"group=%s, curr=%s, start=%s, end=%s", 
     enamel_get_group(), curr_buf, start_buf, end_buf);
+#endif
 
   if (strncmp(enamel_get_group(), "real_time", strlen("real_time")) == 0) {
     if (enamel_get_dynamic_wakeup() == true) { // TODO: dynamic wakeup is deprecated.
@@ -137,27 +150,35 @@ void wakeup_schedule_events() {
     t_notify = t_wakeup - 2 * break_len_seconds;
     prv_reschedule_wakeup_event(LAUNCH_WAKEUP_ALERT, t_notify);
 
-    // Schedule the fallback wakeup events
-    prv_reschedule_wakeup_event(0, t_wakeup + break_freq_seconds);
-    prv_reschedule_wakeup_event(1, t_wakeup + 2 * break_freq_seconds);
-    prv_reschedule_wakeup_event(2, t_wakeup + 3 * break_freq_seconds);
+    // Schedule the fallback wakeup (0-2).
+    t_fallback = t_wakeup + break_freq_seconds;
+    if (t_fallback > t_end && t_fallback < t_start + SECONDS_PER_DAY) { 
+      t_fallback = t_start + SECONDS_PER_DAY;
+    }
+    prv_reschedule_wakeup_event(0, t_fallback);
+
+APP_LOG(APP_LOG_LEVEL_ERROR, "%u", (unsigned) t_fallback); 
+    t_fallback += 2 * break_freq_seconds;
+APP_LOG(APP_LOG_LEVEL_ERROR, "%u", (unsigned) t_fallback); 
+    if (t_fallback > t_end && t_fallback < t_start + SECONDS_PER_DAY) { 
+      t_fallback = t_start + SECONDS_PER_DAY;
+    }
+    prv_reschedule_wakeup_event(1, t_fallback);
+
+    t_fallback += 4 * break_freq_seconds;
+    if (t_fallback > t_end && t_fallback < t_start + SECONDS_PER_DAY) { 
+      t_fallback = t_start + SECONDS_PER_DAY;
+    }
+    prv_reschedule_wakeup_event(2, t_fallback);
   } else {
     if (strncmp(enamel_get_group(), "daily_message", strlen("daily_message")) == 1) {
       // Schedule end-of-day wakeup only
-      // TODO: Should we have this for real_time group as well?
-      prv_reschedule_wakeup_event(LAUNCH_WAKEUP_DAILY, t_end);
+      prv_reschedule_wakeup_event(LAUNCH_WAKEUP_PERIOD, t_end);
     }
 
-    // Schedule the fallback wakeup events
-    prv_reschedule_wakeup_event(0, t_start + SECONDS_PER_DAY);
-    prv_reschedule_wakeup_event(1, t_start + 2 * SECONDS_PER_DAY);
-    prv_reschedule_wakeup_event(2, t_start + 3 * SECONDS_PER_DAY);
+    // Schedule the fallback wakeup.
+    prv_reschedule_wakeup_event(0, t_end + SECONDS_PER_DAY);
+    prv_reschedule_wakeup_event(1, t_end + 2 * SECONDS_PER_DAY);
+    prv_reschedule_wakeup_event(2, t_end + 3 * SECONDS_PER_DAY);
   } // else the group must be "passive_tracking, so no normal wakeup scheduled.
-
-  // Schedule the silent wakeup.
-  if (e_launch_time > t_user_start) {
-    prv_reschedule_wakeup_event(LAUNCH_WAKEUP_SILENT, t_user_start + SECONDS_PER_DAY);
-  } else {
-    prv_reschedule_wakeup_event(LAUNCH_WAKEUP_SILENT, t_user_start);
-  }
 }

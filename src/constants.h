@@ -16,8 +16,8 @@
 /* Minimum number of minutes before the next wakeup event. */
 #define MIN_SLEEP_MINUTES             10
 
-/* Maximum number of wakeup events allowed for an App. */
-#define NUM_USED_WAKEUP               7
+/* Maximum number of wakeup events allowed for an App (id 0-7). */
+#define NUM_USED_WAKEUP               8
 #define NUM_TOTAL_WAKEUP              8
 
 /* Launch reasons (3 bits - up to 7. Change store.c if this is modified). */
@@ -26,8 +26,8 @@
 #define LAUNCH_PHONE                  2
 #define LAUNCH_WAKEUP_PERIOD          3
 #define LAUNCH_WAKEUP_ALERT           4
-#define LAUNCH_WAKEUP_DAILY           5
-#define LAUNCH_WAKEUP_SILENT          6
+#define LAUNCH_WAKEUP_SILENT          5
+#define LAUNCH_WAKEUP_FALLBACK        6
 
 /* Exit reasons (2 bits - up to 3. Change store.c if this is modified). */
 #define EXIT_OTHER                    0
