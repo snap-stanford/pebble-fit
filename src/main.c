@@ -33,9 +33,9 @@ static void init(void) {
   //app_message_register_inbox_received(e_js_ready_handler);
   //app_message_set_context(callback);
   
-  #if DEBUG
+#if DEBUG
   APP_LOG(APP_LOG_LEVEL_ERROR, "Outbox sizes: %d, %u", APP_MESSAGE_OUTBOX_SIZE_MINIMUM, (unsigned)app_message_outbox_size_maximum());
-  #endif
+#endif
   // Use a larger buffer to be able to send steps data in batch.
   //events_app_message_request_outbox_size(APP_MESSAGE_OUTBOX_SIZE_MINIMUM);
   events_app_message_request_outbox_size(4000);
@@ -53,7 +53,6 @@ static void init(void) {
 }
 
 static void deinit(void) {
-  // FIXME: if app remains active, steps data keep sending to the server?
   s_exit_time = time(NULL);
   if (enamel_get_activate()) {
     if (e_server_ready && !e_force_to_save) {

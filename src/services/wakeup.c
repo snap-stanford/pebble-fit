@@ -118,67 +118,65 @@ void wakeup_schedule_events() {
   strftime(end_buf, sizeof(end_buf), "%H:%M:%S", localtime(&t_end));
   APP_LOG(APP_LOG_LEVEL_INFO,"group=%s, curr=%s, start=%s, end=%s", 
     enamel_get_group(), curr_buf, start_buf, end_buf);
+
+  // Dynamic wakeup is deprecated.
+  if (enamel_get_dynamic_wakeup() == true) {
+    APP_LOG(APP_LOG_LEVEL_ERROR, "Dynamic wakeup is deprecated!");
+    //if (enamel_get_break_freq() - inactive_mins <= MIN_SLEEP_MINUTES) {
+    //  t_wakeup = e_launch_time + MIN_SLEEP_MINUTES * SECONDS_PER_MINUTE;
+    //} else {
+    //  t_wakeup = e_launch_time + (enamel_get_break_freq()-inactive_mins) * SECONDS_PER_MINUTE;
+    //}
+  } 
 #endif
 
+  // Compute the next period-wakeup (i.e. break_freq minutes later). Rounding up the result. 
+  // Note: use the current timestamp instead of the launch timestamp, since the launch 
+  // timestamp might be serveral minutes ago if the app wakes up while the app is on (i.e. 
+  // manually launched by the user).
+  t_wakeup = (time(NULL)+break_freq_seconds) / break_freq_seconds * break_freq_seconds;
+
+  // Boundary conditions checking
+  if (t_wakeup < t_start) {
+    t_wakeup = t_start;
+  } else if (t_wakeup > t_end) {
+    t_wakeup = t_start + SECONDS_PER_DAY;
+  }
+
   if (strncmp(enamel_get_group(), "real_time", strlen("real_time")) == 0) {
-    if (enamel_get_dynamic_wakeup() == true) { // TODO: dynamic wakeup is deprecated.
-      APP_LOG(APP_LOG_LEVEL_ERROR, "Dynamic wakeup is deprecated!");
-      //if (enamel_get_break_freq() - inactive_mins <= MIN_SLEEP_MINUTES) {
-      //  t_wakeup = e_launch_time + MIN_SLEEP_MINUTES * SECONDS_PER_MINUTE;
-      //} else {
-      //  t_wakeup = e_launch_time + (enamel_get_break_freq()-inactive_mins) * SECONDS_PER_MINUTE;
-      //}
-    } 
-
-    // Compute the next period-wakeup (i.e. break_freq minutes later). Rounding up the result. 
-    // Note: use the current timestamp instead of the launch timestamp, since the launch 
-    // timestamp might be serveral minutes ago if the app wakes up while the app is on (i.e. 
-    // manually launched by the user).
-    t_wakeup = (time(NULL)+break_freq_seconds) / break_freq_seconds * break_freq_seconds;
-
-    // Boundary conditions checking
-    if (t_wakeup < t_start) {
-      t_wakeup = t_start;
-    } else if (t_wakeup > t_end) {
-      t_wakeup = t_start + SECONDS_PER_DAY;
-    }
-
     // Schedule periodic wakeup
     prv_reschedule_wakeup_event(LAUNCH_WAKEUP_PERIOD, t_wakeup);
     
     // Schedule notification wakeup
     t_notify = t_wakeup - 2 * break_len_seconds;
     prv_reschedule_wakeup_event(LAUNCH_WAKEUP_ALERT, t_notify);
-
-    // Schedule the fallback wakeup (0-2).
-    t_fallback = t_wakeup + break_freq_seconds;
-    if (t_fallback > t_end && t_fallback < t_start + SECONDS_PER_DAY) { 
-      t_fallback = t_start + SECONDS_PER_DAY;
-    }
-    prv_reschedule_wakeup_event(0, t_fallback);
-
-APP_LOG(APP_LOG_LEVEL_ERROR, "%u", (unsigned) t_fallback); 
-    t_fallback += 2 * break_freq_seconds;
-APP_LOG(APP_LOG_LEVEL_ERROR, "%u", (unsigned) t_fallback); 
-    if (t_fallback > t_end && t_fallback < t_start + SECONDS_PER_DAY) { 
-      t_fallback = t_start + SECONDS_PER_DAY;
-    }
-    prv_reschedule_wakeup_event(1, t_fallback);
-
-    t_fallback += 4 * break_freq_seconds;
-    if (t_fallback > t_end && t_fallback < t_start + SECONDS_PER_DAY) { 
-      t_fallback = t_start + SECONDS_PER_DAY;
-    }
-    prv_reschedule_wakeup_event(2, t_fallback);
   } else {
-    if (strncmp(enamel_get_group(), "daily_message", strlen("daily_message")) == 1) {
+    if (strncmp(enamel_get_group(), "daily_message", strlen("daily_message")) == 0) {
       // Schedule end-of-day wakeup only
       prv_reschedule_wakeup_event(LAUNCH_WAKEUP_PERIOD, t_end);
     }
 
-    // Schedule the fallback wakeup.
-    prv_reschedule_wakeup_event(0, t_end + SECONDS_PER_DAY);
-    prv_reschedule_wakeup_event(1, t_end + 2 * SECONDS_PER_DAY);
-    prv_reschedule_wakeup_event(2, t_end + 3 * SECONDS_PER_DAY);
-  } // else the group must be "passive_tracking, so no normal wakeup scheduled.
+    // Schedule silent wakeup for daily_message and passive_tracking groups.
+    prv_reschedule_wakeup_event(LAUNCH_WAKEUP_SILENT, t_wakeup);
+  }
+
+  // Schedule the fallback wakeup (0-2).
+  t_fallback = t_wakeup + break_freq_seconds;
+  if (t_fallback > t_end && t_fallback < t_start + SECONDS_PER_DAY) { 
+    t_fallback = t_start + SECONDS_PER_DAY;
+  }
+  prv_reschedule_wakeup_event(0, t_fallback);
+
+  t_fallback += 2 * break_freq_seconds;
+  if (t_fallback > t_end && t_fallback < t_start + SECONDS_PER_DAY) { 
+    t_fallback = t_start + SECONDS_PER_DAY;
+  }
+  prv_reschedule_wakeup_event(1, t_fallback);
+
+  t_fallback += 4 * break_freq_seconds;
+  if (t_fallback > t_end && t_fallback < t_start + SECONDS_PER_DAY) { 
+    t_fallback = t_start + SECONDS_PER_DAY;
+  }
+  prv_reschedule_wakeup_event(2, t_fallback);
+
 }

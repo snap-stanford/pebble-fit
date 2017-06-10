@@ -271,8 +271,9 @@ void launch_wakeup_handler(WakeupId wakeup_id, int32_t wakeup_cookie) {
   // Always re-schedule wakeup events
   wakeup_schedule_events();
   
-  // wakeup_cookie is the index associated to the wakeup event. It is also the wakeup type.
-  if (wakeup_cookie >= LAUNCH_WAKEUP_PERIOD) {
+  // wakeup_cookie is the index associated to the wakeup event. It is also the wakeup type for
+  // the normal wakeup events.
+  if (wakeup_cookie >= LAUNCH_WAKEUP_PERIOD && wakeup_cookie <= LAUNCH_WAKEUP_SILENT) {
     e_launch_reason = wakeup_cookie;
 
     // Re-init communication and upload data. This is not called for the standard wakeup,
@@ -320,11 +321,13 @@ void launch_wakeup_handler(WakeupId wakeup_id, int32_t wakeup_cookie) {
         break;
       case LAUNCH_WAKEUP_SILENT:
         APP_LOG(APP_LOG_LEVEL_INFO, "Silent wakeup.\n");
+        break;
       default:
         APP_LOG(APP_LOG_LEVEL_ERROR, "\nShould NOT reach here!\n");
     }
 
-    // FIXME: Vibrate after the window is displayed. Force every wakeup to vibrate to get attention?
+    // FIXME: Vibrate after the window is displayed. 
+    // Force every wakeup to vibrate to get attention?
     //prv_wakeup_vibrate(false);
     //prv_wakeup_vibrate(true);
   } else {

@@ -202,7 +202,8 @@ void steps_update() {
       // TODO: We might only want to check steps at period-wakeup in final version.
       // FIXME: could optimiza by moving to the front of this function to save time.
       APP_LOG(APP_LOG_LEVEL_ERROR, "%d", e_launch_reason);
-      if (e_launch_reason == LAUNCH_WAKEUP_PERIOD) {
+      if (e_launch_reason == LAUNCH_WAKEUP_PERIOD || (e_launch_reason == LAUNCH_WAKEUP_SILENT &&
+          strncmp(enamel_get_group(), "real_time", strlen("real_time")) != 0)) {
         APP_LOG(APP_LOG_LEVEL_ERROR, "ABSZ store_increment_curr_score");
         store_increment_curr_score();
       }
