@@ -61,11 +61,8 @@ Pebble.addEventListener('appmessage', function (dict) {
 
       // Do not send the data to the server if it is empty?
       if (!string) {
-        console.log("=================================");
         // TODO: right now server handle this case by re-request data one minute earlier.
-          // Should we just not sending the data to server in this case and wait for next time?
-        console.log("Data is empty. ");
-        console.log("=================================");
+        // Should we just not sending the data to server in this case and wait for next time?
         return;
       }
 
@@ -88,10 +85,6 @@ Pebble.addEventListener('appmessage', function (dict) {
           } else {
             settings.step_upload_time = parseInt(settings.step_upload_time, 10);
           }
-
-          //console.log("---------------------------------------");
-          //console.log(JSON.stringify(settings));
-          //console.log("---------------------------------------");
 
           // Flag for Enamel to save the settings and flag for data uploading to proceed.
           //settings.first_config = 0;
@@ -156,7 +149,7 @@ Pebble.addEventListener('showConfiguration', function(e) {
  * Override Clay settings Save event. Send information to both the server and the watch.
  */
 Pebble.addEventListener('webviewclosed', function(e) {
-  log.info("webviewclosed.");
+  //log.info("webviewclosed.");
   if (!e) {
     log.debug("Do not obtain Clay settings properly.");
   }
@@ -320,21 +313,21 @@ function parseServerConfig (settings) {
     if (key === 'messages') {
       log.info("SHOULD NOT HAVE KEY messages!");
     } else if (key === 'random_messages') {
-      log.info(JSON.stringify(settings[key]));
+      //log.info(JSON.stringify(settings[key]));
       //for (var id in settings[key]) {
       var randomMessages = settings[key];
       for (var i = 0; i < randomMessages.length; i++) {
         var messageID = 'random_message_' + i;
         var messageContent = randomMessages[i].id + ":" + randomMessages[i].content;
-        log.info(messageID);
-        log.info(messageContent);
+        //log.info(messageID);
+        //log.info(messageContent);
         settings[messageID] = messageContent;
         clay.setSettings(messageID, messageContent);
       }
       delete settings[key];
       res = true;
     } else {
-      log.info(key + ":" + settings[key]);
+      //log.info(key + ":" + settings[key]);
       clay.setSettings(key, settings[key]);
       if (key !== 'step_upload_time') {
         res = true;

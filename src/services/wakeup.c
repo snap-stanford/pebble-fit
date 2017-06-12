@@ -157,7 +157,9 @@ void wakeup_schedule_events() {
     }
 
     // Schedule silent wakeup for daily_message and passive_tracking groups.
-    prv_reschedule_wakeup_event(LAUNCH_WAKEUP_SILENT, t_wakeup);
+    if (t_wakeup != t_end) {
+      prv_reschedule_wakeup_event(LAUNCH_WAKEUP_SILENT, t_wakeup);
+    }
   }
 
   // Schedule the fallback wakeup (0-2).
