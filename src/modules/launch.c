@@ -9,7 +9,7 @@ bool e_waiting_launchexit_ack;
 bool e_force_to_save;
 
 // Display windows.
-static Window *s_dialog_window = NULL; 
+static Window *s_dialog_window = NULL;
 static Window *s_wakeup_window = NULL;
 
 // Communication.
@@ -34,6 +34,16 @@ static void prv_launch_data_write(DictionaryIterator * out) {
   dict_write_uint8(out, AppKeyScoreDiff, s_score_diff);
   dict_write_uint8(out, AppKeyBreakCount, s_br);
   dict_write_cstring(out, AppKeyMessageID, s_msg_id);
+
+  dict_write_cstring(out, MESSAGE_KEY_time_zone, enamel_get_time_zone());
+  dict_write_uint8(out, MESSAGE_KEY_daily_start_time, enamel_get_daily_start_time());
+  dict_write_uint8(out, MESSAGE_KEY_daily_end_time, enamel_get_daily_end_time());
+  dict_write_uint8(out, MESSAGE_KEY_break_freq, enamel_get_break_freq());
+  dict_write_uint8(out, MESSAGE_KEY_break_len, enamel_get_break_len());
+  dict_write_uint8(out, MESSAGE_KEY_step_threshold, enamel_get_step_threshold());
+  dict_write_cstring(out, MESSAGE_KEY_group, enamel_get_group());
+  int vibrate = enamel_get_vibrate();
+  dict_write_int(out, MESSAGE_KEY_vibrate, &vibrate, sizeof(int), true);
 }
 /* Add exit reason and date to out dict. */
 static void prv_exit_data_write(DictionaryIterator * out) {
@@ -75,7 +85,7 @@ void launch_send_exit_notification(time_t time) {
  */
 void launch_resend(time_t t_launch, time_t t_exit, char *msg_id, uint8_t sd,
                    uint8_t br, uint8_t lr, uint8_t er) {
-  // The current launch record has been uploaded and the current exit reason has 
+  // The current launch record has been uploaded and the current exit reason has
   // not yet been collected, so it is safe to modify these two varaibles here.
   s_t_launch = t_launch;
   s_t_exit = t_exit;
@@ -112,7 +122,7 @@ void launch_set_random_message() {
   // Seperate the message ID from the message content.
   for (msgSize = 0; msg_ptr[msgSize] != ':'; msgSize++) {}
   s_random_message_buf[msgSize] = '\0';
-  if (msgSize != 4) { 
+  if (msgSize != 4) {
     APP_LOG(APP_LOG_LEVEL_ERROR, "msgID should be 4 characters.");
   }
 
@@ -138,7 +148,7 @@ void launch_set_random_message() {
     //                   x - current score > reference score.
     //                   y - current score < reference score.
     //                   z - current score = reference score.
-  
+
     // Compare with the reference score.
     switch (mode) {
       case 'u':
@@ -156,7 +166,7 @@ void launch_set_random_message() {
         APP_LOG(APP_LOG_LEVEL_ERROR, "Unknown outcome message type %d.", s_msg_id[1]);
         return;
     }
-  
+
     // Fetch the proper message. Loop starts at index 5 assuming msgID is 4-char long and
     // ':' is used as delimiter betwee msgID and the actual message content.
     // Add special encoding at the end of msgID (a/b/c) to indicate the message selection.
@@ -188,7 +198,7 @@ void launch_set_random_message() {
       score_diff = -1 * score_diff;
     }
     s_score_diff = (uint8_t)(score_diff & 0xF);
-  
+
     if (mode == 'u' || mode == 'a') {
       s_random_message = s_random_message_buf + start;
     } else {
@@ -202,17 +212,17 @@ void launch_set_random_message() {
     APP_LOG(APP_LOG_LEVEL_ERROR, "Random msgID: %s", s_msg_id);
     APP_LOG(APP_LOG_LEVEL_ERROR, "Random msg: %s", s_random_message);
   #endif
-} 
+}
 
 /**
- * Return the content of the random message previouly read from the persistent memory. 
+ * Return the content of the random message previouly read from the persistent memory.
  */
 const char * launch_get_random_message() {
   return s_random_message;
 }
 
 /**
- * Return the ID of the random message previouly read from the persistent memory. 
+ * Return the ID of the random message previouly read from the persistent memory.
  */
 const char * launch_get_random_message_id() {
   if (s_msg_id) {
@@ -223,7 +233,7 @@ const char * launch_get_random_message_id() {
 }
 
 /**
- * Return the score different (only applicable for certain outcome messages). 
+ * Return the score different (only applicable for certain outcome messages).
  */
 uint8_t launch_get_score_diff() {
   return s_score_diff;
@@ -244,7 +254,7 @@ static void prv_wakeup_vibrate(bool force) {
       case 3: vibes_double_pulse();     break;
       case 4: {
         // Customized vibration pattern.
-        static const uint32_t const five_pulse[] = 
+        static const uint32_t const five_pulse[] =
           {200, 100, 200, 100, 200, 100, 200, 100, 200}; // Five pulses
         VibePattern pat = {
           .durations = five_pulse,
@@ -270,7 +280,7 @@ void launch_wakeup_handler(WakeupId wakeup_id, int32_t wakeup_cookie) {
 
   // Always re-schedule wakeup events
   wakeup_schedule_events();
-  
+
   // wakeup_cookie is the index associated to the wakeup event. It is also the wakeup type for
   // the normal wakeup events.
   if (wakeup_cookie >= LAUNCH_WAKEUP_PERIOD && wakeup_cookie <= LAUNCH_WAKEUP_SILENT) {
@@ -284,7 +294,7 @@ void launch_wakeup_handler(WakeupId wakeup_id, int32_t wakeup_cookie) {
       s_init_stage = 1;
     }
 
-    // Calculate the current period steps info, and then set the message ID to be pass/fail. 
+    // Calculate the current period steps info, and then set the message ID to be pass/fail.
     // This will be overwritten by the true random message ID if this is a LAUNCH_WAKEUP_ALERT.
     steps_update();
     if (steps_get_pass()) {
@@ -292,7 +302,7 @@ void launch_wakeup_handler(WakeupId wakeup_id, int32_t wakeup_cookie) {
     } else {
       s_msg_id = "fail";
     }
-  
+
     // This could happen if we receive wakeup event while the app has been on the foreground.
     if (s_wakeup_window) {
       window_stack_remove(s_wakeup_window, false);
@@ -304,7 +314,7 @@ void launch_wakeup_handler(WakeupId wakeup_id, int32_t wakeup_cookie) {
     switch (e_launch_reason) {
       case LAUNCH_WAKEUP_ALERT:
         // Get a random message from the persistent storage. This must happen before
-        // wakeup_window_push() and the first call to init_callback. 
+        // wakeup_window_push() and the first call to init_callback.
         //APP_LOG(APP_LOG_LEVEL_ERROR, "Make sure this happens before init_callback()!");
         if (!steps_get_pass()) { // Only push the window if step goal is not met.
           launch_set_random_message();
@@ -326,7 +336,7 @@ void launch_wakeup_handler(WakeupId wakeup_id, int32_t wakeup_cookie) {
         APP_LOG(APP_LOG_LEVEL_ERROR, "\nShould NOT reach here!\n");
     }
 
-    // FIXME: Vibrate after the window is displayed. 
+    // FIXME: Vibrate after the window is displayed.
     // Force every wakeup to vibrate to get attention?
     //prv_wakeup_vibrate(false);
     //prv_wakeup_vibrate(true);
@@ -334,7 +344,7 @@ void launch_wakeup_handler(WakeupId wakeup_id, int32_t wakeup_cookie) {
     APP_LOG(APP_LOG_LEVEL_INFO, "Fallback wakeup! cookie=%d", (int)wakeup_cookie);
     e_launch_reason = LAUNCH_WAKEUP_FALLBACK;
   }
-  
+
   // Start timer
   tick_second_subscribe(true);
 
@@ -346,7 +356,7 @@ void launch_wakeup_handler(WakeupId wakeup_id, int32_t wakeup_cookie) {
 }
 
 /**
- * Wrapper for launch_wakeup_handler. 
+ * Wrapper for launch_wakeup_handler.
  * Force to save the current launch event to persistent storage.
  */
 void launch_wakeup_handler_wrapper(WakeupId wakeup_id, int32_t wakeup_cookie) {
@@ -355,8 +365,8 @@ void launch_wakeup_handler_wrapper(WakeupId wakeup_id, int32_t wakeup_cookie) {
   launch_wakeup_handler(wakeup_id, wakeup_cookie);
 }
 
-/** 
- * Handle launch events. 
+/**
+ * Handle launch events.
  * Push a window depends on whether this App is activated or not.
  * Return the newly created window.
  */
@@ -370,15 +380,15 @@ void launch_handler(bool activate) {
     bool will_timeout = false;
 
     // Reset the score to 0 at the first launch of the day.
-    //   Previosuly: reset break count to 0 if it is the first launch in the day (since we will 
+    //   Previosuly: reset break count to 0 if it is the first launch in the day (since we will
     //   re-calculate the steps upon the first wakeup event, it is safe to reset multiple times)
     //   time_t t_start = time_start_of_today() + enamel_get_daily_start_time();
-         //if (e_launch_time < t_start + SECONDS_PER_HOUR + 5 * SECONDS_PER_MINUTE) { 
-    if (store_read_curr_score_time() < 
-        time_start_of_today() + (time_t)enamel_get_daily_start_time()) { 
+         //if (e_launch_time < t_start + SECONDS_PER_HOUR + 5 * SECONDS_PER_MINUTE) {
+    if (store_read_curr_score_time() <
+        time_start_of_today() + (time_t)enamel_get_daily_start_time()) {
       store_reset_curr_score();
     }
-    
+
     int lr = launch_reason();
     if (lr != APP_LAUNCH_WAKEUP) {
       steps_update();
@@ -387,7 +397,7 @@ void launch_handler(bool activate) {
       } else {
         s_msg_id = "fail";
       }
- 
+
       // Calculate the maximum possible score (used for outcome and summary message).
       store_set_possible_score();
 
@@ -395,13 +405,13 @@ void launch_handler(bool activate) {
         case APP_LAUNCH_USER: // When launched via the launch menu on the watch.
           e_launch_reason = LAUNCH_USER;
           break;
-        case APP_LAUNCH_PHONE: // When open the App's settings page or after installation 
+        case APP_LAUNCH_PHONE: // When open the App's settings page or after installation
           e_launch_reason = LAUNCH_PHONE;
           break;
-        case APP_LAUNCH_WAKEUP: 
+        case APP_LAUNCH_WAKEUP:
           APP_LOG(APP_LOG_LEVEL_ERROR, "Should not enter here!");
           break;
-        default: 
+        default:
           e_launch_reason = LAUNCH_OTHER;
       }
       // Display the wakeup window.
@@ -414,7 +424,7 @@ void launch_handler(bool activate) {
       int32_t wakeup_cookie;
 
       // Call the wakeup handler with fetched wakeup ID and cookie.
-      // Note that common tasks (e.g. steps_update, store_set_possible_score, etc.) are 
+      // Note that common tasks (e.g. steps_update, store_set_possible_score, etc.) are
       // moved into launch_wakeup_handler since they are needed when wakeup happens during
       // the app is on.
       wakeup_get_launch_event(&wakeup_id, &wakeup_cookie);
@@ -445,8 +455,8 @@ void launch_handler(bool activate) {
 }
 
 /**
- * Received configuration update from PebbleKit JS. 
- * Enamel will automatically persist the new configuration. 
+ * Received configuration update from PebbleKit JS.
+ * Enamel will automatically persist the new configuration.
  * Here we only update the GUI window on the watch to reflect the new settings right away,
  * and store the current timestamp to the persistent storage.
  */
@@ -456,7 +466,7 @@ void update_config(void *context) {
     APP_LOG(APP_LOG_LEVEL_INFO, "DEBUG: update_config(): activate=%d", enamel_get_activate());
     APP_LOG(APP_LOG_LEVEL_ERROR, "DEBUG: first_config=%d",  enamel_get_first_config());
   #endif
-  
+
   // Assuming only two states/windows (activated/non-activated)
   if (enamel_get_activate()) {
     // Calculate the maximum possible score (used for outcome and summary message).
@@ -465,7 +475,7 @@ void update_config(void *context) {
     if (s_wakeup_window == NULL) {
       if (enamel_get_first_config() != 1)
         APP_LOG(APP_LOG_LEVEL_ERROR, "first_config must be 1");
- 
+
       // Also upload the historical data up to 7 days before.
       //store_write_upload_time(e_launch_time - 7 * SECONDS_PER_DAY);
 
@@ -474,7 +484,7 @@ void update_config(void *context) {
       wakeup_schedule_events();
 
       // Update the current content of wakeup_window.
-      wakeup_window_breathe(); 
+      wakeup_window_breathe();
     }
 
     // Prevent seeing other windows when presseing the "back" button.
@@ -503,7 +513,7 @@ void update_config(void *context) {
   //store_reset_curr_score();
 }
 
-/* Received message from the Pebble phone app (i.e. PebbleKit JS). 
+/* Received message from the Pebble phone app (i.e. PebbleKit JS).
  * Once connection is up (i.e. received the first message from the phone app), we start
  * performing the following actions in order:
  * 1. Send the launch info of the current launch.
@@ -515,14 +525,14 @@ void update_config(void *context) {
  * Will send the exit info of the current launch in deinit().
  */
 void init_callback(DictionaryIterator *iter, void *context) {
-  APP_LOG(APP_LOG_LEVEL_INFO, "This is init_callback(), s_init_stage=%d!", s_init_stage);
+  APP_LOG(APP_LOG_LEVEL_INFO, "This is init_callback(), s_init_stage=%d!", s_init_stage); 
 
   if (dict_find(iter, AppKeyJSReady)) {
     // If is possible to receive multiple ready message if the Pebble app on phone is re-
     // launched. Reset the stage variable to prevent going further in the data-upload process.
     e_js_ready = true;
     APP_LOG(APP_LOG_LEVEL_INFO, "Connected to JS!");
-  } 
+  }
 
   if (dict_find(iter, AppKeyServerReceived)) {
     e_server_ready = true;
@@ -542,7 +552,7 @@ void init_callback(DictionaryIterator *iter, void *context) {
       APP_LOG(APP_LOG_LEVEL_INFO, "DEBUG: AppKeyServerReceived is missing");
     #endif
     return;
-  } else if (e_launch_reason == LAUNCH_WAKEUP_ALERT && steps_get_pass()) { 
+  } else if (e_launch_reason == LAUNCH_WAKEUP_ALERT && steps_get_pass()) {
     // Do not communicate with the phone if we do not display any message on the screen,
     // Since there is no enough time for the communication to complete.
     #if DEBUG
@@ -563,7 +573,7 @@ void init_callback(DictionaryIterator *iter, void *context) {
   // Reset the timer so that app will not timeout and exit while data is transferring (assume
   // the round trip time is less than the timeout limit).
   tick_reset_count();
-  
+
   //Tuple* tuple = dict_find(iter, MESSAGE_KEY_config_update_by_server);
   //if (tuple) {
   //  APP_LOG(APP_LOG_LEVEL_ERROR, "config_update_by_server=%d", (int)tuple->value->int32);
@@ -582,14 +592,14 @@ void init_callback(DictionaryIterator *iter, void *context) {
       // Connection between phone and server is established.
       is_finished = store_resend_launchexit_event();
       if (is_finished) {
-        s_init_stage++; 
+        s_init_stage++;
 
-        // Since no data is sent and no packet expected to arrive, we call this function 
+        // Since no data is sent and no packet expected to arrive, we call this function
         // again to move to the next stage.
         init_callback(iter, context);
       }
       break;
-    case 2: 
+    case 2:
       //is_finished = store_resend_steps();
       is_finished = steps_upload_steps();
       if (is_finished) {

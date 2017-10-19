@@ -14,7 +14,8 @@ var log = require('./logging');
 log.set_level(3);
 
 // URL at which to send data
-var SERVER = 'http://pebble-fit.herokuapp.com';
+// var SERVER = 'http://pebble-fit.herokuapp.com';
+var SERVER = 'http://35.203.168.32:3000';
 
 // Local servers (use ifconfig to find out).
 //var SERVER = 'http://10.30.202.74:3000';
@@ -133,8 +134,17 @@ Pebble.addEventListener('appmessage', function (dict) {
     var score = dict.payload.AppKeyBreakCount;
     var launchReason = dict.payload.AppKeyLaunchReason;
     var exitReason = dict.payload.AppKeyExitReason;
-    sendLaunchExitData(configRequest, msgID, launchTime, exitTime, scoreDiff, score, 
-                       launchReason, exitReason, date);
+    var appConfig = {};
+    appConfig[messageKeys.time_zone] = dict.payload.time_zone;
+    appConfig[messageKeys.daily_start_time] = dict.payload.daily_start_time;
+    appConfig[messageKeys.daily_end_time] = dict.payload.daily_end_time;
+    appConfig[messageKeys.break_freq] = dict.payload.break_freq;
+    appConfig[messageKeys.break_len] = dict.payload.break_len;
+    appConfig[messageKeys.step_threshold] = dict.payload.step_threshold;
+    appConfig[messageKeys.group] = dict.payload.group;
+    appConfig[messageKeys.vibrate] = dict.payload.vibrate;
+    sendLaunchExitData(configRequest, msgID, launchTime, exitTime, scoreDiff, score,
+                       launchReason, exitReason, date, appConfig);
   }
 });
 
@@ -171,18 +181,18 @@ Pebble.addEventListener('webviewclosed', function(e) {
     settings.daily_start_time   = dict[messageKeys.daily_start_time];
     settings.daily_end_time     = dict[messageKeys.daily_end_time];
     settings.total_break        = dict[messageKeys.total_break];
-    
+
     // Uncomment these lines if want to change break_freq/break_len on watch side for
     // debugging purpose.
     //settings.break_freq         = dict[messageKeys.break_freq];
     //settings.break_len          = dict[messageKeys.break_len];
-    
+
     Pebble.sendAppMessage(settings, function(e) {
       console.log('Sent config data to Pebble (' + JSON.stringify(settings) + ').');
     }, function(e) {
       console.log('Failed to send config data!');
       console.log(JSON.stringify(e));
-    }); 
+    });
   }
 
   if (!dict[messageKeys.is_consent]) {
@@ -193,23 +203,14 @@ Pebble.addEventListener('webviewclosed', function(e) {
   }
 
   // Prepare URL containing info to be sent to the server.
-  var date = Math.floor(new Date().getTime() / 1000);
-  var url = '/config' + '?date=' + date + 
-    '&watch='       + Pebble.getWatchToken()                                    + 
-    '&timezone='    + encodeURIComponent(dict[messageKeys.time_zone])           +
-    '&startTime='   + encodeURIComponent(dict[messageKeys.daily_start_time])    +
-    '&endTime='     + encodeURIComponent(dict[messageKeys.daily_end_time])      +
-    '&breakFreq='   + encodeURIComponent(dict[messageKeys.break_freq])          +
-    '&breakLen='    + encodeURIComponent(dict[messageKeys.break_len])           +
-    '&threshold='   + encodeURIComponent(dict[messageKeys.step_threshold])      +
-    '&group='       + encodeURIComponent(dict[messageKeys.group]); 
+  var url = generateBaseConfigUrl(dict)
 
   if (dict[messageKeys.first_config]) {
     url = url +
     '&first='       + dict[messageKeys.first_config]                            +
     '&name='        + encodeURIComponent(dict[messageKeys.consent_name])        +
     '&email='       + encodeURIComponent(dict[messageKeys.consent_email])       +
-    
+
     '&age='         + encodeURIComponent(dict[messageKeys.survey_age])          +
     '&gender='      + encodeURIComponent(dict[messageKeys.survey_gender])       +
     '&heightCM='    + encodeURIComponent(dict[messageKeys.survey_height_cm])    +
@@ -265,8 +266,8 @@ Pebble.addEventListener('webviewclosed', function(e) {
   });
 });
 
-/** 
- * Server might response with new configuration settings. If so, we would apply 
+/**
+ * Server might response with new configuration settings. If so, we would apply
  * them to both the phone app and the watch app.
  * @param {Objest} response
  */
@@ -293,7 +294,7 @@ function receiveServerConfigACK (err, status, response, responseText) {
     }, function(e) {
       console.log('Failed to send config data!');
       console.log(JSON.stringify(e));
-    }); 
+    });
   }
 }
 
@@ -334,7 +335,7 @@ function parseServerConfig (settings) {
       }
     }
   }
-  
+
   settings.AppKeyServerReceived = 1;
 
   return res;
@@ -343,7 +344,7 @@ function parseServerConfig (settings) {
 /**
  * Send data to the server.
  * @param {String} route
- * @param {Function} callback Callback function will take 4 parameters: 
+ * @param {Function} callback Callback function will take 4 parameters:
  *        err, status, response, responseText. It should handle err propoerly.
  */
 //function sendToServer (route, responseHandler) {
@@ -370,16 +371,16 @@ function sendToServer (route, callback) {
 }
 
 function sendLaunchExitData(configRequest, msgID, launchTime, exitTime, scoreDiff, score,
-                            launchReason, exitReason, date) {
+                            launchReason, exitReason, date, appConfig) {
   var url;
 
   if (exitReason === undefined) {
     //log.debug('Uploading launch data only...')
     url = '/launch' + '?date=' + date + '&reason=' + launchReason +
-      '&configrequest=' + configRequest + 
-      '&msgid=' + msgID + 
+      '&configrequest=' + configRequest +
+      '&msgid=' + msgID +
       '&scorediff=' + scoreDiff +
-      '&score=' + score + 
+      '&score=' + score +
       '&watch=' + Pebble.getWatchToken();
   } else if (launchReason === undefined) {
     //log.debug('Uploading exit data only...')
@@ -391,12 +392,39 @@ function sendLaunchExitData(configRequest, msgID, launchTime, exitTime, scoreDif
       '&launchtime=' + launchTime +
       '&exittime=' + exitTime +
       '&scorediff=' + scoreDiff +
-      '&score=' + score + 
+      '&score=' + score +
       '&launchreason=' + launchReason +
       '&exitreason=' + exitReason +
-      '&msgid=' + msgID + 
+      '&msgid=' + msgID +
       '&watch=' + Pebble.getWatchToken();
   }
 
   sendToServer(url, receiveServerConfigACK);
+
+  // send daily config
+  if (configRequest == 1) {
+    sendToServer(generateBaseConfigUrl(appConfig), function (err, status, response, responseText) {
+      if (err || status !== 200) {
+        log.info(err || status);
+        log.info("Daily config failed to send");
+      } else {
+        log.info("Daily config sent");
+      }
+    });
+  }
+}
+
+function generateBaseConfigUrl(dict) {
+  var date = Math.floor(new Date().getTime() / 1000);
+  var url = '/config' + '?date=' + date +
+    '&watch='       + Pebble.getWatchToken()                                    +
+    '&timezone='    + encodeURIComponent(dict[messageKeys.time_zone])           +
+    '&startTime='   + encodeURIComponent(dict[messageKeys.daily_start_time])    +
+    '&endTime='     + encodeURIComponent(dict[messageKeys.daily_end_time])      +
+    '&breakFreq='   + encodeURIComponent(dict[messageKeys.break_freq])          +
+    '&breakLen='    + encodeURIComponent(dict[messageKeys.break_len])           +
+    '&threshold='   + encodeURIComponent(dict[messageKeys.step_threshold])      +
+    '&group='       + encodeURIComponent(dict[messageKeys.group])               +
+    '&vibrate='     + encodeURIComponent(dict[messageKeys.vibrate]);
+  return url;
 }
