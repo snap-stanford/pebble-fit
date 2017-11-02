@@ -42,20 +42,20 @@ module.exports = function (minified) {
     'survey_sit_1', 'survey_sit_2', 'survey_sit_3', 'survey_sit_4', 'survey_sit_5', 
     'survey_sit_6', 'survey_sit_7', 'survey_sit_8', 'survey_sit_8_text'
   ];
-  var config_section = ['settings',  'vibrate', 
+  var config_section = ['settings',  'vibrate', 'display_duration',
     //'break_freq', 'break_len', 'step_threshold',
     //'activate', 'dynamic_wakeup', 'sliding_window', 'display_duration',
     'daily_start_time', 'daily_end_time', 'config_summary', 
     'version', 'watchtoken'
   ];
   // Elements in this section will be enabled/disabled by the activate button.
-  var sub_config_section = ['vibrate', 'break_freq', 'break_len',
+  var sub_config_section = ['vibrate', 'display_duration', 'break_freq', 'break_len',
     'daily_start_time', 'daily_end_time', 'config_summary'
   ];
 
   // Components that should always be hidden.
   var disabled_components = [//'step_threshold', 
-    'dynamic_wakeup', 'sliding_window', 'display_duration'];
+    'dynamic_wakeup', 'sliding_window'];
   var hidden_components = [ 'activate', 
     'is_consent', 'first_config', 'config_update_interval', 'time_warn_text',
     'message_summary', 'message_pass', 'message_fail', 
@@ -67,7 +67,7 @@ module.exports = function (minified) {
     'random_message_8', 'random_message_9', 'random_message_10', 'random_message_11',
     'survey_age2', 'survey_age3',
     'break_freq', 'break_len', 'step_threshold', // Invisible since user cannot modify them.
-    'dynamic_wakeup', 'sliding_window', 'display_duration', 
+    'dynamic_wakeup', 'sliding_window', 
     'consent_icon_top', 'consent_icon_bottom'];
 
   // Text to be displayed on each of the content pages. The idea is to use the same 

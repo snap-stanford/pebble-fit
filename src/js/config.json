@@ -211,12 +211,12 @@
     {
       "type": "text",
       "id": "consent_review_approve_text",
-      "defaultValue": "Approval Date: 03/30/2017"
+      "defaultValue": "Approval Date: 10/01/2017"
     },
     {
       "type": "text",
       "id": "consent_review_expire_text",
-      "defaultValue": "Expiration Date: 02/28/2018"
+      "defaultValue": "Expiration Date: 10/01/2018"
     },
     {
       "type": "text",
@@ -746,6 +746,22 @@
       ]
     },
     {
+      "type": "select",
+      "id": "display_duration",
+      "messageKey": "display_duration",
+      "defaultValue": 40,
+      "label": "Display duration (in seconds)",
+      "description": "<p align='justify'>The notification message will only be displayed for a few seconds, and then the App will automatically go back into the sleep mode. You can still press the back button to manually suppress it before this timeout.</p>",
+      "options": [
+        { "label": "10",    "value": 10 },
+        { "label": "20",    "value": 20 },
+        { "label": "30",    "value": 30 },
+        { "label": "40",    "value": 40 },
+        { "label": "50",    "value": 50 },
+        { "label": "60",    "value": 60 }
+      ]
+    },
+    {
       "type": "slider",
       "id": "step_upload_time",
       "messageKey": "step_upload_time",
@@ -841,20 +857,6 @@
       "description": "<p align='justify'>The minimum number of steps required within a break.</p>",
       "options": [
         { "label": "100",   "value": 100 }
-      ]
-    },
-    {
-      "type": "select",
-      "id": "display_duration",
-      "messageKey": "display_duration",
-      "defaultValue": 40,
-      "label": "Display duration (in seconds)",
-      "description": "<p align='justify'>The notification message will only be displayed for a few seconds, and then the App will automatically go back into the sleep mode. You can still press the back button to manually suppress it before this timeout.</p>",
-      "options": [
-        { "label": "30",    "value": 30 },
-        { "label": "40",    "value": 40 },
-        { "label": "50",    "value": 50 },
-        { "label": "60",    "value": 60 }
       ]
     },
     {
