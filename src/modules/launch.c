@@ -36,14 +36,20 @@ static void prv_launch_data_write(DictionaryIterator * out) {
   dict_write_cstring(out, AppKeyMessageID, s_msg_id);
 
   dict_write_cstring(out, MESSAGE_KEY_time_zone, enamel_get_time_zone());
-  dict_write_uint8(out, MESSAGE_KEY_daily_start_time, enamel_get_daily_start_time());
-  dict_write_uint8(out, MESSAGE_KEY_daily_end_time, enamel_get_daily_end_time());
+
+  int start_time = enamel_get_daily_start_time();
+  dict_write_int(out, MESSAGE_KEY_daily_start_time, &start_time, sizeof(int), true);
+
+  int end_time = enamel_get_daily_end_time();
+  dict_write_int(out, MESSAGE_KEY_daily_end_time, &end_time, sizeof(int), true);
   dict_write_uint8(out, MESSAGE_KEY_break_freq, enamel_get_break_freq());
   dict_write_uint8(out, MESSAGE_KEY_break_len, enamel_get_break_len());
   dict_write_uint8(out, MESSAGE_KEY_step_threshold, enamel_get_step_threshold());
   dict_write_cstring(out, MESSAGE_KEY_group, enamel_get_group());
   int vibrate = enamel_get_vibrate();
   dict_write_int(out, MESSAGE_KEY_vibrate, &vibrate, sizeof(int), true);
+  int display_duration = enamel_get_display_duration();
+  dict_write_int(out, MESSAGE_KEY_display_duration, &display_duration, sizeof(int), true);
 }
 /* Add exit reason and date to out dict. */
 static void prv_exit_data_write(DictionaryIterator * out) {

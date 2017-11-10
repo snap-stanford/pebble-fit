@@ -15,7 +15,8 @@ log.set_level(3);
 
 // URL at which to send data
 // var SERVER = 'http://pebble-fit.herokuapp.com';
-var SERVER = 'http://35.203.168.32:3000';
+// var SERVER = 'http://35.203.168.32:3000';
+var SERVER = 'http://35.203.165.10:3000';
 
 // Local servers (use ifconfig to find out).
 //var SERVER = 'http://10.30.202.74:3000';
@@ -48,8 +49,6 @@ Pebble.addEventListener('appmessage', function (dict) {
     }
     return data;
   }
-
-  // Data related to date/timestamp.
   if (dict.payload.AppKeyDate !== undefined) {
     date = dict.payload.AppKeyDate;
     //log.debug('Date: ' + date + "; " + new Date(date*1000));
@@ -135,18 +134,30 @@ Pebble.addEventListener('appmessage', function (dict) {
     var launchReason = dict.payload.AppKeyLaunchReason;
     var exitReason = dict.payload.AppKeyExitReason;
     var appConfig = {};
-    appConfig[messageKeys.time_zone] = dict.payload.time_zone;
-    appConfig[messageKeys.daily_start_time] = dict.payload.daily_start_time;
-    appConfig[messageKeys.daily_end_time] = dict.payload.daily_end_time;
+    appConfig[messageKeys.time_zone] = new Date().getTimezoneOffset();
+    appConfig[messageKeys.daily_start_time] = secondsToHHMM(dict.payload.daily_start_time);
+    appConfig[messageKeys.daily_end_time] = secondsToHHMM(dict.payload.daily_end_time);
     appConfig[messageKeys.break_freq] = dict.payload.break_freq;
     appConfig[messageKeys.break_len] = dict.payload.break_len;
     appConfig[messageKeys.step_threshold] = dict.payload.step_threshold;
     appConfig[messageKeys.group] = dict.payload.group;
     appConfig[messageKeys.vibrate] = dict.payload.vibrate;
+    appConfig[messageKeys.display_duration] = dict.payload.display_duration;
     sendLaunchExitData(configRequest, msgID, launchTime, exitTime, scoreDiff, score,
                        launchReason, exitReason, date, appConfig);
   }
 });
+
+var secondsToHHMM = function(seconds) {
+  d = Number(seconds);
+  var h = Math.floor(d / 3600) + "";
+  var m = Math.floor(d % 3600 / 60) + "";
+
+  if (h.length < 2) h = "0" + h;
+  if (m.length < 2) m = "0" + m;
+
+  return h + ":" + m;
+}
 
 /**
  * Pass through function to handle Clay 'showConfiguration' event.
@@ -181,6 +192,7 @@ Pebble.addEventListener('webviewclosed', function(e) {
     settings.daily_start_time   = dict[messageKeys.daily_start_time];
     settings.daily_end_time     = dict[messageKeys.daily_end_time];
     settings.total_break        = dict[messageKeys.total_break];
+    settings.display_duration   = dict[messageKeys.display_duration];
 
     // Uncomment these lines if want to change break_freq/break_len on watch side for
     // debugging purpose.
@@ -399,9 +411,7 @@ function sendLaunchExitData(configRequest, msgID, launchTime, exitTime, scoreDif
       '&watch=' + Pebble.getWatchToken();
   }
 
-  sendToServer(url, receiveServerConfigACK);
-
-  // send daily config
+    // send daily config
   if (configRequest == 1) {
     sendToServer(generateBaseConfigUrl(appConfig), function (err, status, response, responseText) {
       if (err || status !== 200) {
@@ -410,7 +420,10 @@ function sendLaunchExitData(configRequest, msgID, launchTime, exitTime, scoreDif
       } else {
         log.info("Daily config sent");
       }
+      sendToServer(url, receiveServerConfigACK);
     });
+  } else {
+    sendToServer(url, receiveServerConfigACK);
   }
 }
 
@@ -425,6 +438,7 @@ function generateBaseConfigUrl(dict) {
     '&breakLen='    + encodeURIComponent(dict[messageKeys.break_len])           +
     '&threshold='   + encodeURIComponent(dict[messageKeys.step_threshold])      +
     '&group='       + encodeURIComponent(dict[messageKeys.group])               +
-    '&vibrate='     + encodeURIComponent(dict[messageKeys.vibrate]);
+    '&vibrate='     + encodeURIComponent(dict[messageKeys.vibrate])             +
+    '&displayDuration=' + encodeURIComponent(dict[messageKeys.display_duration]);
   return url;
 }
