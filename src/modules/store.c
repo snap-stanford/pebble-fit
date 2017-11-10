@@ -376,6 +376,10 @@ void store_set_possible_score() {
 }
 
 int store_read_possible_score() {
+  if (s_possible_score < 0) {
+    // initalize the score if not yet done
+    store_set_possible_score();
+  }
   return s_possible_score;
 }
 
