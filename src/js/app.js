@@ -14,14 +14,12 @@ var log = require('./logging');
 log.set_level(3);
 
 // URL at which to send data
-// var SERVER = 'http://pebble-fit.herokuapp.com';
-// var SERVER = 'http://35.203.168.32:3000';
-var SERVER = 'http://35.203.165.10:3000';
+var SERVER = 'http://pebble-fit.herokuapp.com';
 
 // Local servers (use ifconfig to find out).
-//var SERVER = 'http://10.30.202.74:3000';
-//var SERVER = 'http://10.34.187.43:3000';
-//var SERVER = 'http://10.34.22.156:3000';
+// var SERVER = 'http://10.30.202.74:3000';
+// var SERVER = 'http://35.203.168.32:3000';
+
 
 // Flag to switch off server communication
 var USE_OFFLINE = true;
