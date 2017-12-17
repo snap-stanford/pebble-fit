@@ -22,19 +22,13 @@ char s_random_message_buf[RANDOM_MSG_SIZE_MAX];
 // For functions that upload data to the server.
 static time_t s_t_launch, s_t_exit, s_curr_time;
 static uint8_t s_br, s_lr, s_er;
-static const char *s_msg_id;
+static const char *s_msg_id;          // original msg_id tracker, but changes to pass/fail string after step update
+static const char *s_weight_msg_id;   // msg_id tracker to know the original msg_id tracker
 static uint8_t s_score_diff = 255; // Assume total break is less than 256.
 
-/* Add launch reason and date to out dict. */
-// FIXME: could combine both launch and exit packets, since they have very similar format.
-static void prv_launch_data_write(DictionaryIterator * out) {
-  dict_write_int(out, AppKeyDate, &e_launch_time, sizeof(int), true);
-  dict_write_int(out, AppKeyLaunchReason, &e_launch_reason, sizeof(int), true);
-  dict_write_int(out, AppKeyConfigRequest, &s_config_request, sizeof(int), true);
-  dict_write_uint8(out, AppKeyScoreDiff, s_score_diff);
-  dict_write_uint8(out, AppKeyBreakCount, s_br);
-  dict_write_cstring(out, AppKeyMessageID, s_msg_id);
 
+
+static void add_app_config_data(DictionaryIterator * out) {
   dict_write_cstring(out, MESSAGE_KEY_time_zone, enamel_get_time_zone());
 
   int start_time = enamel_get_daily_start_time();
@@ -50,6 +44,23 @@ static void prv_launch_data_write(DictionaryIterator * out) {
   dict_write_int(out, MESSAGE_KEY_vibrate, &vibrate, sizeof(int), true);
   int display_duration = enamel_get_display_duration();
   dict_write_int(out, MESSAGE_KEY_display_duration, &display_duration, sizeof(int), true);
+}
+
+/* Add launch reason and date to out dict. */
+// FIXME: could combine both launch and exit packets, since they have very similar format.
+static void prv_launch_data_write(DictionaryIterator * out) {
+  dict_write_int(out, AppKeyDate, &e_launch_time, sizeof(int), true);
+  dict_write_int(out, AppKeyLaunchReason, &e_launch_reason, sizeof(int), true);
+  dict_write_int(out, AppKeyConfigRequest, &s_config_request, sizeof(int), true);
+  dict_write_uint8(out, AppKeyScoreDiff, s_score_diff);
+  dict_write_uint8(out, AppKeyBreakCount, s_br);
+  dict_write_cstring(out, AppKeyMessageID, s_msg_id);
+  dict_write_cstring(out, AppKeyWeightMessageID, s_weight_msg_id);
+
+  int weight = store_weight_get_recent_update();
+  if (weight >= 0) dict_write_int(out, MESSAGE_KEY_random_message_weights, &weight, sizeof(int), true);
+
+  add_app_config_data(out);
 }
 /* Add exit reason and date to out dict. */
 static void prv_exit_data_write(DictionaryIterator * out) {
@@ -68,7 +79,12 @@ static void prv_launch_exit_data_write(DictionaryIterator * out) {
   dict_write_uint8(out, AppKeyLaunchReason, s_lr);
   dict_write_uint8(out, AppKeyExitReason, s_er);
   dict_write_cstring(out, AppKeyMessageID, s_msg_id);
+  dict_write_cstring(out, AppKeyWeightMessageID, s_weight_msg_id);
+
+  double weight = store_weight_get_recent_update();
+  if (weight >= 0) dict_write_int(out, MESSAGE_KEY_random_message_weights, &weight, sizeof(int), true);
 }
+
 
 /**
  * Upload the current launch event. Might associate a request for the new configuration.
@@ -303,6 +319,7 @@ void launch_wakeup_handler(WakeupId wakeup_id, int32_t wakeup_cookie) {
     // Calculate the current period steps info, and then set the message ID to be pass/fail.
     // This will be overwritten by the true random message ID if this is a LAUNCH_WAKEUP_ALERT.
     steps_update();
+    s_weight_msg_id = s_msg_id;
     if (steps_get_pass()) {
       s_msg_id = "pass";
     } else {
@@ -398,6 +415,7 @@ void launch_handler(bool activate) {
     int lr = launch_reason();
     if (lr != APP_LAUNCH_WAKEUP) {
       steps_update();
+      s_weight_msg_id = s_msg_id;
       if (steps_get_pass()) {
         s_msg_id = "pass";
       } else {
@@ -477,6 +495,7 @@ void update_config(void *context) {
   if (enamel_get_activate()) {
     // Calculate the maximum possible score (used for outcome and summary message).
     store_set_possible_score();
+    store_weights_set();
 
     if (s_wakeup_window == NULL) {
       if (enamel_get_first_config() != 1)

@@ -942,6 +942,24 @@
     },
     {
       "type": "input",
+      "id": "weight_update_param",
+      "messageKey": "weight_update_param",
+      "defaultValue": "1000"
+    },
+    {
+      "type": "input",
+      "id": "weight_factor_param",
+      "messageKey": "weight_factor_param",
+      "defaultValue": "10000"
+    },
+    {
+      "type": "input",
+      "id": "random_message_weights",
+      "messageKey": "random_message_weights",
+      "defaultValue": "1000|1000|1000|1000|1000|1000|1000|1000|1000|1000|1000|1000"
+    },
+    {
+      "type": "input",
       "id": "random_message_0",
       "messageKey": "random_message_0",
       "defaultValue": "am00:Get up and move."

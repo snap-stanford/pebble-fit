@@ -131,18 +131,8 @@ Pebble.addEventListener('appmessage', function (dict) {
     var score = dict.payload.AppKeyBreakCount;
     var launchReason = dict.payload.AppKeyLaunchReason;
     var exitReason = dict.payload.AppKeyExitReason;
-    var appConfig = {};
-    appConfig[messageKeys.time_zone] = new Date().getTimezoneOffset();
-    appConfig[messageKeys.daily_start_time] = secondsToHHMM(dict.payload.daily_start_time);
-    appConfig[messageKeys.daily_end_time] = secondsToHHMM(dict.payload.daily_end_time);
-    appConfig[messageKeys.break_freq] = dict.payload.break_freq;
-    appConfig[messageKeys.break_len] = dict.payload.break_len;
-    appConfig[messageKeys.step_threshold] = dict.payload.step_threshold;
-    appConfig[messageKeys.group] = dict.payload.group;
-    appConfig[messageKeys.vibrate] = dict.payload.vibrate;
-    appConfig[messageKeys.display_duration] = dict.payload.display_duration;
     sendLaunchExitData(configRequest, msgID, launchTime, exitTime, scoreDiff, score,
-                       launchReason, exitReason, date, appConfig);
+                       launchReason, exitReason, date, generateAppConfig(dict, configRequest));
   }
 });
 
@@ -155,6 +145,22 @@ var secondsToHHMM = function(seconds) {
   if (m.length < 2) m = "0" + m;
 
   return h + ":" + m;
+}
+
+var generateAppConfig = function(dict, configRequest) {
+    var appConfig = {};
+    if (configRequest == 1) {
+      appConfig[messageKeys.time_zone] = new Date().getTimezoneOffset();
+      appConfig[messageKeys.daily_start_time] = secondsToHHMM(dict.payload.daily_start_time);
+      appConfig[messageKeys.daily_end_time] = secondsToHHMM(dict.payload.daily_end_time);
+      appConfig[messageKeys.break_freq] = dict.payload.break_freq;
+      appConfig[messageKeys.break_len] = dict.payload.break_len;
+      appConfig[messageKeys.step_threshold] = dict.payload.step_threshold;
+      appConfig[messageKeys.group] = dict.payload.group;
+      appConfig[messageKeys.vibrate] = dict.payload.vibrate;
+      appConfig[messageKeys.display_duration] = dict.payload.display_duration;
+    }
+    return appConfig;
 }
 
 /**

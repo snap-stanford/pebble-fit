@@ -68,6 +68,7 @@ module.exports = function (minified) {
     'survey_age2', 'survey_age3',
     'break_freq', 'break_len', 'step_threshold', // Invisible since user cannot modify them.
     'dynamic_wakeup', 'sliding_window', 
+    'weight_update_param','weight_factor_param','random_message_weights',
     'consent_icon_top', 'consent_icon_bottom'];
 
   // Text to be displayed on each of the content pages. The idea is to use the same 

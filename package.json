@@ -1,5 +1,5 @@
 {
-  "version": "1.33.0",
+  "version": "1.34.0",
   "author": "Stanford University",
   "dependencies": {
     "enamel": "1.2.4",
@@ -19,7 +19,6 @@
       "health"
     ],
     "targetPlatforms": [
-      "aplite",
       "basalt",
       "chalk",
       "diorite",
@@ -43,6 +42,7 @@
       "AppKeyBreakCount": 14,
       "AppKeyStringData": 15,
       "AppKeyScoreDiff": 16,
+      "AppKeyWeightMessageID": 17,
       "first_config": 100,
       "config_update_interval": 101,
       "is_consent": 110,
@@ -97,6 +97,9 @@
       "message_summary": 4001,
       "message_pass": 4002,
       "message_fail": 4003,
+      "random_message_weights": 4004,
+      "weight_update_param": 4005,
+      "weight_factor_param": 4006,
       "random_message_0": 4010,
       "random_message_1": 4011,
       "random_message_2": 4012,

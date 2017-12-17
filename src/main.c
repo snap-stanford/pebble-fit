@@ -8,10 +8,8 @@
 #include "modules/steps.h"
 #include "modules/launch.h"
 #include "modules/store.h"
-#include "services/health.h"
 #include "services/tick.h"
 #include "services/wakeup.h"
-//#include "windows/main_window.h"
 
 static EventHandle s_normal_msg_handler, s_enamel_msg_handler;
 static time_t s_exit_time;
@@ -27,7 +25,6 @@ static void init(void) {
 
   e_force_to_save = false;
 
-  //health_subscribe();
   enamel_init();
   
   //app_message_register_inbox_received(e_js_ready_handler);

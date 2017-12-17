@@ -28,5 +28,8 @@ int store_compare_ref_score(int mode);
 
 const char* store_read_random_message();
 
+void store_weight_update(bool pass);
+int store_weight_get_recent_update();
+void store_weights_set();
 
 void store_delete_all();
