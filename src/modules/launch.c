@@ -26,9 +26,9 @@ static const char *s_msg_id;          // original msg_id tracker, but changes to
 static uint8_t s_score_diff = 255; // Assume total break is less than 256.
 
 
-
+/* Helper method to fill out launch event with config data */
 static void add_app_config_data(DictionaryIterator * out) {
-  if (s_config_request == 1) {
+  if (s_config_request == 1) {  //done only once a day
     dict_write_cstring(out, MESSAGE_KEY_time_zone, enamel_get_time_zone());
 
     int start_time = enamel_get_daily_start_time();
@@ -47,12 +47,10 @@ static void add_app_config_data(DictionaryIterator * out) {
   }
 }
 
+/* Helper method to add weight update data if in a wakeup-period and an update was just performed*/
 static void add_weight_data(DictionaryIterator * out) {
   char msg_id_buf[6];
   if (e_launch_reason == LAUNCH_WAKEUP_PERIOD && store_weight_read_then_delete_msgid(msg_id_buf)) {
-    if (persist_exists(PERSIST_KEY_WEIGHTS_DATA)) {
-      APP_LOG(APP_LOG_LEVEL_INFO, "HOW?");
-    }
     dict_write_cstring(out, AppKeyWeightMessageID, msg_id_buf);
     int weight = store_weight_get_recent_update();
     dict_write_int(out, MESSAGE_KEY_random_message_weights, &weight, sizeof(int), true);
@@ -340,11 +338,14 @@ void launch_wakeup_handler(WakeupId wakeup_id, int32_t wakeup_cookie) {
         //APP_LOG(APP_LOG_LEVEL_ERROR, "Make sure this happens before init_callback()!");
         if (!steps_get_pass()) { // Only push the window if step goal is not met.
           launch_set_random_message();
-          store_weight_write_msgid();
+          store_weight_write_msgid();  //save msgid to persistent storage
           s_wakeup_window = wakeup_window_push();
         } else {
           e_exit_reason = EXIT_TIMEOUT; // FIXME: or using a new coding for silent-wakeup?
-          store_weight_read_then_delete_msgid(NULL);
+
+          //delete existance of PERSIST_KEY_WEIGHTS_DATA because we did not use a message during
+          // this wakeup period
+          store_weight_read_then_delete_msgid(NULL); 
         }
         prv_wakeup_vibrate(false);
         break;
@@ -352,7 +353,7 @@ void launch_wakeup_handler(WakeupId wakeup_id, int32_t wakeup_cookie) {
         // For now, even for period-wakeup and goal is met, we still push window.
         prv_wakeup_vibrate(true);
         s_wakeup_window = wakeup_window_push();
-        store_weight_update(steps_get_pass());
+        store_weight_update(steps_get_pass()); //update the corresponding weight if in adaptive
         break;
       case LAUNCH_WAKEUP_SILENT:
         APP_LOG(APP_LOG_LEVEL_INFO, "Silent wakeup.\n");

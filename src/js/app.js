@@ -115,6 +115,8 @@ Pebble.addEventListener('appmessage', function (dict) {
   }
 });
 
+
+/* Turns seconds to a string in HH:MM format */
 var secondsToHHMM = function(seconds) {
   d = Number(seconds);
   var h = Math.floor(d / 3600) + "";
@@ -126,6 +128,10 @@ var secondsToHHMM = function(seconds) {
   return h + ":" + m;
 }
 
+/** 
+ * creates an array of length 2 if the dict contains weight update information 
+ * returns [] if information doesn't exist, else [msgid, new_weight] 
+ */
 var generateWeightData = function(dict) {
   var weightData = [];  
   var weightMsgID = dict.payload.AppKeyWeightMessageID;
@@ -136,20 +142,21 @@ var generateWeightData = function(dict) {
   return weightData
 }
 
+/* generates a dictionary object, filling it with config information if a configRequest is sent */
 var generateAppConfig = function(dict, configRequest) {
-    var appConfig = {};
-    if (configRequest == 1) {
-      appConfig[messageKeys.time_zone] = new Date().getTimezoneOffset();
-      appConfig[messageKeys.daily_start_time] = secondsToHHMM(dict.payload.daily_start_time);
-      appConfig[messageKeys.daily_end_time] = secondsToHHMM(dict.payload.daily_end_time);
-      appConfig[messageKeys.break_freq] = dict.payload.break_freq;
-      appConfig[messageKeys.break_len] = dict.payload.break_len;
-      appConfig[messageKeys.step_threshold] = dict.payload.step_threshold;
-      appConfig[messageKeys.group] = dict.payload.group;
-      appConfig[messageKeys.vibrate] = dict.payload.vibrate;
-      appConfig[messageKeys.display_duration] = dict.payload.display_duration;
-    }
-    return appConfig;
+  var appConfig = {};
+  if (configRequest == 1) {
+    appConfig[messageKeys.time_zone] = new Date().getTimezoneOffset();
+    appConfig[messageKeys.daily_start_time] = secondsToHHMM(dict.payload.daily_start_time);
+    appConfig[messageKeys.daily_end_time] = secondsToHHMM(dict.payload.daily_end_time);
+    appConfig[messageKeys.break_freq] = dict.payload.break_freq;
+    appConfig[messageKeys.break_len] = dict.payload.break_len;
+    appConfig[messageKeys.step_threshold] = dict.payload.step_threshold;
+    appConfig[messageKeys.group] = dict.payload.group;
+    appConfig[messageKeys.vibrate] = dict.payload.vibrate;
+    appConfig[messageKeys.display_duration] = dict.payload.display_duration;
+  }
+  return appConfig;
 }
 
 /**
@@ -386,6 +393,11 @@ function sendLaunchExitData(configRequest, msgID, launchTime, exitTime, scoreDif
       '&scorediff=' + scoreDiff +
       '&score=' + score +
       '&watch=' + Pebble.getWatchToken();
+
+      // add weight data if provided
+      if (weightData.length > 0) {
+        url = url + '&weightmsgid=' + weightData[0] + '&weightnew=' + weightData[1];
+      }
   } else if (launchReason === undefined) {
     //log.debug('Uploading exit data only...')
     url = '/exit' + '?date=' + date + '&reason=' + exitReason +
@@ -403,9 +415,6 @@ function sendLaunchExitData(configRequest, msgID, launchTime, exitTime, scoreDif
       '&watch=' + Pebble.getWatchToken();
   }
 
-  if (weightData.length > 0) {
-    url = url + '&weightmsgid=' + weightData[0] + '&weightnew=' + weightData[1];
-  }
 
     // send daily config
   if (configRequest == 1) {

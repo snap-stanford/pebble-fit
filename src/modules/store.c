@@ -402,6 +402,8 @@ const char* store_read_random_message() {
       }
     }
     persist_write_string(PERSIST_KEY_WEIGHTS_DATA, "");
+    // if PERSIST_KEY_WEIGHTS_DATA exists
+    // then we are in adaptive AND used a message in the latest alert
   } else {
     // real_time_random|simple -- iterate through random messages
     if (!persist_exists(PERSIST_KEY_RANDOM_MSG_INDEX)) {
@@ -412,7 +414,7 @@ const char* store_read_random_message() {
       index = index >= RANDOM_MSG_POOL_SIZE - 1? 0 : index + 1;
       APP_LOG(APP_LOG_LEVEL_ERROR, "index=%d", index);
     }
-    persist_delete(PERSIST_KEY_WEIGHTS_DATA);
+    persist_delete(PERSIST_KEY_WEIGHTS_DATA); 
   }
   persist_write_int(PERSIST_KEY_RANDOM_MSG_INDEX, index);
   switch (index) {
@@ -432,11 +434,18 @@ const char* store_read_random_message() {
 }
 
 
-
+/**
+  * Updates the weight of the message that was previously displayed.
+  * Called during LAUNCH_WAKEUP_PERIOD.
+  * 
+  * Follows alg: new_weight = old_weight + alpha * (outcome - old_weight)
+  * outcome :=  factor if pass, else 0
+  * alpha := learning rate
+  */
 void store_weight_update(bool pass) {
   APP_LOG(APP_LOG_LEVEL_ERROR, "enter store_weight_update()");
-  if (strcmp(enamel_get_group(), "real_time_adaptive") == 0) {
-
+  // check we are in real_time_adaptive and a message was just used
+  if (persist_exists(PERSIST_KEY_WEIGHTS_DATA) && strcmp(enamel_get_group(), "real_time_adaptive") == 0) {
     int index = persist_read_int(PERSIST_KEY_RANDOM_MSG_INDEX);
     int factor = atoi(enamel_get_weight_factor_param());
     int alpha = atoi(enamel_get_weight_update_param());
@@ -448,7 +457,7 @@ void store_weight_update(bool pass) {
 
     APP_LOG(APP_LOG_LEVEL_ERROR, "OLD: index=%d,weight=%d, pass=%d", index, weight, (int) pass);
 
-    //update algorithm 
+    //update algorithm. Float division done last to minimize float rounding errors. 
     weight = weight + (int) floor(alpha * (outcome - weight) / ((double) factor));
     weights[index] = weight;
     persist_write_data(PERSIST_KEY_RANDOM_MSG_WEIGHTS, weights, sizeof(int)*RANDOM_MSG_POOL_SIZE);
@@ -456,6 +465,14 @@ void store_weight_update(bool pass) {
   }
 }
 
+/**
+  * Perists the random_message_id into persistent storage IF we just used
+  * a message and are in real_time_adaptive 
+  * So PERSIST_KEY_WEIGHTS_DATA is "" (see store_read_random_message)
+  * 
+  * It is resaved so reparsing the message is unnecessary and 
+  *  because s_msg_id is overwritten to pass/fail during the period wakeup.
+  */
 void store_weight_write_msgid(){
   if (persist_exists(PERSIST_KEY_WEIGHTS_DATA)) {
     const char * msg_id = launch_get_random_message_id();
@@ -463,7 +480,15 @@ void store_weight_write_msgid(){
   }
 }
 
+/**
+  * Returns true if we have a weight update to send. False otherwise.
+  * If true, fills the msg_id_buf with the corresponding msg_id to send an update on
+  * 
+  * Called when sending a launch event. 
+  */
 bool store_weight_read_then_delete_msgid(char *msg_id_buf) {
+  // PERSIST_KEY_WEIGHTS_DATA does not exist if we are not in real_time_adaptive 
+  //  or if we did not use a message during the latest alert period.
   if (!persist_exists(PERSIST_KEY_WEIGHTS_DATA)) {
     return false;
   }
@@ -471,10 +496,17 @@ bool store_weight_read_then_delete_msgid(char *msg_id_buf) {
   if (msg_id_buf != NULL) {
     persist_read_string(PERSIST_KEY_WEIGHTS_DATA, msg_id_buf, 6);
   }
-  persist_delete(PERSIST_KEY_WEIGHTS_DATA);
+
+  // so the same weight update is not sent multiple times during launch events
+  persist_delete(PERSIST_KEY_WEIGHTS_DATA); 
   return true;
 }
 
+/**
+  * Returns the int weight value of the most recent weight update done in store_weight_update.
+  * 
+  * Called when sending a launch event. 
+  */
 int store_weight_get_recent_update() {
   APP_LOG(APP_LOG_LEVEL_ERROR, "enter store_weight_get_recent_update()");
   if (strcmp(enamel_get_group(), "real_time_adaptive") == 0) {
@@ -487,7 +519,6 @@ int store_weight_get_recent_update() {
   }
   return -1;
 }
-
 
 
 /**
