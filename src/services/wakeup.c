@@ -38,7 +38,6 @@ static WakeupId prv_reschedule_wakeup_event(uint8_t wakeup_i, time_t wakeup_time
 
   if ((wakeup_i < NUM_TOTAL_WAKEUP) && (wakeup_time > time(NULL))) {
     wakeup_id = prv_read_wakeup_id_pm(wakeup_i);
-    //APP_LOG(APP_LOG_LEVEL_ERROR, "Cancelling wakeup_id %d", (int)wakeup_id);
     wakeup_cancel(wakeup_id);
     
     // Automatically retry for a fixed number of iterations (increment by minutes)
@@ -118,16 +117,6 @@ void wakeup_schedule_events() {
   strftime(end_buf, sizeof(end_buf), "%H:%M:%S", localtime(&t_end));
   APP_LOG(APP_LOG_LEVEL_INFO,"group=%s, curr=%s, start=%s, end=%s", 
     enamel_get_group(), curr_buf, start_buf, end_buf);
-
-  // Dynamic wakeup is deprecated.
-  if (enamel_get_dynamic_wakeup() == true) {
-    APP_LOG(APP_LOG_LEVEL_ERROR, "Dynamic wakeup is deprecated!");
-    //if (enamel_get_break_freq() - inactive_mins <= MIN_SLEEP_MINUTES) {
-    //  t_wakeup = e_launch_time + MIN_SLEEP_MINUTES * SECONDS_PER_MINUTE;
-    //} else {
-    //  t_wakeup = e_launch_time + (enamel_get_break_freq()-inactive_mins) * SECONDS_PER_MINUTE;
-    //}
-  } 
 #endif
 
   // Compute the next period-wakeup (i.e. break_freq minutes later). Rounding up the result. 

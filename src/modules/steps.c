@@ -44,11 +44,7 @@ static void prv_load_data(time_t *start, time_t *end) {
   // per-minute API skip this given start-end time range.
   HealthMetric metric = HealthMetricStepCount;
   HealthServiceAccessibilityMask result = health_service_metric_accessible(metric, *start, *end);
-  #if DEBUG
-  //APP_LOG(APP_LOG_LEVEL_ERROR, "result = %d!", (unsigned)(result & HealthServiceAccessibilityMaskAvailable));
-  //HealthServiceAccessibilityMask sup = HealthServiceAccessibilityMaskAvailable;
-  //APP_LOG(APP_LOG_LEVEL_ERROR, "supposed = %u!", (unsigned)sup);
-  #endif
+
 
   if (result != HealthServiceAccessibilityMaskAvailable) {
   #if DEBUG
@@ -72,13 +68,10 @@ static void prv_load_data(time_t *start, time_t *end) {
     if (minute_data[i].is_invalid) {
       // No valid data recorded, so minute_date[i] = -1. Treat it as 0 step count.
       s_step_records[i] = 0;
-      //APP_LOG(APP_LOG_LEVEL_INFO, "Invalid data %d = %d", (int)i, (int)minute_data[i].steps);
     } else {
       s_step_records[i] = minute_data[i].steps;
       s_steps += s_step_records[i];
-      //if (s_step_records[i] > 0) {
-      //  APP_LOG(APP_LOG_LEVEL_INFO, "s_step_records %d = %d", (int)i, (int)s_step_records[i]);
-      //}
+
     }
   }
 }
@@ -106,120 +99,73 @@ bool steps_get_pass() {
 void steps_update() {
   int left, right, start_index, break_freq, break_len, sliding_window, step_threshold;
   
-  //if (!s_is_update) { // FIXME: wanted to avoid multiple updates in the same session (i.e. within 1 minute so that step count will not change at all)
-    s_pass = false;
+  // FIXME: wanted to avoid multiple updates in the same session (i.e. within 1 minute so that step count will not change at all)
+  s_pass = false;
 
-    // Read recorded step count data from the Pebble Health service.
-    //s_is_loaded = false; // Force to load new data from Health service.
-    //s_end = time(NULL);
-    s_end = e_launch_time;
-    s_start = s_end - SECONDS_PER_MINUTE * MAX_ENTRIES; 
-    //APP_LOG(APP_LOG_LEVEL_INFO, "DEBUG: steps_update - before prv_load_data.");
-    prv_load_data(&s_start, &s_end);
+  // Read recorded step count data from the Pebble Health service.
+  s_end = e_launch_time;
+  s_start = s_end - SECONDS_PER_MINUTE * MAX_ENTRIES; 
+  //APP_LOG(APP_LOG_LEVEL_INFO, "DEBUG: steps_update - before prv_load_data.");
+  prv_load_data(&s_start, &s_end);
 
-    //s_inactive_mins = 0;
-    // Force break frequency <= MAX_ENTRIES, and break length <= break frequency.
-    break_freq = enamel_get_break_freq() > MAX_ENTRIES? MAX_ENTRIES : enamel_get_break_freq();
-    break_len = enamel_get_break_len() > break_freq ?  break_freq : enamel_get_break_len();
-    sliding_window = enamel_get_sliding_window();
-    step_threshold = enamel_get_step_threshold();
-      
-    //APP_LOG(APP_LOG_LEVEL_ERROR, "bl=%d, bf=%d, sw=%d, threshold=%d", 
-    //  break_len, break_freq, sliding_window, step_threshold);
+  break_freq = enamel_get_break_freq() > MAX_ENTRIES? MAX_ENTRIES : enamel_get_break_freq();
+  break_len = enamel_get_break_len() > break_freq ?  break_freq : enamel_get_break_len();
+  sliding_window = enamel_get_sliding_window();
+  step_threshold = enamel_get_step_threshold();
+  
+  // Check whether the goal is met. Use s_pass as the indicator.
+  start_index = e_launch_reason == LAUNCH_WAKEUP_ALERT ? 
+  s_num_records-enamel_get_break_freq()+2*break_len : 
+  s_num_records-enamel_get_break_freq();
+  if (start_index < 0) start_index = 0;
+  
+  // 1. This is the approach for checking whether step_count > threshold in at least 
+  // "break_len" minutes in the last period of "break_freq" minutes.
+  int step_count = 0;
+  for (left = right = start_index; right < start_index + break_len; right++) {
+    step_count += s_step_records[right];
+  }
+  if (step_count >= step_threshold) {
+    s_pass = true;
+  } else {
+    for ( ; right < s_num_records; right++, left++) {
+      step_count += s_step_records[right] - s_step_records[left];
+      //APP_LOG(APP_LOG_LEVEL_ERROR, "step_count = %d", step_count);
+      if (step_count >= step_threshold) {
+        s_pass = true;
+        break;
+      }
+    }
+  }
+
+  // Convert to human readable time for the display purpose.
+  //APP_LOG(APP_LOG_LEVEL_ERROR, "enamel_get_sleep_minutes=%d", enamel_get_sleep_minutes());
+  if (s_pass) {
+    #if DEBUG
+        APP_LOG(APP_LOG_LEVEL_ERROR, "pass");
+    #endif
+    prv_report_steps(right);
     
-    // Check whether the goal is met. Use s_pass as the indicator.
-    start_index = e_launch_reason == LAUNCH_WAKEUP_ALERT ? 
-     //MAX_ENTRIES-enamel_get_break_freq()+2*break_len : MAX_ENTRIES-enamel_get_break_freq();
-     s_num_records-enamel_get_break_freq()+2*break_len : 
-     s_num_records-enamel_get_break_freq();
-    //APP_LOG(APP_LOG_LEVEL_INFO, "DEBUG: s_num_records = %d", s_num_records);
-    //APP_LOG(APP_LOG_LEVEL_ERROR, "DEBUG: step_threshold = %d", step_threshold);
-    //APP_LOG(APP_LOG_LEVEL_ERROR, "DEBUG: start_index = %d", start_index);
-    if (start_index < 0) start_index = 0;
-    
-    // 1. This is the approach for checking whether step_count > threshold in at least 
-    // "break_len" minutes in the last period of "break_freq" minutes.
-    int step_count = 0;
-    for (left = right = start_index; right < start_index + break_len; right++) {
-      step_count += s_step_records[right];
-    }
-    if (step_count >= step_threshold) {
-      s_pass = true;
-    } else {
-      for ( ; right < s_num_records; right++, left++) {
-        step_count += s_step_records[right] - s_step_records[left];
-        //APP_LOG(APP_LOG_LEVEL_ERROR, "step_count = %d", step_count);
-        if (step_count >= step_threshold) {
-          s_pass = true;
-          break;
-        }
-      }
+    // Only increment score if this is a period-wakeup.
+    // TODO: We might only want to check steps at period-wakeup in final version.
+    // FIXME: could optimiza by moving to the front of this function to save time.
+    APP_LOG(APP_LOG_LEVEL_ERROR, "%d", e_launch_reason);
+    if (e_launch_reason == LAUNCH_WAKEUP_PERIOD || (e_launch_reason == LAUNCH_WAKEUP_SILENT &&
+        strncmp(enamel_get_group(), "real_time", strlen("real_time")) != 0)) {
+      APP_LOG(APP_LOG_LEVEL_ERROR, "ABSZ store_increment_curr_score");
+      store_increment_curr_score();
     }
 
-    // 2. This is the approach for checking whether step_count > threshold in at least
-    // "break_len" minutes within "break_len+sliding_window" minutes in the last period of
-    // "break_freq" minutes. 
-    /*
-    int nonsed_period = 0;
-    // Use the first loop is to initialize.
-    for (right = start_index; right < break_len + sliding_window; right++) {
-      if (s_step_records[right] >= step_threshold) {
-        nonsed_period += 1;
-      }
-    }
-    if (nonsed_period >= break_len) {
-      s_pass = true;
-    } else {
-      left = 0;
-      // Count the non-sedentary periods and move both left and right ends.
-      for ( ; right < MAX_ENTRIES; right++, left++) {
-        APP_LOG(APP_LOG_LEVEL_ERROR, "left=%d,right=%d,stepl=%d stepr=%d,nonsed_period=%d", 
-          left, right, s_step_records[left],s_step_records[right], nonsed_period);
-        if (s_step_records[right] >= step_threshold) {
-          nonsed_period += 1;
-        }
-        if (//right - left > enamel_get_break_len() + sliding_window &&
-            s_step_records[left] >= step_threshold) {
-          nonsed_period -= 1;
-        }
-
-        // Once we know the goal is met, not need to continue computation.
-        if (nonsed_period >= break_len) {
-          s_pass = true;
-          break;
-        }
-      }
-    }
-    */
-
-    // Convert to human readable time for the display purpose.
-    //APP_LOG(APP_LOG_LEVEL_ERROR, "enamel_get_sleep_minutes=%d", enamel_get_sleep_minutes());
-    if (s_pass) {
-#if DEBUG
-      APP_LOG(APP_LOG_LEVEL_ERROR, "pass");
-#endif
-      prv_report_steps(right);
-      
-      // Only increment score if this is a period-wakeup.
-      // TODO: We might only want to check steps at period-wakeup in final version.
-      // FIXME: could optimiza by moving to the front of this function to save time.
-      APP_LOG(APP_LOG_LEVEL_ERROR, "%d", e_launch_reason);
-      if (e_launch_reason == LAUNCH_WAKEUP_PERIOD || (e_launch_reason == LAUNCH_WAKEUP_SILENT &&
-          strncmp(enamel_get_group(), "real_time", strlen("real_time")) != 0)) {
-        APP_LOG(APP_LOG_LEVEL_ERROR, "ABSZ store_increment_curr_score");
-        store_increment_curr_score();
-      }
-
-      s_end = s_start + right * SECONDS_PER_MINUTE;
-      s_start = s_end - (break_len + sliding_window - 1) * SECONDS_PER_MINUTE;
-      strftime(s_start_buf, sizeof(s_start_buf), "%H:%M", localtime(&s_start));
-      strftime(s_end_buf, sizeof(s_end_buf), "%H:%M", localtime(&s_end));
-      APP_LOG(APP_LOG_LEVEL_ERROR, "Non-sedentary period from %s to %s", s_start_buf, s_end_buf);
-    } else {
-      strftime(s_start_buf, sizeof(s_start_buf), "%H:%M", localtime(&s_start));
-      strftime(s_end_buf, sizeof(s_end_buf), "%H:%M", localtime(&s_end));
-      APP_LOG(APP_LOG_LEVEL_ERROR, "%d steps from %s to %s", s_steps, s_start_buf, s_end_buf);
-    }
+    s_end = s_start + right * SECONDS_PER_MINUTE;
+    s_start = s_end - (break_len + sliding_window - 1) * SECONDS_PER_MINUTE;
+    strftime(s_start_buf, sizeof(s_start_buf), "%H:%M", localtime(&s_start));
+    strftime(s_end_buf, sizeof(s_end_buf), "%H:%M", localtime(&s_end));
+    APP_LOG(APP_LOG_LEVEL_ERROR, "Non-sedentary period from %s to %s", s_start_buf, s_end_buf);
+  } else {
+    strftime(s_start_buf, sizeof(s_start_buf), "%H:%M", localtime(&s_start));
+    strftime(s_end_buf, sizeof(s_end_buf), "%H:%M", localtime(&s_end));
+    APP_LOG(APP_LOG_LEVEL_ERROR, "%d steps from %s to %s", s_steps, s_start_buf, s_end_buf);
+  }
 }
 
 /* Write steps array data to dict. */
@@ -231,12 +177,6 @@ static void prv_data_write(DictionaryIterator * out) {
   dict_write_int(out, AppKeyDate, &s_start, sizeof(int), true);
 
   dict_write_cstring(out, AppKeyStringData, s_step_batch_string);
-
-  //dict_write_int(out, AppKeyArrayLength, &s_num_records, sizeof(int), true);
-  //dict_write_int(out, AppKeyArrayStart, &AppKeyArrayData, sizeof(int), true);
-  //for (int i = 0; i < s_num_records; i++) {
-  //  dict_write_uint8(out, AppKeyArrayData + i, s_step_records[i]);
-  //}
 }
 
 /**
@@ -252,7 +192,6 @@ bool steps_upload_steps() {
   int fill_index = 0;
   time_t t_start, t_end;
   time_t t_final = e_launch_time - SECONDS_PER_MINUTE; // Exclude the current minute.
-  //time_t break_freq_seconds = enamel_get_break_freq() * SECONDS_PER_MINUTE;
   time_t max_entries_seconds = MAX_ENTRIES * SECONDS_PER_MINUTE;
 
   // If server response with the last recorded time and it is within the last 7 days, use
@@ -263,12 +202,6 @@ bool steps_upload_steps() {
     t_last_upload = server_recorded_time;
   }
   APP_LOG(APP_LOG_LEVEL_ERROR, "server_recorded_time = %u", (unsigned) server_recorded_time);
-  //time_t t_last_upload = store_read_upload_time(); // deprecated
-  //time_t t_last_upload = (server_recorded_time == 0 || 
-  //                        server_recorded_time < e_launch_time - 7 * SECONDS_PER_DAY)?
-  //                       e_launch_time - 7 * SECONDS_PER_DAY : server_recorded_time;
-  //time_t t_last_upload = store_read_upload_time();
-  //APP_LOG(APP_LOG_LEVEL_ERROR, "t_last_upload = %u", (unsigned) t_last_upload);
   if (t_last_upload < e_launch_time - 7 * SECONDS_PER_DAY) {
     t_last_upload = e_launch_time - 7 * SECONDS_PER_DAY;
   }
@@ -283,26 +216,14 @@ char buf[32]; // DEBUG
     // TODO: only send 2 hours history. (later on 7 days)
     t_last_upload = time_start_of_today() - 2 * SECONDS_PER_HOUR;
   } else if (t_last_upload >= t_final) {
-    // DEBUG
-    strftime(buf, sizeof(buf), "%d %H:%M", localtime(&t_last_upload));
-    APP_LOG(APP_LOG_LEVEL_ERROR, "t_last_upload=%u, %s",  (unsigned)t_last_upload, buf);
-    // DEBUG
-
     // We arbitrarily stop uploading data at 1 minute before the current launch time.
     return true;
   }
   t_last_upload = t_last_upload / SECONDS_PER_MINUTE * SECONDS_PER_MINUTE; // Rounding.
 
-  // DEBUG
-  strftime(buf, sizeof(buf), "%d %H:%M", localtime(&t_last_upload));
-  APP_LOG(APP_LOG_LEVEL_ERROR, "t_last_upload=%u, %s",  (unsigned)t_last_upload, buf);
-  // DEBUG
-
   // Load the data MAX_ENTRIES at a time. Up to the maximum batch size.
   t_start = t_last_upload;
   // Not need for this, since we will break out of the loop if run out of buffer space.
-  //t_final = t_final <= t_start + STEP_BATCH_MAXIMUM_SIZE * SECONDS_PER_MINUTE ?
-  //          t_final  : t_start + STEP_BATCH_MAXIMUM_SIZE * SECONDS_PER_MINUTE;
   t_end = t_start + max_entries_seconds <= t_final ? t_start + max_entries_seconds : t_final;
 
   // Since Health per-minute API may change t_start and t_end according to the actual data 
@@ -436,136 +357,3 @@ after_while:
 
   return false;
 }
-
-#if 0
-/* Send steps in the time frame of 60 minutes. */
-void steps_send_in_between(time_t t_start, time_t end, bool force) {
-  //if (force) {
-  //  // Force prv_load_data to load load from Pebble Health.
-  //  s_is_loaded = false;
-  //}
-  s_start = t_start;
-  prv_load_data(&t_start, &end);
-
-  if (s_num_records == 0) {
-    APP_LOG(APP_LOG_LEVEL_INFO, "No new steps data to send.");
-    return;
-  }
-
-  comm_send_data(prv_data_write, comm_sent_handler, comm_server_received_handler);
-}
-
-/**
- * Send the latest steps data in the last hour.
- * FIXME: this could be integrated into store_resend_steps(). 
- */
-void steps_send_latest() {
-  s_start = e_launch_time - (MAX_ENTRIES * SECONDS_PER_MINUTE);
-
-  steps_send_in_between(s_start, e_launch_time, false);
-
-  store_write_upload_time(e_launch_time);
-}
-
-// Functions for sending the step data in the last week (supposed to be used when user first
-// install the app). 
-#define STEP_PRIOR_BATCH_SIZE 180
-static uint8_t s_prior_step_records[STEP_PRIOR_BATCH_SIZE];
-static char s_prior_step_records_string[STEP_PRIOR_BATCH_SIZE*4];
-static int s_prior_num_records;
-static time_t s_prior_start;
-static void prv_prior_data_write(DictionaryIterator * out) {
-  //write the data
-  int true_value = 1;
-  dict_write_int(out, AppKeyStepsData, &true_value, sizeof(int), true);
-
-  dict_write_int(out, AppKeyDate, &s_prior_start, sizeof(int), true);
-
-  dict_write_cstring(out, AppKeyStringData, s_prior_step_records_string);
-
-  //APP_LOG(APP_LOG_LEVEL_ERROR, "dict_size = %u", (unsigned) dict_size(out));
-  //for (int i = 0; i < s_prior_num_records; i++) {
-  //  dict_write_uint8(out, AppKeyArrayData + i, s_prior_step_records[i]);
-  //}
-  //APP_LOG(APP_LOG_LEVEL_ERROR, "dict_size = %u", (unsigned) dict_size(out));
-}
-
-/**
- * Fetch the step data in the last week and then upload to the server. 
- * TODO: optimize to reduce upload time.
- */
-void steps_upload_prior_week() {
-  // Use a larger buffer to send the historical data.
-  events_app_message_request_outbox_size(4096);
-  events_app_message_open(); // Call pebble-events app_message_open function
-  
-  int i, fill_index = 0, curr = 0;
-  time_t t_start, t_end, t_final;
-
-  s_prior_num_records = 0;
-  //s = e_launch_time - 7 * SECONDS_PER_DAY;
-  // TODO: For now only send limited data.
-  t_final = e_launch_time - MAX_ENTRIES * SECONDS_PER_MINUTE; // not include last period.
-  t_start = s_prior_start = t_final - STEP_PRIOR_BATCH_SIZE * SECONDS_PER_MINUTE + 1; 
-  while (t_start < t_final) {
-    // Read data into a temporary array with limited size. Due to the fact we cannot load
-    // more than a certain amount of data in a given call.
-    s_is_loaded = false;
-    t_end = t_start + MAX_ENTRIES * SECONDS_PER_MINUTE;
-
-    // DEBUG
-    char buf[12], bufe[12];
-    strftime(buf, sizeof(buf), "%d/%H:%M", localtime(&t_start));
-    strftime(bufe, sizeof(bufe), "%d/%H:%M", localtime(&t_end));
-    APP_LOG(APP_LOG_LEVEL_INFO, "DEBUG: loading history data at %s-%s", buf, bufe);
-    // DEBUG
-    //prv_load_data(&t_start, &t_end);
-
-    // Move data into an accumalative array.
-    for (i = 0; i < MAX_ENTRIES; i++, curr++) {
-      //s_prior_step_records[curr] = i; // TODO: load the actual data.
-      
-      int step = 100+i;
-      if (step > 99) {
-        s_prior_step_records_string[fill_index++] = step / 100 + '0';
-        step %= 100;
-        s_prior_step_records_string[fill_index++] = step / 10 + '0';
-        s_prior_step_records_string[fill_index++] = step % 10 + '0';
-      } else if (step > 9) {
-        s_prior_step_records_string[fill_index++] = step / 10 + '0';
-        s_prior_step_records_string[fill_index++] = step % 10 + '0';
-      } else {
-        s_prior_step_records_string[fill_index++] = step + '0';
-      }
-      s_prior_step_records_string[fill_index++] = ',';
-    }
-
-    s_prior_num_records += MAX_ENTRIES;
-    t_start = t_end + 1;
-  }
-  s_prior_step_records_string[fill_index-1] = '\0'; // Remove the tailing ','
-
-  APP_LOG(APP_LOG_LEVEL_INFO, "DEBUG: Done loading history data, fill_index=%d", fill_index);
-  APP_LOG(APP_LOG_LEVEL_INFO, "DEBUG: data = %s", s_prior_step_records_string);
-
-  comm_send_data(prv_prior_data_write, comm_sent_handler, comm_server_received_handler);
-}
-
-
-
-/**
- * DEBUG
- * Send updated info to wakeup_window for displaying on the watch. 
- * This assume steps_update() was called recently.
- */
-void steps_wakeup_window_update() { 
-  //wakeup_window_update(s_steps, s_start_buf, s_end_buf, s_inactive_mins);
-  wakeup_window_update(s_steps, s_start_buf, s_end_buf, 0);
-}
-
-
-/* Return the inactive minutes. */
-//int steps_get_inactive_minutes() {
-//  return s_inactive_mins;
-//}
-#endif

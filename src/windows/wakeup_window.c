@@ -132,22 +132,6 @@ static void main_text_layer_update_proc() {
   }  
 
   text_layer_set_text(s_main_text_layer, s_main_text_buf);
-
-  // Set up ScrollLayer according to the text size (assuming top_text_layer_update_proc done).
-  /*
-  GSize top_text_size = text_layer_get_content_size(s_top_text_layer);
-  GSize main_text_size = text_layer_get_content_size(s_main_text_layer);
-  #if DEBUG
-  APP_LOG(APP_LOG_LEVEL_ERROR, "main_text_size.w=%d, h=%d", main_text_size.w, main_text_size.h);
-  #endif
-  main_text_size.w += top_text_size.w;
-  main_text_size.h += top_text_size.h+5;
-  #if DEBUG
-  APP_LOG(APP_LOG_LEVEL_ERROR, "Gsize height = %d", main_text_size.h);
-  #endif
-
-  scroll_layer_set_content_size(s_scroll_layer, main_text_size);
-  */
 }
 
 /**
@@ -235,29 +219,20 @@ static void back_click_handler(ClickRecognizerRef recognizer, void *context) {
  */
 static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
   #if DEBUG
-  // DEBUG: step data re-send.
-  //text_layer_set_text(s_main_text_layer, "reset timestamp");
-  //store_write_upload_time(e_launch_time - 2 * SECONDS_PER_DAY);
+    // DEBUG: step data re-send.
+    //text_layer_set_text(s_main_text_layer, "reset timestamp");
+    //store_write_upload_time(e_launch_time - 2 * SECONDS_PER_DAY);
 
-  // DEBUG: reset launchexit count.
-  //int temp = 0;
-  //persist_write_data(PERSIST_KEY_LAUNCHEXIT_COUNT, &temp, 1);
-  //store_write_upload_time(e_launch_time - 3*SECONDS_PER_HOUR);
-  
-  // DEBUG: random messages.
-  launch_set_random_message();
-  e_launch_reason = LAUNCH_WAKEUP_ALERT; 
-  main_text_layer_update_proc_improved();
-  text_layer_set_text(s_bottom_text_layer, "");
-
-  // DEBUG: current score.
-  //store_reset_curr_score();
-
-  // DEBUG: reset last update timestamp to 2 hour ago
-  //store_write_config_time(time(NULL) - 2 * SECONDS_PER_DAY);
-
-  // DEBUG: send prior week's data
-  //steps_upload_prior_week();
+    // DEBUG: reset launchexit count.
+    //int temp = 0;
+    //persist_write_data(PERSIST_KEY_LAUNCHEXIT_COUNT, &temp, 1);
+    //store_write_upload_time(e_launch_time - 3*SECONDS_PER_HOUR);
+    
+    // DEBUG: random messages.
+    launch_set_random_message();
+    e_launch_reason = LAUNCH_WAKEUP_ALERT; 
+    main_text_layer_update_proc_improved();
+    text_layer_set_text(s_bottom_text_layer, "");
   #else
     back_click_handler(recognizer, context);
   #endif
@@ -313,12 +288,6 @@ static void window_load(Window *window) {
     main_bounds = GRect(bounds.origin.x, current_y, bounds.size.w, bounds.size.h);
 
     s_main_text_layer = make_text_layer(main_bounds, s_main_text_font, GTextAlignmentCenter);
-    //s_main_text_layer = make_text_layer(grect_inset(main_bounds, GEdgeInsets(15)),
-    //s_main_text_layer = make_text_layer(grect_inset(main_bounds, main_text_insets),
-    //                                    s_main_text_font, GTextAlignmentCenter);
-
-    // Add TextLayer as children of the ScrollLayer.
-    //scroll_layer_add_child(s_scroll_layer, text_layer_get_layer(s_main_text_layer));
 
     // Enable paging and text flow with an inset of 5 pixels
     // Note that if there is too much text in the top TextLayer, this pagination might cause 
@@ -356,142 +325,6 @@ static void window_load(Window *window) {
   window_set_click_config_provider(s_window, click_config_provider);
 }
 
-
-
-/**
- * Deprecated
- */
-/*
-static void window_load(Window *window) {
-  Layer *window_layer = window_get_root_layer(window);
-  GRect bounds = layer_get_bounds(window_layer);
-  //APP_LOG(APP_LOG_LEVEL_ERROR, "bound height = %d", bounds.size.h);
-
-  //int padding = PBL_IF_ROUND_ELSE(10, 0);
-  int padding = 10;
-  float center = bounds.size.h / 2;
-  int top_text_height = 40;
-  //int main_text_height = PBL_IF_ROUND_ELSE(60, 70);
-  int main_text_height = 2000;
-
-
-  // Create the ScrollLayer.
-  s_scroll_layer = scroll_layer_create(bounds);
-  scroll_layer_set_shadow_hidden(s_scroll_layer, true);
-
-  // Let the ScrollLayer receive click events, and set click handlers for windows.
-  scroll_layer_set_click_config_onto_window(s_scroll_layer, window);
-  scroll_layer_set_callbacks(s_scroll_layer, (ScrollLayerCallbacks) {
-    .click_config_provider =  click_config_provider,
-  });
-
-  // Add the ScrollLayer to the main window layer.
-  layer_add_child(window_layer, scroll_layer_get_layer(s_scroll_layer));
-
-
-
-  // Get the ContentIndicator from the ScrollLayer
-  s_indicator = scroll_layer_get_content_indicator(s_scroll_layer);
-
-  // Create two Layers to draw the arrows
-  s_indicator_up_layer = layer_create(GRect(0, 0, bounds.size.w, STATUS_BAR_LAYER_HEIGHT));
-  s_indicator_down_layer = layer_create(GRect(0, bounds.size.h - STATUS_BAR_LAYER_HEIGHT,
-                                              bounds.size.w, STATUS_BAR_LAYER_HEIGHT));
-
-  // Configure the properties of each indicator
-  const ContentIndicatorConfig up_config = (ContentIndicatorConfig) {
-    .layer = s_indicator_up_layer,
-    .times_out = false,
-    .alignment = GAlignCenter,
-    .colors = {
-      .foreground = GColorBlack,
-      .background = GColorWhite
-    }
-  };
-  content_indicator_configure_direction(s_indicator, ContentIndicatorDirectionUp,
-                                        &up_config);
-  
-  const ContentIndicatorConfig down_config = (ContentIndicatorConfig) {
-    .layer = s_indicator_down_layer,
-    .times_out = false,
-    .alignment = GAlignCenter,
-    .colors = {
-      .foreground = GColorBlack,
-      .background = GColorWhite
-    }
-  };
-  content_indicator_configure_direction(s_indicator, ContentIndicatorDirectionDown,
-                                        &down_config);
-
-  // Add indicator Layers as children of the main window layer.
-  layer_add_child(window_layer, s_indicator_up_layer);
-  layer_add_child(window_layer, s_indicator_down_layer);
-
-
-
-  // Create the top TextLayer that is above the main TextLayer.
-  s_top_text_font = fonts_get_system_font(FONT_KEY_GOTHIC_24); 
-  s_top_text_layer = make_text_layer(bounds, s_top_text_font, GTextAlignmentCenter);
-
-  // Add TextLayer as children of the ScrollLayer.
-  scroll_layer_add_child(s_scroll_layer, text_layer_get_layer(s_top_text_layer));
-
-  // Enable paging and text flow with an inset of 5 pixels
-  text_layer_enable_screen_text_flow_and_paging(s_top_text_layer, 5);
-
-  top_text_layer_update_proc();
-
-
-
-  // Create the main TextLayer that display after the top TextLayer.
-  // Note: due to the fact that text_layer_get_content_size() does no give accurate value when
-  // used with text_layer_enable_screen_text_flow_and_paging(), we add an arbitrary margin
-  // when creating the main TextLayer.
-  
-  // TODO: We need to get a sense of the size of message to place the text layer properly 
-  // approximately at the center of the screen.
-  #if DEBUG
-  int temp_length;
-  if (e_launch_reason == LAUNCH_WAKEUP_ALERT) {
-    temp_length = strlen(launch_get_random_message());
-  } else {
-    temp_length = strlen(launch_get_random_message());
-  }
-  #endif
-
-  #if DEBUG
-    APP_LOG(APP_LOG_LEVEL_INFO, "string length=%d", temp_length);
-  #endif
- 
-  GSize top_text_size = text_layer_get_content_size(s_top_text_layer);
-  GRect main_bounds = GRect(bounds.origin.x, bounds.origin.y + top_text_size.h, 
-                            bounds.size.w, bounds.size.h); // TODO: different height value?
-
-  #if defined(PBL_ROUND)
-    GEdgeInsets main_text_insets = {.top = (top_text_size.h > 0)? 5 : 30, 
-                                    .right = 20, .left = 20};
-  #else
-    GEdgeInsets main_text_insets = {.top = (top_text_size.h > 0)? 5 : 25, .right = 0, .left = 0};
-  #endif
-  s_main_text_font = fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD);
-  //s_main_text_layer = make_text_layer(main_bounds, s_main_text_font, GTextAlignmentCenter);
-  //s_main_text_layer = make_text_layer(grect_inset(main_bounds, GEdgeInsets(15)), 
-  s_main_text_layer = make_text_layer(grect_inset(main_bounds, main_text_insets), 
-                                      s_main_text_font, GTextAlignmentCenter);
-
-  // Add TextLayer as children of the ScrollLayer.
-  scroll_layer_add_child(s_scroll_layer, text_layer_get_layer(s_main_text_layer));
-
-  // Enable paging and text flow with an inset of 5 pixels
-  // Note that if there is too much text in the top TextLayer, this pagination might cause 
-  // unneccessary line spaces and clipped texts.
-  if (top_text_size.h == 0) {
-    text_layer_enable_screen_text_flow_and_paging(s_main_text_layer, 5);
-  }
-
-  main_text_layer_update_proc();
-}
-*/
 
 static void window_unload(Window *window) {
   if (s_scroll_layer) {

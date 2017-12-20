@@ -4,7 +4,6 @@ var Clay = require('pebble-clay');
 var messageKeys = require('message_keys');
 var clayConfig = require('./config.json');
 var customClay = require('./custom-clay');
-//var clay = new Clay(clayConfig, customClay);
 var clay = new Clay(clayConfig, customClay, { autoHandleEvents: false });
 
 // Register custom Clay components.
@@ -18,7 +17,6 @@ var SERVER = 'http://pebble-fit.herokuapp.com';
 
 // Local servers (use ifconfig to find out).
 // var SERVER = 'http://10.30.202.74:3000';
-// var SERVER = 'http://35.203.165.10:3000';
 
 
 // Flag to switch off server communication
@@ -93,30 +91,10 @@ Pebble.addEventListener('appmessage', function (dict) {
           }, function(e) {
             console.log('Failed to send upload time to Pebble! data = ' + JSON.stringify(e));
           });
-            /*
-          // Send settings values to watch side even if cannot logging to the server.
-          //saveConfigToWatch({});
-          Pebble.sendAppMessage(dict, function(e) {
-            console.log('Sent config data to Pebble');
-          }, function(e) {
-            console.log('Failed to send config data!');
-            console.log(JSON.stringify(e));
-          });
-        //} else {
-          // Do not expect a response from the server?
-          // TODO: server might always send a response? Or omit that for non-new user?
-          if (response) {
-            saveConfigToWatch(parseServerConfig(JSON.parse(response)));
-          } else {
-            saveConfigToWatch({});
-          }
-          */
         }
       });
     } else {
       console.log('Error: should not reach here since the array data format is deprecated!');
-      //var data = load_data_array();
-      //sendStepData(data, date);
     }
   }
 
@@ -272,7 +250,6 @@ Pebble.addEventListener('webviewclosed', function(e) {
       log.info(err || status);
 
       // Send settings values to watch side even if cannot logging to the server.
-      //saveConfigToWatch({});
       Pebble.sendAppMessage(dict, function(e) {
         console.log('Sent config data to Pebble');
       }, function(e) {

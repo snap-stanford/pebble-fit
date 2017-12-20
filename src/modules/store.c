@@ -140,43 +140,6 @@ void store_write_launchexit_event(time_t t_launch, time_t t_exit, uint8_t lr, ui
     msg_id, (unsigned int)msg_id_ascii, (unsigned int)t_diff, sd, br, lr, er);
 }
 
-// Deprecated.
-// 11 bits                 | 17 bits                  | 2 bits   | 2 bits  
-// launch (mins since SoD) | exit (secs after launch) | l reason | e reason
-//#define COMPACT(lm, es, lr, er) (lm<<21 | (es&0x1ffff)<<4 | (lr&0x3)<<2 | (er&0x3))
-/*
-void deprecated_store_write_launchexit_event(time_t t_launch, time_t t_exit, uint8_t lr, uint8_t er) {
-  time_t minutes, seconds;
-
-  if (persist_exists(PERSIST_KEY_LAUNCHEXIT_COUNT)) {
-    persist_read_data(PERSIST_KEY_LAUNCHEXIT_COUNT, &s_launchexit_count, 1);
-  }
-
-  if (s_launchexit_count > PERSIST_KEY_LAUNCH_END - PERSIST_KEY_LAUNCH_START + 1) {
-    APP_LOG(APP_LOG_LEVEL_ERROR, "s_launchexit_count less than zero = %u", s_launchexit_count);
-    s_launchexit_count = 0;
-  }
-
-  // Find the number of minutes since SoD (rounded to the nearest minute)
-  // Always round down for consistency.
-  //minutes = (t_launch - time_start_of_today() + SECONDS_PER_MINUTE/2) / SECONDS_PER_MINUTE;
-  minutes = (t_launch - time_start_of_today()) / SECONDS_PER_MINUTE;
-  seconds = t_exit - t_launch;
-  s_launchexit_data = COMPACT(minutes, seconds, lr, er);
-  s_launchexit_count++;
-
-  // DEBUG
-  APP_LOG(APP_LOG_LEVEL_INFO, "Write launch and exit events to persistent storage" \
-      ". new records count=%d.", s_launchexit_count);
-  APP_LOG(APP_LOG_LEVEL_INFO, "t_launch=%u, t_exit=%u", (unsigned int)t_launch, (unsigned int)t_exit);
-  APP_LOG(APP_LOG_LEVEL_INFO, "min=%u, seconds=%u, lr=%d, er=%d, data=%08x", (unsigned int)minutes, (unsigned int)seconds, lr, er, (unsigned int)s_launchexit_data);
-  
-  // Write data first. Can tolerate losing data to avoid uploading wrong data to the server.
-  persist_write_data(PERSIST_KEY_LAUNCH_START+s_launchexit_count-1, &s_launchexit_data, LAUNCHEXIT_DATA_SIZE);
-  persist_write_data(PERSIST_KEY_LAUNCHEXIT_COUNT, &s_launchexit_count, LAUNCHEXIT_COUNT_SIZE);
-}
-*/
-
 /**
  * Return whether we finish resending launch/exit event (only when we do not send any data 
  * to the server. 
@@ -262,57 +225,6 @@ bool store_resend_launchexit_event() {
     return true;
   }
 }
-
-/**
- * Deprecated.
- * Use steps_upload_steps() instead.
- * Return whether we finish resending steps data (only when we do not send any data 
- * to the server. Later in steps_send_latest()  we might resend some data that we are 
- * sending in here.
- */
-/*
-bool store_resend_steps() {
-  APP_LOG(APP_LOG_LEVEL_INFO, "DEBUG: in store_resend_steps");
-  time_t t_last_upload; 
-  time_t interval_seconds = enamel_get_break_freq() * SECONDS_PER_MINUTE;
-  //t_last_upload = (t_last_upload < time_start_of_today());
-
-  if (!persist_exists(PERSIST_KEY_UPLOAD_TIME)) {
-    APP_LOG(APP_LOG_LEVEL_EROR, "Error: upload time should be set when the app is activated.");
-
-    // Upload one day of historical data in this erroneous case.
-    t_last_upload = time_start_of_today() - SECONDS_PER_DAY;
-  } else {
-    persist_read_data(PERSIST_KEY_UPLOAD_TIME, &t_last_upload, sizeof(time_t));
-    if (t_last_upload >= e_launch_time - interval_seconds) {
-      // Data in the lastest 60 minutes will be sent by the normal data upload routine.
-      return true;
-    }
-  }
-
-  // DEBUG
-  char buf[32];
-  strftime(buf, sizeof(buf), "%d %H:%M", localtime(&t_last_upload));
-  APP_LOG(APP_LOG_LEVEL_ERROR, "t_last_upload=%u, %s",  (unsigned)t_last_upload, buf);
-  //DEBUG
-  
-  //if (t_last_upload  < time_start_of_today() - 2 * SECONDS_PER_DAY) {
-  //  // If last upload time is ealier than 2 days ago, only upload starting at 2 days ago
-  //  t_last_upload = time_start_of_today() - 2 * SECONDS_PER_DAY;
-  //} else if (t_last_upload >= e_launch_time - interval_seconds) {
-  //  // Data in the lastest 60 minutes will be sent by the normal data upload routine.
-  //  return true;
-  //}
-
-  steps_send_in_between(t_last_upload, t_last_upload + interval_seconds, true);
-
-  t_last_upload += interval_seconds;
-  persist_write_data(PERSIST_KEY_UPLOAD_TIME, &t_last_upload, sizeof(time_t));
-
-  //return t_last_upload < t_curr - interval_seconds;
-  return false;
-}
-*/
 
 /**
  * Reset the break count to 0. This should be performed in the first wakeup daily.

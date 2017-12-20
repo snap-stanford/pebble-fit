@@ -50,10 +50,12 @@ static void add_app_config_data(DictionaryIterator * out) {
 static void add_weight_data(DictionaryIterator * out) {
   char msg_id_buf[6];
   if (e_launch_reason == LAUNCH_WAKEUP_PERIOD && store_weight_read_then_delete_msgid(msg_id_buf)) {
+    if (persist_exists(PERSIST_KEY_WEIGHTS_DATA)) {
+      APP_LOG(APP_LOG_LEVEL_INFO, "HOW?");
+    }
     dict_write_cstring(out, AppKeyWeightMessageID, msg_id_buf);
     int weight = store_weight_get_recent_update();
     dict_write_int(out, MESSAGE_KEY_random_message_weights, &weight, sizeof(int), true);
-    APP_LOG(APP_LOG_LEVEL_ERROR, ">>> %s %d", msg_id_buf, weight);
   }
 }
 
@@ -87,9 +89,6 @@ static void prv_launch_exit_data_write(DictionaryIterator * out) {
   dict_write_uint8(out, AppKeyLaunchReason, s_lr);
   dict_write_uint8(out, AppKeyExitReason, s_er);
   dict_write_cstring(out, AppKeyMessageID, s_msg_id);
-
-  add_weight_data(out);
-  add_app_config_data(out);
 }
 
 
@@ -125,12 +124,6 @@ void launch_resend(time_t t_launch, time_t t_exit, char *msg_id, uint8_t sd,
   s_er = er;
 
   comm_send_data(prv_launch_exit_data_write, comm_sent_handler, comm_server_received_handler);
-
-  //if (is_launch) {
-  //  comm_send_data(prv_launch_data_write, comm_sent_handler, comm_server_received_handler);
-  //} else {
-  //  comm_send_data(prv_exit_data_write, comm_sent_handler, NULL);
-  //}
 }
 
 /**
@@ -606,13 +599,6 @@ void init_callback(DictionaryIterator *iter, void *context) {
   // Reset the timer so that app will not timeout and exit while data is transferring (assume
   // the round trip time is less than the timeout limit).
   tick_reset_count();
-
-  //Tuple* tuple = dict_find(iter, MESSAGE_KEY_config_update_by_server);
-  //if (tuple) {
-  //  APP_LOG(APP_LOG_LEVEL_ERROR, "config_update_by_server=%d", (int)tuple->value->int32);
-  //} else {
-  //  APP_LOG(APP_LOG_LEVEL_ERROR, "Not contain MESSAGE_KEY_config_update_by_server");
-  //}
 
   switch (s_init_stage) {
     case 0:
