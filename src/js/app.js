@@ -18,7 +18,7 @@ var SERVER = 'http://pebble-fit.herokuapp.com';
 
 // Local servers (use ifconfig to find out).
 // var SERVER = 'http://10.30.202.74:3000';
-// var SERVER = 'http://35.203.168.32:3000';
+// var SERVER = 'http://35.203.165.10:3000';
 
 
 // Flag to switch off server communication
@@ -132,7 +132,8 @@ Pebble.addEventListener('appmessage', function (dict) {
     var launchReason = dict.payload.AppKeyLaunchReason;
     var exitReason = dict.payload.AppKeyExitReason;
     sendLaunchExitData(configRequest, msgID, launchTime, exitTime, scoreDiff, score,
-                       launchReason, exitReason, date, generateAppConfig(dict, configRequest));
+                       launchReason, exitReason, date, generateWeightData(dict),
+                       generateAppConfig(dict, configRequest));
   }
 });
 
@@ -145,6 +146,16 @@ var secondsToHHMM = function(seconds) {
   if (m.length < 2) m = "0" + m;
 
   return h + ":" + m;
+}
+
+var generateWeightData = function(dict) {
+  var weightData = [];  
+  var weightMsgID = dict.payload.AppKeyWeightMessageID;
+  if (weightMsgID !== undefined) {
+    weightData.push(weightMsgID);
+    weightData.push(dict.payload.random_message_weights);
+  }
+  return weightData
 }
 
 var generateAppConfig = function(dict, configRequest) {
@@ -387,7 +398,7 @@ function sendToServer (route, callback) {
 }
 
 function sendLaunchExitData(configRequest, msgID, launchTime, exitTime, scoreDiff, score,
-                            launchReason, exitReason, date, appConfig) {
+                            launchReason, exitReason, date, weightData, appConfig) {
   var url;
 
   if (exitReason === undefined) {
@@ -413,6 +424,10 @@ function sendLaunchExitData(configRequest, msgID, launchTime, exitTime, scoreDif
       '&exitreason=' + exitReason +
       '&msgid=' + msgID +
       '&watch=' + Pebble.getWatchToken();
+  }
+
+  if (weightData.length > 0) {
+    url = url + '&weightmsgid=' + weightData[0] + '&weightnew=' + weightData[1];
   }
 
     // send daily config

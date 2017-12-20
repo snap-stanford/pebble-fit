@@ -23,27 +23,38 @@ char s_random_message_buf[RANDOM_MSG_SIZE_MAX];
 static time_t s_t_launch, s_t_exit, s_curr_time;
 static uint8_t s_br, s_lr, s_er;
 static const char *s_msg_id;          // original msg_id tracker, but changes to pass/fail string after step update
-static const char *s_weight_msg_id;   // msg_id tracker to know the original msg_id tracker
 static uint8_t s_score_diff = 255; // Assume total break is less than 256.
 
 
 
 static void add_app_config_data(DictionaryIterator * out) {
-  dict_write_cstring(out, MESSAGE_KEY_time_zone, enamel_get_time_zone());
+  if (s_config_request == 1) {
+    dict_write_cstring(out, MESSAGE_KEY_time_zone, enamel_get_time_zone());
 
-  int start_time = enamel_get_daily_start_time();
-  dict_write_int(out, MESSAGE_KEY_daily_start_time, &start_time, sizeof(int), true);
+    int start_time = enamel_get_daily_start_time();
+    dict_write_int(out, MESSAGE_KEY_daily_start_time, &start_time, sizeof(int), true);
 
-  int end_time = enamel_get_daily_end_time();
-  dict_write_int(out, MESSAGE_KEY_daily_end_time, &end_time, sizeof(int), true);
-  dict_write_uint8(out, MESSAGE_KEY_break_freq, enamel_get_break_freq());
-  dict_write_uint8(out, MESSAGE_KEY_break_len, enamel_get_break_len());
-  dict_write_uint8(out, MESSAGE_KEY_step_threshold, enamel_get_step_threshold());
-  dict_write_cstring(out, MESSAGE_KEY_group, enamel_get_group());
-  int vibrate = enamel_get_vibrate();
-  dict_write_int(out, MESSAGE_KEY_vibrate, &vibrate, sizeof(int), true);
-  int display_duration = enamel_get_display_duration();
-  dict_write_int(out, MESSAGE_KEY_display_duration, &display_duration, sizeof(int), true);
+    int end_time = enamel_get_daily_end_time();
+    dict_write_int(out, MESSAGE_KEY_daily_end_time, &end_time, sizeof(int), true);
+    dict_write_uint8(out, MESSAGE_KEY_break_freq, enamel_get_break_freq());
+    dict_write_uint8(out, MESSAGE_KEY_break_len, enamel_get_break_len());
+    dict_write_uint8(out, MESSAGE_KEY_step_threshold, enamel_get_step_threshold());
+    dict_write_cstring(out, MESSAGE_KEY_group, enamel_get_group());
+    int vibrate = enamel_get_vibrate();
+    dict_write_int(out, MESSAGE_KEY_vibrate, &vibrate, sizeof(int), true);
+    int display_duration = enamel_get_display_duration();
+    dict_write_int(out, MESSAGE_KEY_display_duration, &display_duration, sizeof(int), true);
+  }
+}
+
+static void add_weight_data(DictionaryIterator * out) {
+  char msg_id_buf[6];
+  if (e_launch_reason == LAUNCH_WAKEUP_PERIOD && store_weight_read_then_delete_msgid(msg_id_buf)) {
+    dict_write_cstring(out, AppKeyWeightMessageID, msg_id_buf);
+    int weight = store_weight_get_recent_update();
+    dict_write_int(out, MESSAGE_KEY_random_message_weights, &weight, sizeof(int), true);
+    APP_LOG(APP_LOG_LEVEL_ERROR, ">>> %s %d", msg_id_buf, weight);
+  }
 }
 
 /* Add launch reason and date to out dict. */
@@ -55,11 +66,8 @@ static void prv_launch_data_write(DictionaryIterator * out) {
   dict_write_uint8(out, AppKeyScoreDiff, s_score_diff);
   dict_write_uint8(out, AppKeyBreakCount, s_br);
   dict_write_cstring(out, AppKeyMessageID, s_msg_id);
-  dict_write_cstring(out, AppKeyWeightMessageID, s_weight_msg_id);
 
-  int weight = store_weight_get_recent_update();
-  if (weight >= 0) dict_write_int(out, MESSAGE_KEY_random_message_weights, &weight, sizeof(int), true);
-
+  add_weight_data(out);
   add_app_config_data(out);
 }
 /* Add exit reason and date to out dict. */
@@ -79,10 +87,9 @@ static void prv_launch_exit_data_write(DictionaryIterator * out) {
   dict_write_uint8(out, AppKeyLaunchReason, s_lr);
   dict_write_uint8(out, AppKeyExitReason, s_er);
   dict_write_cstring(out, AppKeyMessageID, s_msg_id);
-  dict_write_cstring(out, AppKeyWeightMessageID, s_weight_msg_id);
 
-  double weight = store_weight_get_recent_update();
-  if (weight >= 0) dict_write_int(out, MESSAGE_KEY_random_message_weights, &weight, sizeof(int), true);
+  add_weight_data(out);
+  add_app_config_data(out);
 }
 
 
@@ -319,7 +326,6 @@ void launch_wakeup_handler(WakeupId wakeup_id, int32_t wakeup_cookie) {
     // Calculate the current period steps info, and then set the message ID to be pass/fail.
     // This will be overwritten by the true random message ID if this is a LAUNCH_WAKEUP_ALERT.
     steps_update();
-    s_weight_msg_id = s_msg_id;
     if (steps_get_pass()) {
       s_msg_id = "pass";
     } else {
@@ -341,9 +347,11 @@ void launch_wakeup_handler(WakeupId wakeup_id, int32_t wakeup_cookie) {
         //APP_LOG(APP_LOG_LEVEL_ERROR, "Make sure this happens before init_callback()!");
         if (!steps_get_pass()) { // Only push the window if step goal is not met.
           launch_set_random_message();
+          store_weight_write_msgid();
           s_wakeup_window = wakeup_window_push();
         } else {
           e_exit_reason = EXIT_TIMEOUT; // FIXME: or using a new coding for silent-wakeup?
+          store_weight_read_then_delete_msgid(NULL);
         }
         prv_wakeup_vibrate(false);
         break;
@@ -351,6 +359,7 @@ void launch_wakeup_handler(WakeupId wakeup_id, int32_t wakeup_cookie) {
         // For now, even for period-wakeup and goal is met, we still push window.
         prv_wakeup_vibrate(true);
         s_wakeup_window = wakeup_window_push();
+        store_weight_update(steps_get_pass());
         break;
       case LAUNCH_WAKEUP_SILENT:
         APP_LOG(APP_LOG_LEVEL_INFO, "Silent wakeup.\n");
@@ -415,7 +424,6 @@ void launch_handler(bool activate) {
     int lr = launch_reason();
     if (lr != APP_LAUNCH_WAKEUP) {
       steps_update();
-      s_weight_msg_id = s_msg_id;
       if (steps_get_pass()) {
         s_msg_id = "pass";
       } else {

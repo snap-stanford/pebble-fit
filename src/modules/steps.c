@@ -218,12 +218,6 @@ void steps_update() {
       strftime(s_end_buf, sizeof(s_end_buf), "%H:%M", localtime(&s_end));
       APP_LOG(APP_LOG_LEVEL_ERROR, "%d steps from %s to %s", s_steps, s_start_buf, s_end_buf);
     }
-
-    // If a period-wakeup, update the corresponding msg weights
-    if (e_launch_reason == LAUNCH_WAKEUP_PERIOD || (e_launch_reason == LAUNCH_WAKEUP_SILENT &&
-        strncmp(enamel_get_group(), "real_time", strlen("real_time")) != 0)) {
-      store_weight_update(s_pass);
-    }
 }
 
 /* Write steps array data to dict. */
