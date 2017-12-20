@@ -19,6 +19,7 @@
       "health"
     ],
     "targetPlatforms": [
+      "aplite",
       "basalt",
       "chalk",
       "diorite",

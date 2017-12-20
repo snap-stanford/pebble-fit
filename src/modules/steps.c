@@ -7,6 +7,8 @@
 // At most we could upload 480*3/2 = 720 minutes of data in one batch.
 #if DEBUG
   #define STEP_BATCH_MAXIMUM_SIZE   60
+#elif PBL_PLATFORM_APLITE
+  #define STEP_BATCH_MAXIMUM_SIZE   150  //reduced batch size for low memory devices
 #else
   #define STEP_BATCH_MAXIMUM_SIZE   900
 #endif
