@@ -2,6 +2,7 @@
 
 #include <pebble.h>
 #include <math.h>
+#include <ctype.h>
 #include "../constants.h"
 #include "comm.h"
 #include "launch.h"
@@ -30,6 +31,8 @@ const char* store_read_random_message();
 
 void store_weight_update(bool pass);
 int store_weight_get_recent_update();
+void store_weight_write_msgid();
+bool store_weight_read_then_delete_msgid(char *msg_id_buf);
 void store_weights_set();
 
 void store_delete_all();

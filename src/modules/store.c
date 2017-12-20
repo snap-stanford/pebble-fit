@@ -191,7 +191,6 @@ bool store_resend_launchexit_event() {
 
   if (persist_exists(PERSIST_KEY_LAUNCHEXIT_COUNT)) {
     persist_read_data(PERSIST_KEY_LAUNCHEXIT_COUNT, &s_launchexit_count, LAUNCHEXIT_COUNT_SIZE);
-
     // Decrement count if this function is called previously and data is sent to server.
     if (e_waiting_launchexit_ack) {
       key = PERSIST_KEY_LAUNCH_START + s_launchexit_count - 1;
@@ -411,7 +410,7 @@ int store_compare_ref_score(int mode) {
 
     // Calculate the correct index for the reference scores.
     //printf("rf=%d, p=%d, tb=%d\n", ref_count, s_possible_score, (int)enamel_get_total_break());
-    ref_count = (int)round((float)ref_count * s_possible_score / enamel_get_total_break());
+    ref_count = (int)round((double)ref_count * s_possible_score / enamel_get_total_break());
     for (start = 0, end = 0, count = 0; buf[end] != '\0'; end++) {
       if (buf[end] == ',') {
         count++;
@@ -434,7 +433,7 @@ int store_compare_ref_score(int mode) {
     //printf("start=%d, end=%d, count=%d\n", start, end, count);
 
     // Extract the integer portion of the number.
-    float integer = 0, decimal = 0, multiplier = 10;
+    double integer = 0, decimal = 0, multiplier = 10;
     for (i = start; i <= end; i++) {
       #if DEBUG
         APP_LOG(APP_LOG_LEVEL_INFO, "buf[%d] = %c", i, buf[i]);
@@ -480,9 +479,9 @@ const char* store_read_random_message() {
   int index = 0;
   if (strcmp(enamel_get_group(), "real_time_adaptive") == 0) {
     // real_time_adaptive -- get message with highest weight
-    double weight = -1;
-    double weights[RANDOM_MSG_POOL_SIZE];
-    persist_read_data(PERSIST_KEY_RANDOM_MSG_WEIGHTS, weights, sizeof(double)*RANDOM_MSG_POOL_SIZE);
+    int weight = -1;
+    int weights[RANDOM_MSG_POOL_SIZE];
+    persist_read_data(PERSIST_KEY_RANDOM_MSG_WEIGHTS, weights, sizeof(int)*RANDOM_MSG_POOL_SIZE);
 
     for (int i=0; i < RANDOM_MSG_POOL_SIZE; i++) {
       if (weights[i] > weight) {
@@ -490,8 +489,7 @@ const char* store_read_random_message() {
         index = i;
       }
     }
-
-    APP_LOG(APP_LOG_LEVEL_ERROR, "index=%d,weight=%f", index, weight);
+    persist_write_string(PERSIST_KEY_WEIGHTS_DATA, "");
   } else {
     // real_time_random|simple -- iterate through random messages
     if (!persist_exists(PERSIST_KEY_RANDOM_MSG_INDEX)) {
@@ -502,6 +500,7 @@ const char* store_read_random_message() {
       index = index >= RANDOM_MSG_POOL_SIZE - 1? 0 : index + 1;
       APP_LOG(APP_LOG_LEVEL_ERROR, "index=%d", index);
     }
+    persist_delete(PERSIST_KEY_WEIGHTS_DATA);
   }
   persist_write_int(PERSIST_KEY_RANDOM_MSG_INDEX, index);
   switch (index) {
@@ -527,24 +526,41 @@ void store_weight_update(bool pass) {
   if (strcmp(enamel_get_group(), "real_time_adaptive") == 0) {
 
     int index = persist_read_int(PERSIST_KEY_RANDOM_MSG_INDEX);
-    double alpha = atoi(enamel_get_weight_update_param()) / (double) atoi(enamel_get_weight_factor_param());
-    double outcome = pass ? 1.0 : 0.0;
+    int factor = atoi(enamel_get_weight_factor_param());
+    int alpha = atoi(enamel_get_weight_update_param());
+    int outcome = pass ? factor : 0;
 
-    double weights[RANDOM_MSG_POOL_SIZE];
-    persist_read_data(PERSIST_KEY_RANDOM_MSG_WEIGHTS, weights, sizeof(double)*RANDOM_MSG_POOL_SIZE);
-    double weight = weights[index];
+    int weights[RANDOM_MSG_POOL_SIZE];
+    persist_read_data(PERSIST_KEY_RANDOM_MSG_WEIGHTS, weights, sizeof(int)*RANDOM_MSG_POOL_SIZE);
+    int weight = weights[index];
 
+    APP_LOG(APP_LOG_LEVEL_ERROR, "OLD: index=%d,weight=%d, pass=%d", index, weight, (int) pass);
 
-    APP_LOG(APP_LOG_LEVEL_ERROR, "OLD: index=%d,weight=%f, pass=%d, alpha=%f", 
-      index, weight, pass, alpha);
-
-    //update algorithm
-    weight = weight + alpha * (outcome - weight);
+    //update algorithm 
+    weight = weight + (int) floor(alpha * (outcome - weight) / ((double) factor));
     weights[index] = weight;
-    persist_write_data(PERSIST_KEY_RANDOM_MSG_WEIGHTS, weights, sizeof(double)*RANDOM_MSG_POOL_SIZE);
-
-    APP_LOG(APP_LOG_LEVEL_ERROR, "NEW: index=%d,weight=%f", index, weight);
+    persist_write_data(PERSIST_KEY_RANDOM_MSG_WEIGHTS, weights, sizeof(int)*RANDOM_MSG_POOL_SIZE);
+    APP_LOG(APP_LOG_LEVEL_ERROR, "NEW: weight=%d", weight);
   }
+}
+
+void store_weight_write_msgid(){
+  if (persist_exists(PERSIST_KEY_WEIGHTS_DATA)) {
+    const char * msg_id = launch_get_random_message_id();
+    persist_write_string(PERSIST_KEY_WEIGHTS_DATA, msg_id);
+  }
+}
+
+bool store_weight_read_then_delete_msgid(char *msg_id_buf) {
+  if (!persist_exists(PERSIST_KEY_WEIGHTS_DATA)) {
+    return false;
+  }
+
+  if (msg_id_buf != NULL) {
+    persist_read_string(PERSIST_KEY_WEIGHTS_DATA, msg_id_buf, 6);
+  }
+  persist_delete(PERSIST_KEY_WEIGHTS_DATA);
+  return true;
 }
 
 int store_weight_get_recent_update() {
@@ -552,46 +568,41 @@ int store_weight_get_recent_update() {
   if (strcmp(enamel_get_group(), "real_time_adaptive") == 0) {
     int index = persist_read_int(PERSIST_KEY_RANDOM_MSG_INDEX);
 
-    double weights[RANDOM_MSG_POOL_SIZE];
-    persist_read_data(PERSIST_KEY_RANDOM_MSG_WEIGHTS, weights, sizeof(double)*RANDOM_MSG_POOL_SIZE);
-    double weight = weights[index];
-    APP_LOG(APP_LOG_LEVEL_ERROR, "index=%d,weight=%f", index, weight);
-    return floor(weight * atoi(enamel_get_weight_factor_param()));
+    int weights[RANDOM_MSG_POOL_SIZE];
+    persist_read_data(PERSIST_KEY_RANDOM_MSG_WEIGHTS, weights, sizeof(int)*RANDOM_MSG_POOL_SIZE);
+    APP_LOG(APP_LOG_LEVEL_ERROR, "index=%d,weight=%d", index, weights[index]);
+    return weights[index];
   }
   return -1;
 }
 
-// 
+
+
 /**
   * Parse and store weights from settings update in persistent storage
-  * weights are sent in scientific notation without the period, seperated by '|'
-  * ex. 0.0314|0.1000 is sent as 314e-2|100e-1 when using 3 sig figs
-  * 
-  * Since pebble doesn't allow for float related functions (atof, pow, sscanf,strtod),
-  * we have to use our own. For each value, we parse it into its starting weight_value,
-  * exponent, and length of initial weight_value. We then turn the weight_value into a
-  * double and iteratively divide it by 10 to shrink it down to its appropriate order
-  * of magnitude (simulating pow)
-  * ex. 314e-2 -> wv=314, l=3, exp=-2   ==> 0.0314 = wv * pow(10, 1-l+exp)
+  * weights are sent as integers multipled by a given factor, seperated by '|'
   */
 void store_weights_set() {
   APP_LOG(APP_LOG_LEVEL_ERROR, "enter store_weights_set()");
   if (strcmp(enamel_get_group(), "real_time_adaptive") == 0) {
   
     const char* weights_string_const = enamel_get_random_message_weights();
-    double weight_factor = (double) atoi(enamel_get_weight_factor_param());
-    char weights_string[strlen(weights_string_const)];
-    strcpy(weights_string, weights_string_const);
-    char* weight_string = strtok(weights_string, "|");
-    double weights_values[RANDOM_MSG_POOL_SIZE]; 
-    int index = 0;
+    const char* weight = weights_string_const;
 
-    while (weight_string != NULL) {
-      weights_values[index] = atoi(weight_string) / weight_factor;
-      index += 1;
-      weight_string = strtok(NULL, "|");
+    int weights_values[RANDOM_MSG_POOL_SIZE]; 
+    int index = 0;
+    int i=0;
+    
+    while (weights_string_const[i] != '\0') {
+      weights_values[index] = atoi(weight);
+      index++;
+      while (isdigit((int) weights_string_const[i])) i++;
+      if (weights_string_const[i] == '|') {
+        i++;
+        weight = weights_string_const + i;
+      }
     }
-    persist_write_data(PERSIST_KEY_RANDOM_MSG_WEIGHTS, weights_values, sizeof(double)*RANDOM_MSG_POOL_SIZE);
+    persist_write_data(PERSIST_KEY_RANDOM_MSG_WEIGHTS, weights_values, sizeof(int)*RANDOM_MSG_POOL_SIZE);
   }
 }
 
@@ -606,4 +617,5 @@ void store_delete_all() {
   persist_delete(PERSIST_KEY_CURR_SCORE_TIME);
   persist_delete(PERSIST_KEY_RANDOM_MSG_INDEX);
   persist_delete(PERSIST_KEY_RANDOM_MSG_WEIGHTS);
+  persist_delete(PERSIST_KEY_WEIGHTS_DATA);
 }
