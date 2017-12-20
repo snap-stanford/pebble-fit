@@ -53,4 +53,5 @@ static const uint32_t PERSIST_KEY_CURR_SCORE        = 202;
 static const uint32_t PERSIST_KEY_CURR_SCORE_TIME   = 203;
 static const uint32_t PERSIST_KEY_RANDOM_MSG_INDEX  = 204; // Random message index.
 static const uint32_t PERSIST_KEY_RANDOM_MSG_WEIGHTS= 205; // Random message weights.
+static const uint32_t PERSIST_KEY_WEIGHTS_DATA      = 206; 
 

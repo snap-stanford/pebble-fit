@@ -956,7 +956,7 @@
       "type": "input",
       "id": "random_message_weights",
       "messageKey": "random_message_weights",
-      "defaultValue": "1000|1000|1000|1000|1000|1000|1000|1000|1000|1000|1000|1000"
+      "defaultValue": ""
     },
     {
       "type": "input",
